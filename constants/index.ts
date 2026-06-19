@@ -1,5 +1,10 @@
 export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "/api/v1";
+  process.env.NEXT_PUBLIC_API_URL ||
+  (typeof window !== "undefined"
+    ? "/api/v1"
+    : process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}/api/v1`
+      : "/api/v1");
 
 export const ROUTES = {
   HOME: "/",

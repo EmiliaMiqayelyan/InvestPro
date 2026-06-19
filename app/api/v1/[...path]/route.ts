@@ -1,6 +1,9 @@
 import { NextRequest } from "next/server";
 import { handleApiRequest } from "@/lib/server/api-router";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 type RouteContext = { params: Promise<{ path: string[] }> };
 
 async function handler(req: NextRequest, context: RouteContext) {

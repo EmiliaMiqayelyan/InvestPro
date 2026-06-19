@@ -20,8 +20,6 @@ export interface StoredUser extends User {
 
 export interface DevStore {
   users: Map<string, StoredUser>;
-  sessions: Map<string, string>;
-  refreshTokens: Map<string, string>;
   wallets: Map<string, Wallet>;
   projects: Project[];
   transactions: Map<string, Transaction[]>;
@@ -32,6 +30,12 @@ export interface DevStore {
   kyc: Map<string, KycSubmission | null>;
   cryptoAddresses: Map<string, CryptoWalletAddress[]>;
 }
+
+/** Fixed IDs so seed users survive serverless cold starts with JWT auth */
+export const SEED_USER_IDS = {
+  admin: "00000000-0000-0000-0000-000000000001",
+  demo: "00000000-0000-0000-0000-000000000002",
+} as const;
 
 function generateChartData(days = 30, base = 10000): PortfolioData[] {
   const data: PortfolioData[] = [];
@@ -128,6 +132,7 @@ function seedProjects(): Project[] {
 }
 
 function createUser(
+  id: string,
   email: string,
   password: string,
   firstName: string,
@@ -136,7 +141,7 @@ function createUser(
 ): StoredUser {
   const now = new Date().toISOString();
   return {
-    id: createId(),
+    id,
     email,
     password,
     firstName,
@@ -164,8 +169,22 @@ function createWallet(userId: string): Wallet {
 
 function initStore(): DevStore {
   const users = new Map<string, StoredUser>();
-  const admin = createUser("admin@investpro.com", "admin123", "Admin", "User", "admin");
-  const demo = createUser("demo@investpro.com", "demo123", "Demo", "User", "user");
+  const admin = createUser(
+    SEED_USER_IDS.admin,
+    "admin@investpro.com",
+    "admin123",
+    "Admin",
+    "User",
+    "admin"
+  );
+  const demo = createUser(
+    SEED_USER_IDS.demo,
+    "demo@investpro.com",
+    "demo123",
+    "Demo",
+    "User",
+    "user"
+  );
   users.set(admin.id, admin);
   users.set(demo.id, demo);
 
@@ -175,8 +194,6 @@ function initStore(): DevStore {
 
   return {
     users,
-    sessions: new Map(),
-    refreshTokens: new Map(),
     wallets,
     projects: seedProjects(),
     transactions: new Map(),
@@ -235,14 +252,24 @@ export function getAdminStats(): AdminStats {
   };
 }
 
+export function getWalletForUser(userId: string): Wallet {
+  const store = getStore();
+  let wallet = store.wallets.get(userId);
+  if (!wallet) {
+    wallet = createWallet(userId);
+    store.wallets.set(userId, wallet);
+  }
+  return wallet;
+}
+
 export function getDashboardStats(userId: string): DashboardStats {
-  const wallet = getStore().wallets.get(userId);
+  const wallet = getWalletForUser(userId);
   return {
-    totalBalance: wallet?.totalBalance ?? 0,
+    totalBalance: wallet.totalBalance ?? 0,
     activeInvestments: 2,
     totalProfit: 2450.75,
     totalLoss: 120.5,
-    portfolioValue: wallet?.totalBalance ?? 0,
+    portfolioValue: wallet.totalBalance ?? 0,
     pendingTransactions: 1,
   };
 }
