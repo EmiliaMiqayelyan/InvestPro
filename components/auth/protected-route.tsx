@@ -4,25 +4,38 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants";
 import { useAuthStore } from "@/store";
+import { getRoleHome, hasRole, type UserRole } from "@/lib/rbac";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
+  /** Shorthand for allowedRoles={["admin"]}. */
   requireAdmin?: boolean;
+  /** Roles allowed to view this route. Omit to allow any authenticated user. */
+  allowedRoles?: UserRole[];
 }
 
-export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRouteProps) {
+export function ProtectedRoute({
+  children,
+  requireAdmin = false,
+  allowedRoles,
+}: ProtectedRouteProps) {
   const router = useRouter();
   const { isAuthenticated, isLoading, user } = useAuthStore();
 
+  const roles = allowedRoles ?? (requireAdmin ? (["admin"] as UserRole[]) : undefined);
+  const roleAllowed = !roles || hasRole(user, roles);
+
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
+    if (isLoading) return;
+    if (!isAuthenticated) {
       router.replace(ROUTES.LOGIN);
+      return;
     }
-    if (!isLoading && isAuthenticated && requireAdmin && user?.role !== "admin") {
-      router.replace(ROUTES.DASHBOARD);
+    if (!roleAllowed) {
+      router.replace(getRoleHome(user?.role));
     }
-  }, [isAuthenticated, isLoading, requireAdmin, user, router]);
+  }, [isAuthenticated, isLoading, roleAllowed, user, router]);
 
   if (isLoading) {
     return (
@@ -37,7 +50,7 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
   }
 
   if (!isAuthenticated) return null;
-  if (requireAdmin && user?.role !== "admin") return null;
+  if (!roleAllowed) return null;
 
   return <>{children}</>;
 }

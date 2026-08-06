@@ -403,6 +403,52 @@ const handlers: Record<string, Handler> = {
     return ok(paginate(filtered, Number(searchParams.get("page") || 1), Number(searchParams.get("limit") || 10)));
   },
 
+  "GET /admin/users/:id": async (_req, params, auth) => {
+    if (!auth) return fail("Unauthorized", 401);
+    const user = getStore().users.get(params.id);
+    if (!user) return fail("User not found", 404);
+    return ok(sanitizeUser(user));
+  },
+
+  "PATCH /admin/users/:id": async (req, params, auth) => {
+    if (!auth) return fail("Unauthorized", 401);
+    const user = getStore().users.get(params.id);
+    if (!user) return fail("User not found", 404);
+    const body = await parseBody<Partial<StoredUser>>(req);
+    if (body.role && body.role !== "admin" && body.role !== "user") {
+      return fail("Invalid role", 400);
+    }
+    if (body.role && params.id === auth.sub && body.role !== "admin") {
+      return fail("You cannot remove your own admin role", 400);
+    }
+    const updated: StoredUser = {
+      ...user,
+      firstName: body.firstName ?? user.firstName,
+      lastName: body.lastName ?? user.lastName,
+      phone: body.phone ?? user.phone,
+      role: body.role ?? user.role,
+      updatedAt: new Date().toISOString(),
+    };
+    getStore().users.set(params.id, updated);
+    return ok(sanitizeUser(updated));
+  },
+
+  "PATCH /admin/users/:id/role": async (req, params, auth) => {
+    if (!auth) return fail("Unauthorized", 401);
+    const user = getStore().users.get(params.id);
+    if (!user) return fail("User not found", 404);
+    const { role } = await parseBody<{ role: string }>(req);
+    if (role !== "admin" && role !== "user") {
+      return fail("Invalid role. Must be 'admin' or 'user'", 400);
+    }
+    if (params.id === auth.sub && role !== "admin") {
+      return fail("You cannot remove your own admin role", 400);
+    }
+    const updated: StoredUser = { ...user, role, updatedAt: new Date().toISOString() };
+    getStore().users.set(params.id, updated);
+    return ok(sanitizeUser(updated));
+  },
+
   "GET /admin/deposits/pending": async (req, _params, auth) => {
     if (!auth) return fail("Unauthorized", 401);
     if (auth.role !== "admin") return fail("Forbidden", 403);
@@ -482,5 +528,13 @@ export async function handleApiRequest(req: NextRequest, pathSegments: string[])
   }
 
   const auth = await getAuth(req);
+
+  // Central RBAC guard: every /admin/* endpoint requires the admin role,
+  // regardless of per-handler checks.
+  if (path === "admin" || path.startsWith("admin/")) {
+    if (!auth) return fail("Unauthorized", 401);
+    if (auth.role !== "admin") return fail("Forbidden", 403);
+  }
+
   return matched.handler(req, matched.params, auth);
 }

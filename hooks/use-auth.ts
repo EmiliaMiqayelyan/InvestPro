@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { QUERY_KEYS, ROUTES } from "@/constants";
 import { authApi } from "@/services/api";
 import { useAuthStore } from "@/store";
+import { getRoleHome } from "@/lib/rbac";
 import { getErrorMessage } from "@/services/api/client";
 import type { LoginCredentials, RegisterData } from "@/services/api/auth";
 import { toast } from "sonner";
@@ -26,7 +27,7 @@ export function useAuth() {
       login(user, tokens.accessToken, tokens.refreshToken);
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.AUTH] });
       toast.success("Welcome back!");
-      router.push(user.role === "admin" ? ROUTES.ADMIN : ROUTES.DASHBOARD);
+      router.push(getRoleHome(user.role));
     },
     onError: (error) => toast.error(getErrorMessage(error)),
   });

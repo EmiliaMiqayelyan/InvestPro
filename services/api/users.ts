@@ -1,5 +1,11 @@
 import apiClient from "./client";
-import type { ApiResponse, FilterParams, PaginatedResponse, User } from "@/types";
+import type {
+  ApiResponse,
+  FilterParams,
+  PaginatedResponse,
+  User,
+  UserRole,
+} from "@/types";
 
 export interface UpdateProfileData {
   firstName?: string;
@@ -32,6 +38,9 @@ export const usersApi = {
 
   update: (id: string, data: Partial<User>) =>
     apiClient.patch<ApiResponse<User>>(`/admin/users/${id}`, data),
+
+  updateRole: (id: string, role: UserRole) =>
+    apiClient.patch<ApiResponse<User>>(`/admin/users/${id}/role`, { role }),
 
   deactivate: (id: string) =>
     apiClient.post<ApiResponse<null>>(`/admin/users/${id}/deactivate`),

@@ -4,6 +4,18 @@ import type { ApiError } from "@/types";
 
 const TOKEN_KEY = "access_token";
 const REFRESH_TOKEN_KEY = "refresh_token";
+const TOKEN_COOKIE_MAX_AGE = 7 * 24 * 60 * 60; // mirror access token TTL (7d)
+
+// The access token is mirrored into a cookie so Next.js middleware can
+// enforce role-based route protection on the server.
+function syncAuthCookie(accessToken: string | null): void {
+  if (typeof document === "undefined") return;
+  if (accessToken) {
+    document.cookie = `${TOKEN_KEY}=${accessToken}; path=/; max-age=${TOKEN_COOKIE_MAX_AGE}; SameSite=Lax`;
+  } else {
+    document.cookie = `${TOKEN_KEY}=; path=/; max-age=0; SameSite=Lax`;
+  }
+}
 
 export function getAccessToken(): string | null {
   if (typeof window === "undefined") return null;
@@ -19,12 +31,19 @@ export function setTokens(accessToken: string, refreshToken: string): void {
   if (typeof window === "undefined") return;
   localStorage.setItem(TOKEN_KEY, accessToken);
   localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+  syncAuthCookie(accessToken);
 }
 
 export function clearTokens(): void {
   if (typeof window === "undefined") return;
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(REFRESH_TOKEN_KEY);
+  syncAuthCookie(null);
+}
+
+/** Re-sync the middleware cookie from localStorage (covers sessions created before cookie support). */
+export function syncAuthCookieFromStorage(): void {
+  syncAuthCookie(getAccessToken());
 }
 
 const apiClient: AxiosInstance = axios.create({

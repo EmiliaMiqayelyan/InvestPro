@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { authApi } from "@/services/api";
+import { syncAuthCookieFromStorage } from "@/services/api/client";
 import { useAuthStore } from "@/store";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -9,6 +10,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const initAuth = async () => {
+      syncAuthCookieFromStorage();
       if (!isAuthenticated) {
         setLoading(false);
         return;
