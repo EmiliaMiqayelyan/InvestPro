@@ -1,21 +1,62 @@
-export type UserRole = "user" | "admin";
+export type UserRole = "investor" | "project_owner" | "admin";
 
-export type TransactionStatus = "pending" | "approved" | "rejected" | "completed" | "failed";
-export type ProjectStatus = "active" | "completed" | "upcoming";
+export type MembershipTier = "none" | "basic" | "premium" | "enterprise";
+export type MembershipTierAlias = MembershipTier;
+export type MembershipTierPlan = MembershipTier;
+
+export type MembershipPlanId = "basic" | "premium" | "enterprise";
+
+export type ProjectStatus =
+  | "draft"
+  | "pending_review"
+  | "published"
+  | "funded"
+  | "closed"
+  | "rejected";
+
+export type ProjectStage =
+  | "idea"
+  | "mvp"
+  | "early_revenue"
+  | "growth"
+  | "expansion";
+
 export type RiskLevel = "low" | "medium" | "high";
-export type KycStatus = "not_submitted" | "pending" | "approved" | "rejected" | "resubmission_requested";
+export type OfferStatus = "pending" | "accepted" | "rejected" | "negotiating";
+export type KycStatus =
+  | "not_submitted"
+  | "pending"
+  | "approved"
+  | "rejected"
+  | "resubmission_requested";
+
+export type DocumentCategory =
+  | "business_plan"
+  | "pitch_deck"
+  | "technical"
+  | "legal"
+  | "certificate"
+  | "contract"
+  | "image"
+  | "video"
+  | "other";
+
+export type TeamRole =
+  | "engineer"
+  | "developer"
+  | "designer"
+  | "advisor"
+  | "member";
+
 export type NotificationType =
-  | "deposit_success"
-  | "withdrawal_success"
-  | "investment_success"
-  | "admin_message"
+  | "offer_received"
+  | "offer_updated"
+  | "message"
+  | "membership"
   | "kyc_update"
+  | "project_update"
   | "security_alert"
   | "general";
-
-export type PaymentMethod = "mastercard" | "visa" | "cryptocurrency";
-export type CryptoCurrency = "BTC" | "ETH" | "USDT_TRC20" | "USDT_ERC20" | "USDC";
-export type TransactionType = "deposit" | "withdrawal" | "investment" | "profit" | "refund";
 
 export interface User {
   id: string;
@@ -25,9 +66,13 @@ export interface User {
   avatar?: string;
   phone?: string;
   role: UserRole;
+  membershipTier: MembershipPlanId | "none";
+  membershipExpiresAt?: string;
   isEmailVerified: boolean;
   is2faEnabled: boolean;
   kycStatus: KycStatus;
+  companyName?: string;
+  bio?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -63,117 +108,184 @@ export interface ApiError {
   errors?: Record<string, string[]>;
 }
 
-export interface Wallet {
+export interface TeamMember {
   id: string;
-  userId: string;
-  availableBalance: number;
-  pendingBalance: number;
-  totalBalance: number;
-  currency: string;
-  updatedAt: string;
-}
-
-export interface Deposit {
-  id: string;
-  userId: string;
-  amount: number;
-  currency: string;
-  paymentMethod: PaymentMethod;
-  cryptoCurrency?: CryptoCurrency;
-  cryptoAddress?: string;
-  txHash?: string;
-  status: TransactionStatus;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Withdrawal {
-  id: string;
-  userId: string;
-  amount: number;
-  currency: string;
-  paymentMethod: PaymentMethod;
-  cryptoCurrency?: CryptoCurrency;
-  destinationAddress?: string;
-  bankDetails?: Record<string, string>;
-  status: TransactionStatus;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Transaction {
-  id: string;
-  userId: string;
-  type: TransactionType;
-  amount: number;
-  currency: string;
-  status: TransactionStatus;
-  description: string;
-  referenceId?: string;
-  createdAt: string;
-}
-
-export interface Project {
-  id: string;
-  title: string;
-  slug: string;
-  category: string;
-  description: string;
-  fullDescription: string;
-  image: string;
-  fundingGoal: number;
-  currentAmount: number;
-  roiPercentage: number;
-  investmentPeriod: number;
-  riskLevel: RiskLevel;
-  status: ProjectStatus;
-  investorCount: number;
-  minInvestment: number;
-  maxInvestment: number;
-  startDate: string;
-  endDate: string;
-  documents?: ProjectDocument[];
-  faqs?: ProjectFaq[];
-  createdAt: string;
+  name: string;
+  position: string;
+  role: TeamRole;
+  experience: string;
+  biography: string;
+  portfolio?: string;
+  avatar?: string;
 }
 
 export interface ProjectDocument {
   id: string;
   name: string;
   url: string;
-  type: string;
+  category: DocumentCategory;
+  size?: number;
+  uploadedAt: string;
 }
 
-export interface ProjectFaq {
+export interface ProjectUpdate {
   id: string;
-  question: string;
-  answer: string;
+  title: string;
+  content: string;
+  createdAt: string;
 }
 
-export interface InvestmentPlan {
+export interface Project {
   id: string;
-  projectId: string;
-  name: string;
-  minAmount: number;
-  maxAmount: number;
-  roiPercentage: number;
-  duration: number;
+  ownerId: string;
+  ownerName?: string;
+  title: string;
+  slug: string;
   description: string;
+  fullDescription: string;
+  category: string;
+  industry: string;
+  location: string;
+  stage: ProjectStage;
+  timeline: string;
+  image: string;
+  requiredInvestment: number;
+  minInvestment: number;
+  currentFunding: number;
+  expectedRoi: number;
+  revenueModel: string;
+  financialProjections: string;
+  investmentPlan: string;
+  businessModel: string;
+  riskLevel: RiskLevel;
+  status: ProjectStatus;
+  investorCount: number;
+  savedCount: number;
+  team: TeamMember[];
+  documents: ProjectDocument[];
+  updates: ProjectUpdate[];
+  startDate?: string;
+  endDate?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export interface Investment {
+export interface RiskIndicator {
+  label: string;
+  detail: string;
+}
+
+export interface RiskAnalysis {
+  projectId: string;
+  score: number;
+  level: RiskLevel;
+  completeness: number;
+  positiveIndicators: RiskIndicator[];
+  warningIndicators: RiskIndicator[];
+  missingDocuments: string[];
+  questionsToAsk: string[];
+  summary: string;
+  generatedAt: string;
+}
+
+export interface MembershipPlan {
+  id: MembershipPlanId;
+  name: string;
+  price: number;
+  billingPeriod: "monthly" | "yearly";
+  description: string;
+  features: string[];
+  highlighted?: boolean;
+}
+
+export interface MembershipSubscription {
   id: string;
   userId: string;
+  planId: MembershipPlanId;
+  status: "active" | "cancelled" | "expired" | "pending";
+  startedAt: string;
+  expiresAt: string;
+  amount: number;
+}
+
+export interface InvestmentOffer {
+  id: string;
+  projectId: string;
+  projectTitle?: string;
+  investorId: string;
+  investorName?: string;
+  ownerId: string;
+  amount: number;
+  conditions: string;
+  questions: string;
+  notes: string;
+  status: OfferStatus;
+  ownerResponse?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  senderName: string;
+  senderRole: UserRole;
+  content: string;
+  attachmentUrl?: string;
+  attachmentName?: string;
+  isFlagged?: boolean;
+  createdAt: string;
+}
+
+export interface Conversation {
+  id: string;
+  projectId: string;
+  projectTitle: string;
+  investorId: string;
+  investorName: string;
+  ownerId: string;
+  ownerName: string;
+  lastMessage?: string;
+  lastMessageAt?: string;
+  unreadCount: number;
+  createdAt: string;
+}
+
+export interface SavedProject {
+  projectId: string;
+  savedAt: string;
+}
+
+export interface InvestorInvestment {
+  id: string;
+  offerId: string;
   projectId: string;
   project?: Project;
-  planId?: string;
   amount: number;
-  expectedReturn: number;
-  currentReturn: number;
-  roiPercentage: number;
   status: "active" | "completed" | "cancelled";
-  startDate: string;
-  endDate: string;
+  expectedReturn: number;
+  createdAt: string;
+}
+
+export interface ActivityLog {
+  id: string;
+  userId: string;
+  action: string;
+  entityType: string;
+  entityId?: string;
+  metadata?: Record<string, unknown>;
+  createdAt: string;
+}
+
+export interface Complaint {
+  id: string;
+  reporterId: string;
+  againstUserId?: string;
+  projectId?: string;
+  subject: string;
+  description: string;
+  status: "open" | "reviewing" | "resolved" | "dismissed";
   createdAt: string;
 }
 
@@ -200,39 +312,37 @@ export interface KycSubmission {
   reviewedAt?: string;
 }
 
-export interface DashboardStats {
-  totalBalance: number;
-  activeInvestments: number;
-  totalProfit: number;
-  totalLoss: number;
+export interface InvestorDashboardStats {
+  availableProjects: number;
+  myInvestments: number;
+  savedProjects: number;
+  unreadMessages: number;
+  membershipTier: MembershipPlanId | "none";
   portfolioValue: number;
-  pendingTransactions: number;
+  activeOffers: number;
 }
 
-export interface PortfolioData {
-  date: string;
-  value: number;
-  profit: number;
+export interface OwnerDashboardStats {
+  myProjects: number;
+  publishedProjects: number;
+  investorRequests: number;
+  unreadMessages: number;
+  totalFundingRaised: number;
+  teamMembers: number;
+  pendingOffers: number;
 }
 
 export interface AdminStats {
-  totalUsers: number;
-  activeUsers: number;
-  totalDeposits: number;
-  totalWithdrawals: number;
-  pendingDeposits: number;
-  pendingWithdrawals: number;
-  totalInvestments: number;
-  pendingKyc: number;
+  totalInvestors: number;
+  totalOwners: number;
   totalProjects: number;
-}
-
-export interface CryptoWalletAddress {
-  id: string;
-  currency: CryptoCurrency;
-  address: string;
-  network: string;
-  label?: string;
+  publishedProjects: number;
+  pendingProjects: number;
+  activeMemberships: number;
+  pendingKyc: number;
+  openComplaints: number;
+  totalOffers: number;
+  totalFunding: number;
 }
 
 export interface FilterParams {
@@ -240,7 +350,12 @@ export interface FilterParams {
   limit?: number;
   search?: string;
   status?: string;
-  type?: string;
+  category?: string;
+  riskLevel?: string;
   sortBy?: string;
   sortOrder?: "asc" | "desc";
 }
+
+/** @deprecated kept for transitional imports during refactor */
+export type TransactionStatus = OfferStatus;
+export type DashboardStats = InvestorDashboardStats;

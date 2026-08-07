@@ -1,5 +1,7 @@
-import { AdminLayout } from "@/components/layout/admin-layout";
+"use client";
+
 import { ProtectedRoute } from "@/components/auth/protected-route";
+import { WorkspaceShell } from "@/components/layout/workspace-shell";
 
 export default function AdminRootLayout({
   children,
@@ -8,7 +10,7 @@ export default function AdminRootLayout({
 }) {
   return (
     <ProtectedRoute requireAdmin>
-      <AdminLayout>{children}</AdminLayout>
+      <WorkspaceShell title="Admin">{children}</WorkspaceShell>
     </ProtectedRoute>
   );
 }

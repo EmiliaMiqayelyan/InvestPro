@@ -6,99 +6,198 @@ export const API_BASE_URL =
       ? `https://${process.env.VERCEL_URL}/api/v1`
       : "/api/v1");
 
+export const PLATFORM_NAME = "VentureBridge";
+
 export const ROUTES = {
   HOME: "/",
+  ABOUT: "/about",
+  CONTACT: "/contact",
+  MEMBERSHIP: "/membership",
+  PROJECTS: "/projects",
   LOGIN: "/login",
   REGISTER: "/register",
   FORGOT_PASSWORD: "/forgot-password",
   VERIFY_EMAIL: "/verify-email",
   TWO_FACTOR: "/two-factor",
-  DASHBOARD: "/dashboard",
-  WALLET: "/wallet",
-  DEPOSIT: "/deposit",
-  WITHDRAW: "/withdraw",
-  DEPOSIT_CRYPTO: "/deposit/crypto",
-  WITHDRAW_CRYPTO: "/withdraw/crypto",
-  WALLET_ADDRESSES: "/wallet/addresses",
-  DEPOSIT_HISTORY: "/deposit/history",
-  WITHDRAW_HISTORY: "/withdraw/history",
-  PROJECTS: "/projects",
-  INVESTMENTS: "/investments",
-  TRANSACTIONS: "/transactions",
-  NOTIFICATIONS: "/notifications",
-  PROFILE: "/profile",
-  SECURITY: "/security",
-  KYC: "/kyc",
-  ADMIN: "/admin",
+
+  // Investor
+  INVESTOR_DASHBOARD: "/investor/dashboard",
+  INVESTOR_INVESTMENTS: "/investor/investments",
+  INVESTOR_SAVED: "/investor/saved",
+  INVESTOR_MESSAGES: "/investor/messages",
+  INVESTOR_PROFILE: "/investor/profile",
+  INVESTOR_KYC: "/investor/kyc",
+  INVESTOR_SECURITY: "/investor/security",
+  MESSAGES: "/messages",
+
+  // Owner
+  OWNER_DASHBOARD: "/owner/dashboard",
+  OWNER_PROJECTS: "/owner/projects",
+  OWNER_PROJECT_CREATE: "/owner/projects/create",
+  OWNER_MESSAGES: "/owner/messages",
+  OWNER_DOCUMENTS: "/owner/documents",
+  OWNER_OFFERS: "/owner/offers",
+  OWNER_ANALYTICS: "/owner/analytics",
+  OWNER_TEAM: "/owner/team",
+  OWNER_PROFILE: "/owner/profile",
+
+  // Admin
+  ADMIN: "/admin/dashboard",
+  ADMIN_DASHBOARD: "/admin/dashboard",
   ADMIN_USERS: "/admin/users",
   ADMIN_PROJECTS: "/admin/projects",
-  ADMIN_TRANSACTIONS: "/admin/transactions",
-  ADMIN_DEPOSITS: "/admin/deposits",
-  ADMIN_WITHDRAWALS: "/admin/withdrawals",
-  ADMIN_KYC: "/admin/kyc",
-  ADMIN_NOTIFICATIONS: "/admin/notifications",
+  ADMIN_PAYMENTS: "/admin/payments",
+  ADMIN_SECURITY: "/admin/security",
+  ADMIN_MEMBERSHIPS: "/admin/memberships",
+  ADMIN_COMPLAINTS: "/admin/complaints",
   ADMIN_SETTINGS: "/admin/settings",
+
+  // Legacy aliases (redirect targets)
+  DASHBOARD: "/investor/dashboard",
+  PROFILE: "/investor/profile",
+  SECURITY: "/investor/security",
+  KYC: "/investor/kyc",
+  INVESTMENTS: "/investor/investments",
 } as const;
 
-export const CRYPTO_CURRENCIES = [
-  { value: "BTC", label: "Bitcoin (BTC)", network: "Bitcoin" },
-  { value: "ETH", label: "Ethereum (ETH)", network: "Ethereum" },
-  { value: "USDT_TRC20", label: "USDT (TRC20)", network: "TRON" },
-  { value: "USDT_ERC20", label: "USDT (ERC20)", network: "Ethereum" },
-  { value: "USDC", label: "USDC", network: "Ethereum" },
-] as const;
-
-export const PAYMENT_METHODS = [
-  { value: "mastercard", label: "MasterCard", icon: "credit-card" },
-  { value: "visa", label: "Visa", icon: "credit-card" },
-  { value: "cryptocurrency", label: "Cryptocurrency", icon: "bitcoin" },
-] as const;
-
 export const PROJECT_CATEGORIES = [
-  "Real Estate",
   "Technology",
-  "Energy",
+  "FinTech",
   "Healthcare",
+  "Clean Energy",
+  "Real Estate",
   "Agriculture",
-  "Finance",
+  "E-Commerce",
+  "AI & ML",
   "Infrastructure",
   "Other",
 ] as const;
 
+export const PROJECT_INDUSTRIES = [
+  "Software",
+  "Biotechnology",
+  "Renewable Energy",
+  "Financial Services",
+  "Manufacturing",
+  "Consumer Goods",
+  "Education",
+  "Logistics",
+  "Media",
+  "Other",
+] as const;
+
+export const PROJECT_STAGES = [
+  { value: "idea", label: "Idea" },
+  { value: "mvp", label: "MVP" },
+  { value: "early_revenue", label: "Early Revenue" },
+  { value: "growth", label: "Growth" },
+  { value: "expansion", label: "Expansion" },
+] as const;
+
+export const DOCUMENT_CATEGORIES = [
+  { value: "business_plan", label: "Business Plan" },
+  { value: "pitch_deck", label: "Pitch Deck" },
+  { value: "technical", label: "Technical Documentation" },
+  { value: "legal", label: "Legal Documents" },
+  { value: "certificate", label: "Certificates" },
+  { value: "contract", label: "Contracts" },
+  { value: "image", label: "Images" },
+  { value: "video", label: "Videos" },
+  { value: "other", label: "Other" },
+] as const;
+
+export const TEAM_ROLES = [
+  { value: "engineer", label: "Engineer" },
+  { value: "developer", label: "Developer" },
+  { value: "designer", label: "Designer" },
+  { value: "advisor", label: "Advisor" },
+  { value: "member", label: "Team Member" },
+] as const;
+
 export const RISK_LEVELS = [
-  { value: "low", label: "Low Risk", color: "text-emerald-400" },
-  { value: "medium", label: "Medium Risk", color: "text-yellow-400" },
-  { value: "high", label: "High Risk", color: "text-red-400" },
+  { value: "low", label: "Low Risk", color: "text-emerald-600", bg: "bg-emerald-50 border-emerald-200" },
+  { value: "medium", label: "Medium Risk", color: "text-amber-600", bg: "bg-amber-50 border-amber-200" },
+  { value: "high", label: "High Risk", color: "text-red-600", bg: "bg-red-50 border-red-200" },
 ] as const;
 
 export const STATUS_COLORS: Record<string, string> = {
-  pending: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
-  approved: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
-  completed: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
-  rejected: "bg-red-500/20 text-red-400 border-red-500/30",
-  failed: "bg-red-500/20 text-red-400 border-red-500/30",
-  active: "bg-blue-500/20 text-blue-400 border-blue-500/30",
-  upcoming: "bg-purple-500/20 text-purple-400 border-purple-500/30",
-  cancelled: "bg-gray-500/20 text-gray-400 border-gray-500/30",
-  not_submitted: "bg-gray-500/20 text-gray-400 border-gray-500/30",
-  resubmission_requested: "bg-orange-500/20 text-orange-400 border-orange-500/30",
+  draft: "bg-slate-100 text-slate-700 border-slate-200",
+  pending_review: "bg-amber-50 text-amber-700 border-amber-200",
+  published: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  funded: "bg-blue-50 text-blue-700 border-blue-200",
+  closed: "bg-slate-100 text-slate-600 border-slate-200",
+  rejected: "bg-red-50 text-red-700 border-red-200",
+  pending: "bg-amber-50 text-amber-700 border-amber-200",
+  accepted: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  negotiating: "bg-violet-50 text-violet-700 border-violet-200",
+  active: "bg-blue-50 text-blue-700 border-blue-200",
+  completed: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  cancelled: "bg-slate-100 text-slate-600 border-slate-200",
+  approved: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  not_submitted: "bg-slate-100 text-slate-600 border-slate-200",
+  resubmission_requested: "bg-orange-50 text-orange-700 border-orange-200",
+  open: "bg-amber-50 text-amber-700 border-amber-200",
+  reviewing: "bg-blue-50 text-blue-700 border-blue-200",
+  resolved: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  dismissed: "bg-slate-100 text-slate-600 border-slate-200",
 };
+
+export const MEMBERSHIP_FEATURES = {
+  none: ["Browse project titles", "Limited marketplace preview"],
+  basic: [
+    "View limited projects",
+    "Basic project information",
+    "Save projects",
+    "Risk score preview",
+  ],
+  premium: [
+    "Full project access",
+    "Documents access",
+    "Team information",
+    "Financial analysis",
+    "Direct platform messaging",
+    "Send investment offers",
+    "Full risk reports",
+  ],
+  enterprise: [
+    "Everything in Premium",
+    "Priority communication",
+    "Advanced analytics",
+    "Dedicated support",
+    "Early access to new listings",
+  ],
+} as const;
 
 export const QUERY_KEYS = {
   AUTH: "auth",
   USER: "user",
-  WALLET: "wallet",
-  DEPOSITS: "deposits",
-  WITHDRAWALS: "withdrawals",
-  TRANSACTIONS: "transactions",
   PROJECTS: "projects",
+  PROJECT: "project",
+  RISK_ANALYSIS: "risk-analysis",
   INVESTMENTS: "investments",
+  OFFERS: "offers",
+  SAVED: "saved-projects",
+  CONVERSATIONS: "conversations",
+  MESSAGES: "messages",
+  MEMBERSHIP: "membership",
   NOTIFICATIONS: "notifications",
   KYC: "kyc",
-  DASHBOARD: "dashboard",
+  INVESTOR_DASHBOARD: "investor-dashboard",
+  OWNER_DASHBOARD: "owner-dashboard",
+  OWNER_PROJECTS: "owner-projects",
+  OWNER_DOCUMENTS: "owner-documents",
   ADMIN_STATS: "admin-stats",
   ADMIN_USERS: "admin-users",
-  CRYPTO_ADDRESSES: "crypto-addresses",
+  ADMIN_PAYMENTS: "admin-payments",
+  ADMIN_SECURITY: "admin-security",
+  ADMIN_COMPLAINTS: "admin-complaints",
+  ACTIVITY_LOGS: "activity-logs",
 } as const;
 
 export const DEFAULT_PAGE_SIZE = 10;
+
+export const CONTACT_BLOCKED_PATTERNS = [
+  /\b[\w.+-]+@[\w-]+\.[\w.]+\b/i,
+  /\b(?:\+?\d[\d\s().-]{7,}\d)\b/,
+  /\b(?:whatsapp|telegram|signal|skype|wechat)\b/i,
+];

@@ -1,117 +1,105 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Settings } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { QUERY_KEYS } from "@/constants";
-import { adminApi } from "@/services/api";
-import { getErrorMessage } from "@/services/api/client";
+import { Textarea } from "@/components/ui/textarea";
+import { PLATFORM_NAME } from "@/constants";
 import { toast } from "sonner";
 
 export default function AdminSettingsPage() {
-  const queryClient = useQueryClient();
-  const [localSettings, setLocalSettings] = useState<Record<string, unknown>>({});
-
-  const { data: settings, isLoading } = useQuery({
-    queryKey: [QUERY_KEYS.ADMIN_STATS, "settings"],
-    queryFn: async () => {
-      const { data } = await adminApi.getSettings();
-      setLocalSettings(data.data);
-      return data.data;
-    },
+  const [settings, setSettings] = useState({
+    platformName: PLATFORM_NAME,
+    supportEmail: "support@venturebridge.com",
+    maintenanceMode: false,
+    kycRequired: true,
+    contactBlocking: true,
+    announcement: "",
   });
-
-  const mutation = useMutation({
-    mutationFn: () => adminApi.updateSettings(localSettings),
-    onSuccess: () => {
-      toast.success("Settings saved");
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ADMIN_STATS, "settings"] });
-    },
-    onError: (error) => toast.error(getErrorMessage(error)),
-  });
-
-  if (isLoading) {
-    return <div className="animate-pulse h-64 bg-muted/50 rounded-xl" />;
-  }
 
   return (
-    <div className="space-y-8 max-w-2xl">
+    <div className="mx-auto max-w-2xl space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Platform Settings</h1>
-        <p className="text-muted-foreground">Configure platform-wide settings</p>
+        <h2 className="font-display text-2xl font-semibold text-slate-900">Settings</h2>
+        <p className="text-sm text-muted-foreground">Platform configuration (UI stub)</p>
       </div>
 
-      <Card>
+      <Card className="premium-card border-border bg-white shadow-none backdrop-blur-none">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Settings className="h-5 w-5" /> General Settings
+          <CardTitle className="flex items-center gap-2 text-slate-900">
+            <Settings className="h-5 w-5 text-blue-600" /> General
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-5">
           <div className="space-y-2">
-            <Label>Platform Name</Label>
+            <Label>Platform name</Label>
             <Input
-              value={(localSettings.platformName as string) || "InvestPro"}
-              onChange={(e) =>
-                setLocalSettings({ ...localSettings, platformName: e.target.value })
-              }
+              value={settings.platformName}
+              onChange={(e) => setSettings({ ...settings, platformName: e.target.value })}
             />
           </div>
           <div className="space-y-2">
-            <Label>Support Email</Label>
+            <Label>Support email</Label>
             <Input
-              value={(localSettings.supportEmail as string) || ""}
-              onChange={(e) =>
-                setLocalSettings({ ...localSettings, supportEmail: e.target.value })
-              }
+              value={settings.supportEmail}
+              onChange={(e) => setSettings({ ...settings, supportEmail: e.target.value })}
             />
           </div>
           <div className="space-y-2">
-            <Label>Minimum Deposit (USD)</Label>
-            <Input
-              type="number"
-              value={(localSettings.minDeposit as number) || 10}
-              onChange={(e) =>
-                setLocalSettings({ ...localSettings, minDeposit: +e.target.value })
-              }
+            <Label>Announcement banner</Label>
+            <Textarea
+              value={settings.announcement}
+              onChange={(e) => setSettings({ ...settings, announcement: e.target.value })}
+              placeholder="Optional platform-wide notice"
             />
           </div>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between rounded-xl border border-border px-4 py-3">
             <div>
-              <p className="font-medium">Maintenance Mode</p>
-              <p className="text-sm text-muted-foreground">Disable user access temporarily</p>
+              <p className="font-medium text-slate-900">Maintenance mode</p>
+              <p className="text-sm text-muted-foreground">Temporarily disable user access</p>
             </div>
             <Switch
-              checked={(localSettings.maintenanceMode as boolean) || false}
+              checked={settings.maintenanceMode}
               onCheckedChange={(checked) =>
-                setLocalSettings({ ...localSettings, maintenanceMode: checked })
+                setSettings({ ...settings, maintenanceMode: checked })
               }
             />
           </div>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between rounded-xl border border-border px-4 py-3">
             <div>
-              <p className="font-medium">KYC Required</p>
-              <p className="text-sm text-muted-foreground">Require KYC for investments</p>
+              <p className="font-medium text-slate-900">KYC required</p>
+              <p className="text-sm text-muted-foreground">Require verification for offers</p>
             </div>
             <Switch
-              checked={(localSettings.kycRequired as boolean) || false}
+              checked={settings.kycRequired}
               onCheckedChange={(checked) =>
-                setLocalSettings({ ...localSettings, kycRequired: checked })
+                setSettings({ ...settings, kycRequired: checked })
+              }
+            />
+          </div>
+          <div className="flex items-center justify-between rounded-xl border border-border px-4 py-3">
+            <div>
+              <p className="font-medium text-slate-900">Contact blocking</p>
+              <p className="text-sm text-muted-foreground">
+                Block emails/phones in on-platform chat
+              </p>
+            </div>
+            <Switch
+              checked={settings.contactBlocking}
+              onCheckedChange={(checked) =>
+                setSettings({ ...settings, contactBlocking: checked })
               }
             />
           </div>
           <Button
-            variant="gradient"
-            className="w-full"
-            onClick={() => mutation.mutate()}
-            disabled={mutation.isPending}
+            className="w-full bg-blue-600 hover:bg-blue-700"
+            onClick={() => toast.success("Settings saved locally")}
           >
-            Save Settings
+            Save settings
           </Button>
         </CardContent>
       </Card>

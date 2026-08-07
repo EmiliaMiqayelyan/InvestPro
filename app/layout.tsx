@@ -1,36 +1,42 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Plus_Jakarta_Sans, Instrument_Sans } from "next/font/google";
 import { Toaster } from "sonner";
 import { QueryProvider } from "@/components/providers/query-provider";
 import { AuthProvider } from "@/components/providers/auth-provider";
+import { PLATFORM_NAME } from "@/constants";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"] });
+const sans = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  variable: "--font-sans",
+});
+
+const display = Instrument_Sans({
+  subsets: ["latin"],
+  variable: "--font-display",
+});
 
 export const metadata: Metadata = {
-  title: "InvestPro - Premium Investment Platform",
-  description: "Modern investment platform for managing portfolios, crypto, and projects",
+  title: `${PLATFORM_NAME} — Investment Marketplace`,
+  description:
+    "Connect innovative projects with trusted investors. Raise capital, diligence deals, and invest securely on-platform.",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="dark">
-      <body className={inter.className}>
+    <html lang="en">
+      <body className={`${sans.variable} ${display.variable} font-sans`}>
         <QueryProvider>
           <AuthProvider>
             {children}
             <Toaster
-              theme="dark"
+              theme="light"
               position="top-right"
               toastOptions={{
                 style: {
-                  background: "hsl(0 0% 7%)",
-                  border: "1px solid hsl(0 0% 18%)",
-                  color: "hsl(0 0% 98%)",
+                  background: "#fff",
+                  border: "1px solid #e2e8f0",
+                  color: "#0f172a",
                 },
               }}
             />

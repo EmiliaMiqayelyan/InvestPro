@@ -1,0 +1,61 @@
+"use client";
+
+import { useQuery } from "@tanstack/react-query";
+import { AlertTriangle } from "lucide-react";
+import { adminMarketplaceApi } from "@/services/api";
+import { QUERY_KEYS, STATUS_COLORS } from "@/constants";
+import { formatDate } from "@/utils/format";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import type { Complaint } from "@/types";
+
+export default function AdminComplaintsPage() {
+  const { data: complaints = [], isLoading } = useQuery({
+    queryKey: [QUERY_KEYS.ADMIN_COMPLAINTS],
+    queryFn: async () => {
+      const res = await adminMarketplaceApi.complaints();
+      return (res.data.data ?? res.data) as Complaint[];
+    },
+  });
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="font-display text-2xl font-semibold text-slate-900">Complaints</h2>
+        <p className="text-sm text-muted-foreground">User-reported issues for review</p>
+      </div>
+
+      {isLoading ? (
+        <div className="premium-card h-40 animate-pulse bg-slate-100" />
+      ) : complaints.length === 0 ? (
+        <div className="premium-card flex flex-col items-center gap-3 p-12 text-center">
+          <AlertTriangle className="h-10 w-10 text-slate-300" />
+          <p className="font-medium text-slate-900">No complaints</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {complaints.map((c) => (
+            <div key={c.id} className="premium-card space-y-2 p-5">
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div>
+                  <p className="font-semibold text-slate-900">{c.subject}</p>
+                  <p className="text-xs text-muted-foreground">
+                    Reporter {c.reporterId}
+                    {c.againstUserId ? ` · against ${c.againstUserId}` : ""}
+                    {c.projectId ? ` · project ${c.projectId}` : ""}
+                    {" · "}
+                    {formatDate(c.createdAt)}
+                  </p>
+                </div>
+                <Badge className={cn("border capitalize", STATUS_COLORS[c.status])}>
+                  {c.status}
+                </Badge>
+              </div>
+              <p className="text-sm text-slate-700">{c.description}</p>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

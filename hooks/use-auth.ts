@@ -38,7 +38,7 @@ export function useAuth() {
       const { user, tokens } = response.data.data;
       login(user, tokens.accessToken, tokens.refreshToken);
       toast.success("Account created successfully!");
-      router.push(ROUTES.DASHBOARD);
+      router.push(getRoleHome(user.role));
     },
     onError: (error) => toast.error(getErrorMessage(error)),
   });

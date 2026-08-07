@@ -1,13 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
-import type { ApiResponse } from "@/types";
+import type {
+  ApiResponse,
+  Project,
+  TeamMember,
+  ProjectDocument,
+  InvestmentOffer,
+  Conversation,
+  ChatMessage,
+  UserRole,
+  MembershipPlanId,
+} from "@/types";
 import {
   getStore,
   sanitizeUser,
   paginate,
-  getChartData,
   getAdminStats,
-  getDashboardStats,
-  getWalletForUser,
+  getInvestorStats,
+  getOwnerStats,
+  analyzeProjectRisk,
+  logActivity,
+  redactContactInfo,
+  upgradeMembership,
+  MEMBERSHIP_PLANS,
   type StoredUser,
 } from "./store";
 import {
@@ -17,6 +31,7 @@ import {
   payloadToUser,
   type TokenPayload,
 } from "./jwt";
+import { canAccessFullProject, canMessage, canSendOffers } from "@/lib/rbac";
 
 type Handler = (
   req: NextRequest,
@@ -30,8 +45,15 @@ function ok<T>(data: T, message?: string, status = 200) {
 }
 
 function fail(message: string, status = 400) {
-  const body: ApiResponse<null> = { success: false, data: null, message };
-  return NextResponse.json(body, { status });
+  return NextResponse.json({ success: false, message }, { status });
+}
+
+async function parseBody<T>(req: NextRequest): Promise<T> {
+  try {
+    return (await req.json()) as T;
+  } catch {
+    return {} as T;
+  }
 }
 
 async function getAuth(req: NextRequest): Promise<TokenPayload | null> {
@@ -47,18 +69,70 @@ function findUserByEmail(email: string): StoredUser | undefined {
   return undefined;
 }
 
-async function parseBody<T>(req: NextRequest): Promise<T> {
-  return req.json() as Promise<T>;
+function requireAuth(auth: TokenPayload | null) {
+  if (!auth) return fail("Unauthorized", 401);
+  return null;
+}
+
+function requireRole(auth: TokenPayload | null, roles: UserRole[]) {
+  const err = requireAuth(auth);
+  if (err) return err;
+  if (!roles.includes(auth!.role)) return fail("Forbidden", 403);
+  return null;
+}
+
+function publicProjectCard(project: Project) {
+  return {
+    id: project.id,
+    title: project.title,
+    slug: project.slug,
+    category: project.category,
+    industry: project.industry,
+    location: project.location,
+    image: project.image,
+    requiredInvestment: project.requiredInvestment,
+    currentFunding: project.currentFunding,
+    expectedRoi: project.expectedRoi,
+    riskLevel: project.riskLevel,
+    status: project.status,
+    minInvestment: project.minInvestment,
+    stage: project.stage,
+    investorCount: project.investorCount,
+    description: project.description,
+    ownerName: project.ownerName,
+  };
+}
+
+function gatedProject(project: Project, auth: TokenPayload | null) {
+  const tier = auth?.membershipTier || "none";
+  const isOwner = auth?.sub === project.ownerId;
+  const isAdmin = auth?.role === "admin";
+  const full = isOwner || isAdmin || canAccessFullProject(tier);
+
+  if (full) return project;
+
+  return {
+    ...publicProjectCard(project),
+    fullDescription: project.description,
+    timeline: project.timeline,
+    businessModel: "Upgrade to Premium to view the full business model.",
+    financialProjections: "Locked — Premium membership required.",
+    investmentPlan: "Locked — Premium membership required.",
+    revenueModel: "Locked — Premium membership required.",
+    team: [],
+    documents: [],
+    updates: project.updates.map((u) => ({ ...u, content: "Upgrade to view updates." })),
+    accessLimited: true,
+  };
 }
 
 const handlers: Record<string, Handler> = {
   "POST /auth/login": async (req) => {
     const { email, password } = await parseBody<{ email: string; password: string }>(req);
     const user = findUserByEmail(email);
-    if (!user || user.password !== password) {
-      return fail("Invalid email or password", 401);
-    }
+    if (!user || user.password !== password) return fail("Invalid email or password", 401);
     const tokens = await createTokenPair(sanitizeUser(user));
+    logActivity(user.id, "login", "auth");
     return ok({ user: sanitizeUser(user), tokens });
   },
 
@@ -69,10 +143,14 @@ const handlers: Record<string, Handler> = {
       firstName: string;
       lastName: string;
       phone?: string;
+      role?: UserRole;
+      companyName?: string;
     }>(req);
-    if (findUserByEmail(body.email)) {
-      return fail("Email already registered", 409);
-    }
+    if (findUserByEmail(body.email)) return fail("Email already registered", 409);
+    const role: UserRole =
+      body.role === "project_owner" ? "project_owner" : "investor";
+    if (body.role === "admin") return fail("Cannot self-register as admin", 403);
+
     const store = getStore();
     const user: StoredUser = {
       id: crypto.randomUUID(),
@@ -81,7 +159,9 @@ const handlers: Record<string, Handler> = {
       firstName: body.firstName,
       lastName: body.lastName,
       phone: body.phone,
-      role: "user",
+      role,
+      companyName: body.companyName,
+      membershipTier: "none",
       isEmailVerified: false,
       is2faEnabled: false,
       kycStatus: "not_submitted",
@@ -89,20 +169,17 @@ const handlers: Record<string, Handler> = {
       updatedAt: new Date().toISOString(),
     };
     store.users.set(user.id, user);
-    store.wallets.set(user.id, {
-      id: crypto.randomUUID(),
-      userId: user.id,
-      availableBalance: 0,
-      pendingBalance: 0,
-      totalBalance: 0,
-      currency: "USD",
-      updatedAt: new Date().toISOString(),
-    });
+    logActivity(user.id, "register", "auth", undefined, { role });
     const tokens = await createTokenPair(sanitizeUser(user));
-    return ok({ user: sanitizeUser(user), tokens }, undefined, 201);
+    return ok({ user: sanitizeUser(user), tokens }, "Account created", 201);
   },
 
-  "POST /auth/logout": async () => ok(null),
+  "POST /auth/logout": async () => ok(null, "Logged out"),
+
+  "POST /auth/forgot-password": async () =>
+    ok(null, "If the email exists, a reset link was sent"),
+
+  "POST /auth/verify-email": async () => ok(null, "Email verified"),
 
   "POST /auth/refresh": async (req) => {
     const { refreshToken } = await parseBody<{ refreshToken: string }>(req);
@@ -113,380 +190,623 @@ const handlers: Record<string, Handler> = {
     return ok(await createTokenPair(user));
   },
 
-  "GET /auth/me": async (req) => {
-    const auth = await getAuth(req);
+  "GET /auth/me": async (_req, _p, auth) => {
     if (!auth) return fail("Unauthorized", 401);
     const stored = getStore().users.get(auth.sub);
     if (stored) return ok(sanitizeUser(stored));
     return ok(payloadToUser(auth));
   },
 
-  "POST /auth/forgot-password": async () =>
-    ok(null, "If that email exists, a reset link has been sent"),
+  "GET /membership/plans": async () => ok(MEMBERSHIP_PLANS),
 
-  "POST /auth/verify-email": async () => ok(null, "Email verified"),
-
-  "POST /auth/verify-2fa": async (req) => {
-    const { code } = await parseBody<{ code: string; tempToken?: string }>(req);
-    if (code.length !== 6) return fail("Invalid 2FA code", 401);
-    return fail("2FA not enabled in demo mode", 400);
+  "GET /membership/me": async (_req, _p, auth) => {
+    if (!auth) return fail("Unauthorized", 401);
+    const sub = getStore().subscriptions.get(auth.sub) || null;
+    const user = getStore().users.get(auth.sub);
+    return ok({
+      tier: user?.membershipTier || "none",
+      expiresAt: user?.membershipExpiresAt,
+      subscription: sub,
+    });
   },
 
-  "GET /dashboard/stats": async (_req, _params, auth) => {
-    if (!auth) return fail("Unauthorized", 401);
-    return ok(getDashboardStats(auth.sub));
-  },
-
-  "GET /dashboard/portfolio": async () => ok(getChartData(12000)),
-  "GET /dashboard/profit-history": async () => ok(getChartData(2000)),
-  "GET /dashboard/investment-growth": async () => ok(getChartData(8000)),
-
-  "GET /wallet": async (_req, _params, auth) => {
-    if (!auth) return fail("Unauthorized", 401);
-    return ok(getWalletForUser(auth.sub));
-  },
-
-  "GET /wallet/crypto-addresses": async (_req, _params, auth) => {
-    if (!auth) return fail("Unauthorized", 401);
-    const store = getStore();
-    return ok(store.cryptoAddresses.get(auth.sub) ?? []);
-  },
-
-  "POST /wallet/crypto-addresses": async (req, _params, auth) => {
-    if (!auth) return fail("Unauthorized", 401);
-    const { currency } = await parseBody<{ currency: string }>(req);
-    const store = getStore();
-    const addresses = store.cryptoAddresses.get(auth.sub) ?? [];
-    const address = {
-      id: crypto.randomUUID(),
-      currency: currency as "BTC",
-      address: `0x${crypto.randomUUID().replace(/-/g, "").slice(0, 40)}`,
-      network: currency === "BTC" ? "Bitcoin" : "Ethereum",
-    };
-    addresses.push(address);
-    store.cryptoAddresses.set(auth.sub, addresses);
-    return ok(address, undefined, 201);
+  "POST /membership/subscribe": async (req, _p, auth) => {
+    const err = requireRole(auth, ["investor"]);
+    if (err) return err;
+    const { planId } = await parseBody<{ planId: MembershipPlanId }>(req);
+    const result = upgradeMembership(auth!.sub, planId);
+    if (!result) return fail("Invalid plan", 400);
+    const tokens = await createTokenPair(result.user);
+    return ok({ ...result, tokens }, "Membership activated");
   },
 
   "GET /projects": async (req) => {
     const { searchParams } = new URL(req.url);
-    let projects = getStore().projects;
-    const search = searchParams.get("search");
+    const search = searchParams.get("search")?.toLowerCase();
     const category = searchParams.get("category");
-    const status = searchParams.get("status");
+    const riskLevel = searchParams.get("riskLevel");
+    let projects = Array.from(getStore().projects.values()).filter(
+      (p) => p.status === "published" || p.status === "funded"
+    );
     if (search) {
-      const q = search.toLowerCase();
       projects = projects.filter(
-        (p) => p.title.toLowerCase().includes(q) || p.description.toLowerCase().includes(q)
+        (p) =>
+          p.title.toLowerCase().includes(search) ||
+          p.category.toLowerCase().includes(search) ||
+          p.description.toLowerCase().includes(search)
       );
     }
     if (category) projects = projects.filter((p) => p.category === category);
-    if (status) projects = projects.filter((p) => p.status === status);
+    if (riskLevel) projects = projects.filter((p) => p.riskLevel === riskLevel);
     const page = Number(searchParams.get("page") || 1);
-    const limit = Number(searchParams.get("limit") || 10);
-    return ok(paginate(projects, page, limit));
+    const limit = Number(searchParams.get("limit") || 12);
+    const cards = projects.map(publicProjectCard);
+    return ok(paginate(cards, page, limit));
   },
 
-  "GET /projects/:id": async (_req, params) => {
-    const project = getStore().projects.find((p) => p.id === params.id);
+  "GET /projects/:id": async (_req, params, auth) => {
+    const project = getStore().projects.get(params.id);
     if (!project) return fail("Project not found", 404);
-    return ok(project);
+    if (
+      project.status !== "published" &&
+      project.status !== "funded" &&
+      auth?.sub !== project.ownerId &&
+      auth?.role !== "admin"
+    ) {
+      return fail("Project not available", 404);
+    }
+    return ok(gatedProject(project, auth));
   },
 
-  "GET /projects/:id/plans": async (_req, params) => {
-    const project = getStore().projects.find((p) => p.id === params.id);
+  "GET /projects/:id/risk-analysis": async (_req, params, auth) => {
+    const err = requireAuth(auth);
+    if (err) return err;
+    const project = getStore().projects.get(params.id);
     if (!project) return fail("Project not found", 404);
-    return ok([
-      {
-        id: "plan-1",
-        projectId: params.id,
-        name: "Standard Plan",
-        minAmount: project.minInvestment,
-        maxAmount: project.maxInvestment,
-        roiPercentage: project.roiPercentage,
-        duration: project.investmentPeriod,
-        description: "Standard investment plan with fixed returns.",
-      },
-    ]);
+    const analysis = analyzeProjectRisk(project);
+    const tier = auth!.membershipTier || "none";
+    if (!canAccessFullProject(tier) && auth!.role === "investor") {
+      return ok({
+        ...analysis,
+        warningIndicators: analysis.warningIndicators.slice(0, 1),
+        positiveIndicators: analysis.positiveIndicators.slice(0, 2),
+        questionsToAsk: [],
+        missingDocuments: ["Upgrade to Premium for full report"],
+        summary: "Limited preview — upgrade membership for the full Investment Risk Report.",
+        limited: true,
+      });
+    }
+    return ok(analysis);
   },
 
-  "GET /transactions/recent": async (req, _params, auth) => {
-    if (!auth) return fail("Unauthorized", 401);
-    const limit = Number(new URL(req.url).searchParams.get("limit") || 5);
-    const txs = getStore().transactions.get(auth.sub) ?? [];
-    return ok(txs.slice(0, limit));
+  "POST /projects/:id/save": async (_req, params, auth) => {
+    const err = requireRole(auth, ["investor"]);
+    if (err) return err;
+    const store = getStore();
+    if (!store.projects.get(params.id)) return fail("Project not found", 404);
+    const list = store.savedProjects.get(auth!.sub) || [];
+    if (!list.includes(params.id)) list.push(params.id);
+    store.savedProjects.set(auth!.sub, list);
+    return ok({ saved: true });
   },
 
-  "GET /transactions": async (req, _params, auth) => {
-    if (!auth) return fail("Unauthorized", 401);
+  "DELETE /projects/:id/save": async (_req, params, auth) => {
+    const err = requireRole(auth, ["investor"]);
+    if (err) return err;
+    const store = getStore();
+    const list = (store.savedProjects.get(auth!.sub) || []).filter((id) => id !== params.id);
+    store.savedProjects.set(auth!.sub, list);
+    return ok({ saved: false });
+  },
+
+  "GET /investor/dashboard": async (_req, _p, auth) => {
+    const err = requireRole(auth, ["investor", "admin"]);
+    if (err) return err;
+    return ok(getInvestorStats(auth!.sub));
+  },
+
+  "GET /investor/saved": async (_req, _p, auth) => {
+    const err = requireRole(auth, ["investor"]);
+    if (err) return err;
+    const ids = getStore().savedProjects.get(auth!.sub) || [];
+    const projects = ids
+      .map((id) => getStore().projects.get(id))
+      .filter(Boolean)
+      .map((p) => publicProjectCard(p!));
+    return ok(projects);
+  },
+
+  "GET /investor/investments": async (_req, _p, auth) => {
+    const err = requireRole(auth, ["investor"]);
+    if (err) return err;
+    const list = getStore().investments.get(auth!.sub) || [];
+    const enriched = list.map((inv) => ({
+      ...inv,
+      project: getStore().projects.get(inv.projectId),
+    }));
+    return ok(enriched);
+  },
+
+  "POST /offers": async (req, _p, auth) => {
+    const err = requireRole(auth, ["investor"]);
+    if (err) return err;
+    if (!canSendOffers(auth!.membershipTier)) {
+      return fail("Premium membership required to send investment offers", 403);
+    }
+    const body = await parseBody<{
+      projectId: string;
+      amount: number;
+      conditions?: string;
+      questions?: string;
+      notes?: string;
+    }>(req);
+    const project = getStore().projects.get(body.projectId);
+    if (!project || project.status !== "published") return fail("Project not available", 404);
+    if (body.amount < project.minInvestment) {
+      return fail(`Minimum investment is ${project.minInvestment}`, 400);
+    }
+    const investor = getStore().users.get(auth!.sub)!;
+    const offer: InvestmentOffer = {
+      id: crypto.randomUUID(),
+      projectId: project.id,
+      projectTitle: project.title,
+      investorId: auth!.sub,
+      investorName: `${investor.firstName} ${investor.lastName}`,
+      ownerId: project.ownerId,
+      amount: body.amount,
+      conditions: body.conditions || "",
+      questions: body.questions || "",
+      notes: body.notes || "",
+      status: "pending",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    getStore().offers.set(offer.id, offer);
+    logActivity(auth!.sub, "offer_created", "offer", offer.id);
+    const notes = getStore().notifications.get(project.ownerId) || [];
+    notes.unshift({
+      id: crypto.randomUUID(),
+      userId: project.ownerId,
+      type: "offer_received",
+      title: "New investment offer",
+      message: `${offer.investorName} offered $${offer.amount.toLocaleString()} on ${project.title}`,
+      isRead: false,
+      createdAt: new Date().toISOString(),
+    });
+    getStore().notifications.set(project.ownerId, notes);
+    return ok(offer, "Offer submitted", 201);
+  },
+
+  "GET /offers": async (req, _p, auth) => {
+    const err = requireAuth(auth);
+    if (err) return err;
     const { searchParams } = new URL(req.url);
-    let txs = getStore().transactions.get(auth.sub) ?? [];
-    const type = searchParams.get("type");
+    let offers = Array.from(getStore().offers.values());
+    if (auth!.role === "investor") offers = offers.filter((o) => o.investorId === auth!.sub);
+    else if (auth!.role === "project_owner") offers = offers.filter((o) => o.ownerId === auth!.sub);
     const status = searchParams.get("status");
-    if (type) txs = txs.filter((t) => t.type === type);
-    if (status) txs = txs.filter((t) => t.status === status);
-    return ok(paginate(txs, Number(searchParams.get("page") || 1), Number(searchParams.get("limit") || 10)));
+    if (status) offers = offers.filter((o) => o.status === status);
+    return ok(paginate(offers, Number(searchParams.get("page") || 1), Number(searchParams.get("limit") || 20)));
   },
 
-  "GET /notifications/unread-count": async (_req, _params, auth) => {
-    if (!auth) return fail("Unauthorized", 401);
-    const notifs = getStore().notifications.get(auth.sub) ?? [];
-    return ok({ count: notifs.filter((n) => !n.isRead).length });
+  "PATCH /offers/:id": async (req, params, auth) => {
+    const err = requireRole(auth, ["project_owner", "admin"]);
+    if (err) return err;
+    const offer = getStore().offers.get(params.id);
+    if (!offer) return fail("Offer not found", 404);
+    if (auth!.role === "project_owner" && offer.ownerId !== auth!.sub) return fail("Forbidden", 403);
+    const body = await parseBody<{ status: InvestmentOffer["status"]; ownerResponse?: string }>(req);
+    if (!["accepted", "rejected", "negotiating"].includes(body.status)) {
+      return fail("Invalid status", 400);
+    }
+    offer.status = body.status;
+    offer.ownerResponse = body.ownerResponse;
+    offer.updatedAt = new Date().toISOString();
+    getStore().offers.set(offer.id, offer);
+
+    if (body.status === "accepted") {
+      const investments = getStore().investments.get(offer.investorId) || [];
+      investments.push({
+        id: crypto.randomUUID(),
+        offerId: offer.id,
+        projectId: offer.projectId,
+        amount: offer.amount,
+        status: "active",
+        expectedReturn: offer.amount * 1.15,
+        createdAt: new Date().toISOString(),
+      });
+      getStore().investments.set(offer.investorId, investments);
+      const project = getStore().projects.get(offer.projectId);
+      if (project) {
+        project.currentFunding += offer.amount;
+        project.investorCount += 1;
+        getStore().projects.set(project.id, project);
+      }
+    }
+
+    logActivity(auth!.sub, `offer_${body.status}`, "offer", offer.id);
+    return ok(offer);
   },
 
-  "GET /notifications": async (req, _params, auth) => {
-    if (!auth) return fail("Unauthorized", 401);
-    const { searchParams } = new URL(req.url);
-    const notifs = getStore().notifications.get(auth.sub) ?? [];
-    return ok(paginate(notifs, Number(searchParams.get("page") || 1), Number(searchParams.get("limit") || 50)));
+  "GET /owner/dashboard": async (_req, _p, auth) => {
+    const err = requireRole(auth, ["project_owner", "admin"]);
+    if (err) return err;
+    return ok(getOwnerStats(auth!.sub));
   },
 
-  "POST /notifications/read-all": async (_req, _params, auth) => {
-    if (!auth) return fail("Unauthorized", 401);
-    const store = getStore();
-    const notifs = (store.notifications.get(auth.sub) ?? []).map((n) => ({ ...n, isRead: true }));
-    store.notifications.set(auth.sub, notifs);
-    return ok(null);
+  "GET /owner/projects": async (_req, _p, auth) => {
+    const err = requireRole(auth, ["project_owner", "admin"]);
+    if (err) return err;
+    const projects = Array.from(getStore().projects.values()).filter(
+      (p) => p.ownerId === auth!.sub || auth!.role === "admin"
+    );
+    return ok(projects);
   },
 
-  "GET /kyc/status": async (_req, _params, auth) => {
-    if (!auth) return fail("Unauthorized", 401);
-    return ok(getStore().kyc.get(auth.sub) ?? null);
+  "POST /owner/projects": async (req, _p, auth) => {
+    const err = requireRole(auth, ["project_owner"]);
+    if (err) return err;
+    const body = await parseBody<Partial<Project> & { title: string }>(req);
+    if (!body.title) return fail("Title is required", 400);
+    const owner = getStore().users.get(auth!.sub)!;
+    const id = crypto.randomUUID();
+    const now = new Date().toISOString();
+    const project: Project = {
+      id,
+      ownerId: auth!.sub,
+      ownerName: `${owner.firstName} ${owner.lastName}`,
+      title: body.title,
+      slug: body.title.toLowerCase().replace(/\s+/g, "-"),
+      description: body.description || "",
+      fullDescription: body.fullDescription || body.description || "",
+      category: body.category || "Other",
+      industry: body.industry || "Other",
+      location: body.location || "",
+      stage: body.stage || "idea",
+      timeline: body.timeline || "",
+      image:
+        body.image ||
+        "https://images.unsplash.com/photo-1553729459-efe14ef6055d?w=1200&q=80",
+      requiredInvestment: Number(body.requiredInvestment) || 0,
+      minInvestment: Number(body.minInvestment) || 0,
+      currentFunding: 0,
+      expectedRoi: Number(body.expectedRoi) || 0,
+      revenueModel: body.revenueModel || "",
+      financialProjections: body.financialProjections || "",
+      investmentPlan: body.investmentPlan || "",
+      businessModel: body.businessModel || "",
+      riskLevel: body.riskLevel || "medium",
+      status: "pending_review",
+      investorCount: 0,
+      savedCount: 0,
+      team: body.team || [],
+      documents: body.documents || [],
+      updates: [],
+      createdAt: now,
+      updatedAt: now,
+    };
+    getStore().projects.set(id, project);
+    logActivity(auth!.sub, "project_created", "project", id);
+    return ok(project, "Project submitted for review", 201);
   },
 
-  "GET /investments/active": async (req, _params, auth) => {
-    if (!auth) return fail("Unauthorized", 401);
-    const invs = (getStore().investments.get(auth.sub) ?? []).filter((i) => i.status === "active");
-    const { searchParams } = new URL(req.url);
-    return ok(paginate(invs, Number(searchParams.get("page") || 1), Number(searchParams.get("limit") || 10)));
-  },
-
-  "GET /investments/completed": async (req, _params, auth) => {
-    if (!auth) return fail("Unauthorized", 401);
-    const invs = (getStore().investments.get(auth.sub) ?? []).filter((i) => i.status === "completed");
-    const { searchParams } = new URL(req.url);
-    return ok(paginate(invs, Number(searchParams.get("page") || 1), Number(searchParams.get("limit") || 10)));
-  },
-
-  "GET /investments": async (req, _params, auth) => {
-    if (!auth) return fail("Unauthorized", 401);
-    const invs = getStore().investments.get(auth.sub) ?? [];
-    const { searchParams } = new URL(req.url);
-    return ok(paginate(invs, Number(searchParams.get("page") || 1), Number(searchParams.get("limit") || 10)));
-  },
-
-  "POST /investments": async (req, _params, auth) => {
-    if (!auth) return fail("Unauthorized", 401);
-    const body = await parseBody<{ projectId: string; amount: number }>(req);
-    const project = getStore().projects.find((p) => p.id === body.projectId);
+  "PATCH /owner/projects/:id": async (req, params, auth) => {
+    const err = requireRole(auth, ["project_owner", "admin"]);
+    if (err) return err;
+    const project = getStore().projects.get(params.id);
     if (!project) return fail("Project not found", 404);
-    const expectedReturn = body.amount * (project.roiPercentage / 100);
-    const investment = {
+    if (auth!.role === "project_owner" && project.ownerId !== auth!.sub) return fail("Forbidden", 403);
+    const body = await parseBody<Partial<Project>>(req);
+    const updated = { ...project, ...body, id: project.id, ownerId: project.ownerId, updatedAt: new Date().toISOString() };
+    getStore().projects.set(params.id, updated);
+    return ok(updated);
+  },
+
+  "POST /owner/projects/:id/documents": async (req, params, auth) => {
+    const err = requireRole(auth, ["project_owner"]);
+    if (err) return err;
+    const project = getStore().projects.get(params.id);
+    if (!project || project.ownerId !== auth!.sub) return fail("Not found", 404);
+    const body = await parseBody<{ name: string; category: ProjectDocument["category"]; url?: string }>(req);
+    const doc: ProjectDocument = {
       id: crypto.randomUUID(),
-      userId: auth.sub,
-      projectId: body.projectId,
-      project,
-      amount: body.amount,
-      expectedReturn,
-      currentReturn: 0,
-      roiPercentage: project.roiPercentage,
-      status: "active" as const,
-      startDate: new Date().toISOString(),
-      endDate: new Date(Date.now() + project.investmentPeriod * 86400000).toISOString(),
+      name: body.name,
+      category: body.category || "other",
+      url: body.url || `#upload-${crypto.randomUUID()}`,
+      uploadedAt: new Date().toISOString(),
+    };
+    project.documents.push(doc);
+    project.updatedAt = new Date().toISOString();
+    getStore().projects.set(project.id, project);
+    return ok(doc, "Document uploaded", 201);
+  },
+
+  "POST /owner/projects/:id/team": async (req, params, auth) => {
+    const err = requireRole(auth, ["project_owner"]);
+    if (err) return err;
+    const project = getStore().projects.get(params.id);
+    if (!project || project.ownerId !== auth!.sub) return fail("Not found", 404);
+    const body = await parseBody<Omit<TeamMember, "id">>(req);
+    const member: TeamMember = { ...body, id: crypto.randomUUID() };
+    project.team.push(member);
+    project.updatedAt = new Date().toISOString();
+    getStore().projects.set(project.id, project);
+    return ok(member, "Team member added", 201);
+  },
+
+  "GET /owner/documents": async (_req, _p, auth) => {
+    const err = requireRole(auth, ["project_owner"]);
+    if (err) return err;
+    const docs = Array.from(getStore().projects.values())
+      .filter((p) => p.ownerId === auth!.sub)
+      .flatMap((p) => p.documents.map((d) => ({ ...d, projectId: p.id, projectTitle: p.title })));
+    return ok(docs);
+  },
+
+  "GET /conversations": async (_req, _p, auth) => {
+    const err = requireAuth(auth);
+    if (err) return err;
+    let list = Array.from(getStore().conversations.values());
+    if (auth!.role === "investor") list = list.filter((c) => c.investorId === auth!.sub);
+    else if (auth!.role === "project_owner") list = list.filter((c) => c.ownerId === auth!.sub);
+    list.sort((a, b) => (b.lastMessageAt || "").localeCompare(a.lastMessageAt || ""));
+    return ok(list);
+  },
+
+  "POST /conversations": async (req, _p, auth) => {
+    const err = requireRole(auth, ["investor", "project_owner"]);
+    if (err) return err;
+    if (auth!.role === "investor" && !canMessage(auth!.membershipTier, auth!.role)) {
+      return fail("Premium membership required to message owners", 403);
+    }
+    const { projectId, investorId } = await parseBody<{ projectId: string; investorId?: string }>(req);
+    const project = getStore().projects.get(projectId);
+    if (!project) return fail("Project not found", 404);
+
+    const invId = auth!.role === "investor" ? auth!.sub : investorId;
+    if (!invId) return fail("investorId required", 400);
+    const existing = Array.from(getStore().conversations.values()).find(
+      (c) => c.projectId === projectId && c.investorId === invId
+    );
+    if (existing) return ok(existing);
+
+    const investor = getStore().users.get(invId);
+    const owner = getStore().users.get(project.ownerId);
+    if (!investor || !owner) return fail("Participants not found", 404);
+
+    const conversation: Conversation = {
+      id: crypto.randomUUID(),
+      projectId,
+      projectTitle: project.title,
+      investorId: invId,
+      investorName: `${investor.firstName} ${investor.lastName}`,
+      ownerId: project.ownerId,
+      ownerName: `${owner.firstName} ${owner.lastName}`,
+      unreadCount: 0,
       createdAt: new Date().toISOString(),
     };
-    const store = getStore();
-    const invs = store.investments.get(auth.sub) ?? [];
-    invs.push(investment);
-    store.investments.set(auth.sub, invs);
-    return ok(investment, undefined, 201);
+    getStore().conversations.set(conversation.id, conversation);
+    getStore().messages.set(conversation.id, []);
+    return ok(conversation, undefined, 201);
   },
 
-  "POST /deposits": async (req, _params, auth) => {
-    if (!auth) return fail("Unauthorized", 401);
-    const body = await parseBody<{ amount: number; paymentMethod: string }>(req);
-    const deposit = {
+  "GET /conversations/:id/messages": async (_req, params, auth) => {
+    const err = requireAuth(auth);
+    if (err) return err;
+    const conversation = getStore().conversations.get(params.id);
+    if (!conversation) return fail("Conversation not found", 404);
+    const allowed =
+      auth!.role === "admin" ||
+      auth!.sub === conversation.investorId ||
+      auth!.sub === conversation.ownerId;
+    if (!allowed) return fail("Forbidden", 403);
+    return ok(getStore().messages.get(params.id) || []);
+  },
+
+  "POST /conversations/:id/messages": async (req, params, auth) => {
+    const err = requireAuth(auth);
+    if (err) return err;
+    const conversation = getStore().conversations.get(params.id);
+    if (!conversation) return fail("Conversation not found", 404);
+    const allowed =
+      auth!.sub === conversation.investorId || auth!.sub === conversation.ownerId;
+    if (!allowed) return fail("Forbidden", 403);
+    if (auth!.role === "investor" && !canMessage(auth!.membershipTier, auth!.role)) {
+      return fail("Premium membership required", 403);
+    }
+
+    const body = await parseBody<{ content: string; attachmentUrl?: string; attachmentName?: string }>(req);
+    const { text, blocked } = redactContactInfo(body.content || "");
+    if (!text.trim() && !body.attachmentUrl) return fail("Message required", 400);
+
+    const sender = getStore().users.get(auth!.sub)!;
+    const message: ChatMessage = {
       id: crypto.randomUUID(),
-      userId: auth.sub,
-      amount: body.amount,
-      currency: "USD",
-      paymentMethod: body.paymentMethod as "mastercard",
-      status: "pending" as const,
+      conversationId: params.id,
+      senderId: auth!.sub,
+      senderName: `${sender.firstName} ${sender.lastName}`,
+      senderRole: sender.role,
+      content: text,
+      attachmentUrl: body.attachmentUrl,
+      attachmentName: body.attachmentName,
+      isFlagged: blocked,
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
     };
-    const store = getStore();
-    const deps = store.deposits.get(auth.sub) ?? [];
-    deps.unshift(deposit);
-    store.deposits.set(auth.sub, deps);
-    return ok(deposit, undefined, 201);
+    const msgs = getStore().messages.get(params.id) || [];
+    msgs.push(message);
+    getStore().messages.set(params.id, msgs);
+    conversation.lastMessage = text.slice(0, 120);
+    conversation.lastMessageAt = message.createdAt;
+    conversation.unreadCount += 1;
+    getStore().conversations.set(params.id, conversation);
+    if (blocked) logActivity(auth!.sub, "contact_info_blocked", "message", message.id);
+    return ok(message, blocked ? "Message sent. External contact details were removed for security." : undefined, 201);
   },
 
-  "GET /deposits/history": async (req, _params, auth) => {
-    if (!auth) return fail("Unauthorized", 401);
-    const deps = getStore().deposits.get(auth.sub) ?? [];
-    const { searchParams } = new URL(req.url);
-    return ok(paginate(deps, Number(searchParams.get("page") || 1), Number(searchParams.get("limit") || 10)));
-  },
-
-  "POST /withdrawals": async (req, _params, auth) => {
-    if (!auth) return fail("Unauthorized", 401);
-    const body = await parseBody<{ amount: number; paymentMethod: string }>(req);
-    const withdrawal = {
-      id: crypto.randomUUID(),
-      userId: auth.sub,
-      amount: body.amount,
-      currency: "USD",
-      paymentMethod: body.paymentMethod as "mastercard",
-      status: "pending" as const,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    const store = getStore();
-    const wds = store.withdrawals.get(auth.sub) ?? [];
-    wds.unshift(withdrawal);
-    store.withdrawals.set(auth.sub, wds);
-    return ok(withdrawal, undefined, 201);
-  },
-
-  "GET /withdrawals/history": async (req, _params, auth) => {
-    if (!auth) return fail("Unauthorized", 401);
-    const wds = getStore().withdrawals.get(auth.sub) ?? [];
-    const { searchParams } = new URL(req.url);
-    return ok(paginate(wds, Number(searchParams.get("page") || 1), Number(searchParams.get("limit") || 10)));
-  },
-
-  "GET /users/profile": async (_req, _params, auth) => {
+  "GET /users/profile": async (_req, _p, auth) => {
     if (!auth) return fail("Unauthorized", 401);
     const user = getStore().users.get(auth.sub);
-    if (user) return ok(sanitizeUser(user));
-    return ok(payloadToUser(auth));
-  },
-
-  "PATCH /users/profile": async (req, _params, auth) => {
-    if (!auth) return fail("Unauthorized", 401);
-    const body = await parseBody<Partial<StoredUser>>(req);
-    const store = getStore();
-    const user = store.users.get(auth.sub);
-    if (!user) return fail("User not found", 404);
-    const updated = { ...user, ...body, id: user.id, email: user.email, updatedAt: new Date().toISOString() };
-    store.users.set(auth.sub, updated);
-    return ok(sanitizeUser(updated));
-  },
-
-  "GET /admin/stats": async (_req, _params, auth) => {
-    if (!auth) return fail("Unauthorized", 401);
-    if (auth.role !== "admin") return fail("Forbidden", 403);
-    return ok(getAdminStats());
-  },
-
-  "GET /admin/analytics": async (_req, _params, auth) => {
-    if (!auth) return fail("Unauthorized", 401);
-    if (auth.role !== "admin") return fail("Forbidden", 403);
-    return ok({
-      deposits: getChartData(50000),
-      withdrawals: getChartData(20000),
-      investments: getChartData(80000),
-      users: getChartData(100),
-    });
-  },
-
-  "GET /admin/users": async (req, _params, auth) => {
-    if (!auth) return fail("Unauthorized", 401);
-    if (auth.role !== "admin") return fail("Forbidden", 403);
-    const users = Array.from(getStore().users.values()).map(sanitizeUser);
-    const { searchParams } = new URL(req.url);
-    const search = searchParams.get("search")?.toLowerCase();
-    const filtered = search
-      ? users.filter((u) => u.email.includes(search) || u.firstName.toLowerCase().includes(search))
-      : users;
-    return ok(paginate(filtered, Number(searchParams.get("page") || 1), Number(searchParams.get("limit") || 10)));
-  },
-
-  "GET /admin/users/:id": async (_req, params, auth) => {
-    if (!auth) return fail("Unauthorized", 401);
-    const user = getStore().users.get(params.id);
     if (!user) return fail("User not found", 404);
     return ok(sanitizeUser(user));
   },
 
-  "PATCH /admin/users/:id": async (req, params, auth) => {
+  "PATCH /users/profile": async (req, _p, auth) => {
     if (!auth) return fail("Unauthorized", 401);
-    const user = getStore().users.get(params.id);
+    const user = getStore().users.get(auth.sub);
     if (!user) return fail("User not found", 404);
     const body = await parseBody<Partial<StoredUser>>(req);
-    if (body.role && body.role !== "admin" && body.role !== "user") {
-      return fail("Invalid role", 400);
-    }
-    if (body.role && params.id === auth.sub && body.role !== "admin") {
-      return fail("You cannot remove your own admin role", 400);
-    }
-    const updated: StoredUser = {
-      ...user,
+    Object.assign(user, {
       firstName: body.firstName ?? user.firstName,
       lastName: body.lastName ?? user.lastName,
       phone: body.phone ?? user.phone,
-      role: body.role ?? user.role,
+      bio: body.bio ?? user.bio,
+      companyName: body.companyName ?? user.companyName,
       updatedAt: new Date().toISOString(),
+    });
+    getStore().users.set(user.id, user);
+    return ok(sanitizeUser(user));
+  },
+
+  "GET /notifications": async (_req, _p, auth) => {
+    if (!auth) return fail("Unauthorized", 401);
+    return ok(getStore().notifications.get(auth.sub) || []);
+  },
+
+  "GET /kyc": async (_req, _p, auth) => {
+    if (!auth) return fail("Unauthorized", 401);
+    return ok(getStore().kyc.get(auth.sub) || null);
+  },
+
+  "POST /kyc": async (req, _p, auth) => {
+    if (!auth) return fail("Unauthorized", 401);
+    const body = await parseBody<{ idDocumentUrl: string; selfieUrl: string; addressProofUrl: string }>(req);
+    const submission = {
+      id: crypto.randomUUID(),
+      userId: auth.sub,
+      status: "pending" as const,
+      idDocumentUrl: body.idDocumentUrl || "#id",
+      selfieUrl: body.selfieUrl || "#selfie",
+      addressProofUrl: body.addressProofUrl || "#address",
+      submittedAt: new Date().toISOString(),
     };
-    getStore().users.set(params.id, updated);
-    return ok(sanitizeUser(updated));
+    getStore().kyc.set(auth.sub, submission);
+    const user = getStore().users.get(auth.sub);
+    if (user) {
+      user.kycStatus = "pending";
+      getStore().users.set(user.id, user);
+    }
+    logActivity(auth.sub, "kyc_submitted", "kyc", submission.id);
+    return ok(submission, "KYC submitted", 201);
+  },
+
+  "GET /admin/stats": async (_req, _p, auth) => {
+    const err = requireRole(auth, ["admin"]);
+    if (err) return err;
+    return ok(getAdminStats());
+  },
+
+  "GET /admin/users": async (req, _p, auth) => {
+    const err = requireRole(auth, ["admin"]);
+    if (err) return err;
+    const { searchParams } = new URL(req.url);
+    let users = Array.from(getStore().users.values()).map(sanitizeUser);
+    const role = searchParams.get("role");
+    const search = searchParams.get("search")?.toLowerCase();
+    if (role) users = users.filter((u) => u.role === role);
+    if (search) {
+      users = users.filter(
+        (u) =>
+          u.email.includes(search) ||
+          u.firstName.toLowerCase().includes(search) ||
+          u.lastName.toLowerCase().includes(search)
+      );
+    }
+    return ok(paginate(users, Number(searchParams.get("page") || 1), Number(searchParams.get("limit") || 20)));
   },
 
   "PATCH /admin/users/:id/role": async (req, params, auth) => {
-    if (!auth) return fail("Unauthorized", 401);
+    const err = requireRole(auth, ["admin"]);
+    if (err) return err;
     const user = getStore().users.get(params.id);
     if (!user) return fail("User not found", 404);
-    const { role } = await parseBody<{ role: string }>(req);
-    if (role !== "admin" && role !== "user") {
-      return fail("Invalid role. Must be 'admin' or 'user'", 400);
-    }
-    if (params.id === auth.sub && role !== "admin") {
-      return fail("You cannot remove your own admin role", 400);
-    }
-    const updated: StoredUser = { ...user, role, updatedAt: new Date().toISOString() };
-    getStore().users.set(params.id, updated);
-    return ok(sanitizeUser(updated));
+    const { role } = await parseBody<{ role: UserRole }>(req);
+    if (!["investor", "project_owner", "admin"].includes(role)) return fail("Invalid role", 400);
+    user.role = role;
+    user.updatedAt = new Date().toISOString();
+    getStore().users.set(user.id, user);
+    return ok(sanitizeUser(user));
   },
 
-  "GET /admin/deposits/pending": async (req, _params, auth) => {
-    if (!auth) return fail("Unauthorized", 401);
-    if (auth.role !== "admin") return fail("Forbidden", 403);
-    const all: import("@/types").Deposit[] = [];
-    getStore().deposits.forEach((deps) => all.push(...deps.filter((d) => d.status === "pending")));
+  "GET /admin/projects": async (req, _p, auth) => {
+    const err = requireRole(auth, ["admin"]);
+    if (err) return err;
     const { searchParams } = new URL(req.url);
-    return ok(paginate(all, Number(searchParams.get("page") || 1), Number(searchParams.get("limit") || 10)));
+    let projects = Array.from(getStore().projects.values());
+    const status = searchParams.get("status");
+    if (status) projects = projects.filter((p) => p.status === status);
+    return ok(paginate(projects, Number(searchParams.get("page") || 1), Number(searchParams.get("limit") || 20)));
   },
 
-  "GET /admin/withdrawals/pending": async (req, _params, auth) => {
-    if (!auth) return fail("Unauthorized", 401);
-    if (auth.role !== "admin") return fail("Forbidden", 403);
-    const all: import("@/types").Withdrawal[] = [];
-    getStore().withdrawals.forEach((wds) => all.push(...wds.filter((w) => w.status === "pending")));
-    const { searchParams } = new URL(req.url);
-    return ok(paginate(all, Number(searchParams.get("page") || 1), Number(searchParams.get("limit") || 10)));
+  "PATCH /admin/projects/:id/status": async (req, params, auth) => {
+    const err = requireRole(auth, ["admin"]);
+    if (err) return err;
+    const project = getStore().projects.get(params.id);
+    if (!project) return fail("Project not found", 404);
+    const { status } = await parseBody<{ status: Project["status"] }>(req);
+    project.status = status;
+    project.updatedAt = new Date().toISOString();
+    getStore().projects.set(project.id, project);
+    logActivity(auth!.sub, "project_status_updated", "project", project.id, { status });
+    return ok(project);
   },
 
-  "GET /admin/kyc": async (req, _params, auth) => {
-    if (!auth) return fail("Unauthorized", 401);
-    if (auth.role !== "admin") return fail("Forbidden", 403);
-    const all: import("@/types").KycSubmission[] = [];
-    getStore().kyc.forEach((k) => { if (k) all.push(k); });
-    const { searchParams } = new URL(req.url);
-    return ok(paginate(all, Number(searchParams.get("page") || 1), Number(searchParams.get("limit") || 10)));
+  "GET /admin/payments": async (_req, _p, auth) => {
+    const err = requireRole(auth, ["admin"]);
+    if (err) return err;
+    return ok(Array.from(getStore().subscriptions.values()));
   },
 
-  "GET /admin/settings": async (_req, _params, auth) => {
-    if (!auth) return fail("Unauthorized", 401);
-    if (auth.role !== "admin") return fail("Forbidden", 403);
-    return ok({ platformName: "InvestPro", supportEmail: "support@investpro.com", minDeposit: 10, maintenanceMode: false, kycRequired: false });
+  "GET /admin/security": async (_req, _p, auth) => {
+    const err = requireRole(auth, ["admin"]);
+    if (err) return err;
+    return ok({
+      activityLogs: getStore().activityLogs.slice(0, 100),
+      flaggedMessages: Array.from(getStore().messages.values())
+        .flat()
+        .filter((m) => m.isFlagged)
+        .slice(0, 50),
+      pendingKyc: Array.from(getStore().kyc.values()).filter((k) => k?.status === "pending"),
+    });
   },
 
-  "PATCH /admin/settings": async (req, _params, auth) => {
-    if (!auth) return fail("Unauthorized", 401);
-    if (auth.role !== "admin") return fail("Forbidden", 403);
-    const body = await parseBody<Record<string, unknown>>(req);
-    return ok(body);
+  "GET /admin/complaints": async (_req, _p, auth) => {
+    const err = requireRole(auth, ["admin"]);
+    if (err) return err;
+    return ok(getStore().complaints);
+  },
+
+  "POST /admin/complaints": async (req, _p, auth) => {
+    const err = requireAuth(auth);
+    if (err) return err;
+    const body = await parseBody<{ subject: string; description: string; projectId?: string; againstUserId?: string }>(req);
+    const complaint = {
+      id: crypto.randomUUID(),
+      reporterId: auth!.sub,
+      againstUserId: body.againstUserId,
+      projectId: body.projectId,
+      subject: body.subject,
+      description: body.description,
+      status: "open" as const,
+      createdAt: new Date().toISOString(),
+    };
+    getStore().complaints.push(complaint);
+    return ok(complaint, undefined, 201);
+  },
+
+  "POST /contact": async (req) => {
+    const body = await parseBody<{ name: string; email: string; message: string }>(req);
+    if (!body.email || !body.message) return fail("Email and message required", 400);
+    return ok(null, "Message received. Our team will respond shortly.");
   },
 };
 
@@ -529,8 +849,6 @@ export async function handleApiRequest(req: NextRequest, pathSegments: string[])
 
   const auth = await getAuth(req);
 
-  // Central RBAC guard: every /admin/* endpoint requires the admin role,
-  // regardless of per-handler checks.
   if (path === "admin" || path.startsWith("admin/")) {
     if (!auth) return fail("Unauthorized", 401);
     if (auth.role !== "admin") return fail("Forbidden", 403);

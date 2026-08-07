@@ -4,27 +4,27 @@
 
 @layer base {
   :root {
-    --background: 0 0% 4%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 7%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 7%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 217 91% 60%;
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 221 83% 53%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 0 0% 12%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 64%;
+    --secondary: 214 32% 91%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
     --accent: 160 84% 39%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 18%;
-    --input: 0 0% 18%;
-    --ring: 217 91% 60%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 221 83% 53%;
     --radius: 0.75rem;
-    --chart-1: 217 91% 60%;
+    --chart-1: 221 83% 53%;
     --chart-2: 160 84% 39%;
     --chart-3: 45 93% 47%;
     --chart-4: 280 65% 60%;
@@ -39,18 +39,35 @@
   body {
     @apply bg-background text-foreground antialiased;
   }
+  h1, h2, h3, h4 {
+    @apply tracking-tight text-foreground;
+  }
 }
 
 @layer utilities {
-  .glass-card {
-    @apply bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl;
+  .premium-card {
+    @apply bg-card rounded-2xl border border-border/80 shadow-[0_1px_3px_rgba(15,23,42,0.06),0_8px_24px_rgba(15,23,42,0.04)];
+  }
+  .soft-shadow {
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 12px 40px rgba(15, 23, 42, 0.06);
+  }
+  .section-pad {
+    @apply px-4 sm:px-6 lg:px-8;
+  }
+  .container-narrow {
+    @apply mx-auto w-full max-w-6xl;
   }
   .gradient-text {
-    @apply bg-gradient-to-r from-brand-blue to-emerald bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-blue-600 to-emerald-600 bg-clip-text text-transparent;
+  }
+  .hero-mesh {
+    background-image:
+      radial-gradient(at 20% 20%, rgba(59, 130, 246, 0.12) 0px, transparent 50%),
+      radial-gradient(at 80% 10%, rgba(16, 185, 129, 0.10) 0px, transparent 45%),
+      radial-gradient(at 50% 90%, rgba(99, 102, 241, 0.08) 0px, transparent 50%);
   }
 }
 
-/* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -59,9 +76,9 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: hsl(var(--muted));
+  background: hsl(var(--muted-foreground) / 0.35);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--muted-foreground));
+  background: hsl(var(--muted-foreground) / 0.55);
 }

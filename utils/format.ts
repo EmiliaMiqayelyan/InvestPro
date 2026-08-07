@@ -25,6 +25,10 @@ export function formatPercentage(value: number): string {
   return `${sign}${value.toFixed(2)}%`;
 }
 
+export function formatPercent(value: number): string {
+  return `${value.toFixed(0)}%`;
+}
+
 export function formatDate(date: string | Date, pattern = "MMM dd, yyyy"): string {
   const d = typeof date === "string" ? parseISO(date) : date;
   return format(d, pattern);

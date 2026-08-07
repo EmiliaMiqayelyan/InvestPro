@@ -17,6 +17,8 @@ export interface RegisterData {
   firstName: string;
   lastName: string;
   phone?: string;
+  role?: "investor" | "project_owner";
+  companyName?: string;
 }
 
 export interface TwoFactorData {

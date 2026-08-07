@@ -3,72 +3,113 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Users } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { SearchInput } from "@/components/shared/search-input";
-import { DataTable, type Column } from "@/components/shared/data-table";
-import { DataTableSkeleton } from "@/components/shared/loading-skeleton";
-import { EmptyState } from "@/components/shared/empty-state";
-import { Pagination } from "@/components/shared/pagination";
-import { DEFAULT_PAGE_SIZE, QUERY_KEYS } from "@/constants";
-import { usersApi } from "@/services/api";
+import { adminMarketplaceApi } from "@/services/api";
+import { QUERY_KEYS, STATUS_COLORS } from "@/constants";
 import { formatDate } from "@/utils/format";
-import type { User } from "@/types";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 
 export default function AdminUsersPage() {
-  const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
+  const [role, setRole] = useState<string>("all");
 
   const { data, isLoading } = useQuery({
-    queryKey: [QUERY_KEYS.ADMIN_USERS, page, search],
-    queryFn: async () => {
-      const { data } = await usersApi.getAll({ page, limit: DEFAULT_PAGE_SIZE, search });
-      return data.data;
-    },
+    queryKey: [QUERY_KEYS.ADMIN_USERS, search, role],
+    queryFn: async () =>
+      (
+        await adminMarketplaceApi.users({
+          search: search || undefined,
+          role: role === "all" ? undefined : role,
+          limit: 100,
+        })
+      ).data.data,
   });
 
-  const columns: Column<User>[] = [
-    {
-      key: "name",
-      header: "Name",
-      cell: (u) => `${u.firstName} ${u.lastName}`,
-    },
-    { key: "email", header: "Email", cell: (u) => u.email },
-    { key: "role", header: "Role", cell: (u) => <Badge variant="outline">{u.role}</Badge> },
-    {
-      key: "kyc",
-      header: "KYC",
-      cell: (u) => <Badge variant={u.kycStatus}>{u.kycStatus.replace(/_/g, " ")}</Badge>,
-    },
-    {
-      key: "verified",
-      header: "Email",
-      cell: (u) => (
-        <Badge variant={u.isEmailVerified ? "approved" : "pending"}>
-          {u.isEmailVerified ? "Verified" : "Unverified"}
-        </Badge>
-      ),
-    },
-    { key: "joined", header: "Joined", cell: (u) => formatDate(u.createdAt) },
-  ];
+  const users = data?.data ?? [];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">User Management</h1>
-        <p className="text-muted-foreground">Manage platform users</p>
+        <h2 className="font-display text-2xl font-semibold text-slate-900">Users</h2>
+        <p className="text-sm text-muted-foreground">Filter and review platform accounts</p>
       </div>
 
-      <SearchInput value={search} onChange={setSearch} placeholder="Search users..." className="max-w-md" />
+      <div className="flex flex-wrap gap-3">
+        <Input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search by name or email…"
+          className="max-w-sm bg-white"
+        />
+        <Select value={role} onValueChange={setRole}>
+          <SelectTrigger className="w-44 bg-white">
+            <SelectValue placeholder="Role" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All roles</SelectItem>
+            <SelectItem value="investor">Investor</SelectItem>
+            <SelectItem value="project_owner">Project owner</SelectItem>
+            <SelectItem value="admin">Admin</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
       {isLoading ? (
-        <DataTableSkeleton />
-      ) : data?.data.length ? (
-        <>
-          <DataTable columns={columns} data={data.data} keyExtractor={(u) => u.id} />
-          <Pagination page={page} totalPages={data.totalPages} onPageChange={setPage} />
-        </>
+        <div className="premium-card h-40 animate-pulse bg-slate-100" />
+      ) : users.length === 0 ? (
+        <div className="premium-card flex flex-col items-center gap-3 p-12 text-center">
+          <Users className="h-10 w-10 text-slate-300" />
+          <p className="font-medium text-slate-900">No users found</p>
+        </div>
       ) : (
-        <EmptyState icon={Users} title="No users found" />
+        <div className="overflow-hidden rounded-2xl border border-border bg-white">
+          <table className="w-full text-left text-sm">
+            <thead className="border-b border-border bg-slate-50 text-xs uppercase tracking-wide text-muted-foreground">
+              <tr>
+                <th className="px-4 py-3 font-medium">Name</th>
+                <th className="px-4 py-3 font-medium">Email</th>
+                <th className="px-4 py-3 font-medium">Role</th>
+                <th className="px-4 py-3 font-medium">Membership</th>
+                <th className="px-4 py-3 font-medium">KYC</th>
+                <th className="px-4 py-3 font-medium">Joined</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.map((u) => (
+                <tr key={u.id} className="border-b border-border last:border-0">
+                  <td className="px-4 py-3 font-medium text-slate-900">
+                    {u.firstName} {u.lastName}
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground">{u.email}</td>
+                  <td className="px-4 py-3">
+                    <Badge variant="outline" className="capitalize">
+                      {u.role.replace("_", " ")}
+                    </Badge>
+                  </td>
+                  <td className="px-4 py-3 capitalize text-slate-700">
+                    {u.membershipTier}
+                  </td>
+                  <td className="px-4 py-3">
+                    <Badge className={cn("border capitalize", STATUS_COLORS[u.kycStatus])}>
+                      {u.kycStatus.replace(/_/g, " ")}
+                    </Badge>
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {formatDate(u.createdAt)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

@@ -1,1 +1,1 @@
-export { ProjectCard } from "./project-card";
+export { MarketplaceProjectCard } from "../projects/project-card";

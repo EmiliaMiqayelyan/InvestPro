@@ -1,11 +1,14 @@
 export { authApi } from "./auth";
 export { usersApi } from "./users";
-export { walletApi } from "./wallet";
-export { depositsApi } from "./deposits";
-export { withdrawalsApi } from "./withdrawals";
-export { projectsApi } from "./projects";
-export { investmentsApi } from "./investments";
-export { transactionsApi } from "./transactions";
-export { notificationsApi } from "./notifications";
-export { kycApi } from "./kyc";
-export { adminApi, dashboardApi } from "./admin";
+export {
+  projectsApi,
+  membershipApi,
+  offersApi,
+  chatApi,
+  investorApi,
+  ownerApi,
+  adminMarketplaceApi,
+  contactApi,
+  notificationsApi,
+  kycApi,
+} from "./marketplace";

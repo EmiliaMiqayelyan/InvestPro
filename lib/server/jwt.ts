@@ -1,5 +1,5 @@
 import { SignJWT, jwtVerify } from "jose";
-import type { User } from "@/types";
+import type { User, UserRole, MembershipPlanId, KycStatus } from "@/types";
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || "investpro-dev-secret-change-in-production"
@@ -10,11 +10,14 @@ export interface TokenPayload {
   email: string;
   firstName: string;
   lastName: string;
-  role: "user" | "admin";
+  role: UserRole;
+  membershipTier: MembershipPlanId | "none";
+  membershipExpiresAt?: string;
   phone?: string;
   isEmailVerified: boolean;
   is2faEnabled: boolean;
-  kycStatus: User["kycStatus"];
+  kycStatus: KycStatus;
+  companyName?: string;
 }
 
 export async function signAccessToken(payload: TokenPayload): Promise<string> {
@@ -62,9 +65,12 @@ export function payloadToUser(payload: TokenPayload): User {
     lastName: payload.lastName,
     phone: payload.phone,
     role: payload.role,
+    membershipTier: payload.membershipTier || "none",
+    membershipExpiresAt: payload.membershipExpiresAt,
     isEmailVerified: payload.isEmailVerified,
     is2faEnabled: payload.is2faEnabled,
     kycStatus: payload.kycStatus,
+    companyName: payload.companyName,
     createdAt: now,
     updatedAt: now,
   };
@@ -78,9 +84,12 @@ export function userToPayload(user: User): TokenPayload {
     lastName: user.lastName,
     phone: user.phone,
     role: user.role,
+    membershipTier: user.membershipTier,
+    membershipExpiresAt: user.membershipExpiresAt,
     isEmailVerified: user.isEmailVerified,
     is2faEnabled: user.is2faEnabled,
     kycStatus: user.kycStatus,
+    companyName: user.companyName,
   };
 }
 

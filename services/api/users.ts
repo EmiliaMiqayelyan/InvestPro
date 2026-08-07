@@ -11,6 +11,8 @@ export interface UpdateProfileData {
   firstName?: string;
   lastName?: string;
   phone?: string;
+  companyName?: string;
+  bio?: string;
 }
 
 export const usersApi = {

@@ -1,10 +1,16 @@
 export { useAuth, useCurrentUser } from "./use-auth";
 export { useRole, useIsAdmin, useHasRole } from "./use-rbac";
 export {
-  useDashboardStats,
-  usePortfolioPerformance,
-  useProfitHistory,
-  useInvestmentGrowth,
-} from "./use-dashboard";
-export { useWallet, useCryptoAddresses } from "./use-wallet";
-export { useNotifications, useUnreadNotifications } from "./use-notifications";
+  useProjects,
+  useProject,
+  useRiskAnalysis,
+  useMembershipPlans,
+  useMyMembership,
+  useOffers,
+  useConversations,
+  useMessages,
+  useInvestorDashboard,
+  useOwnerDashboard,
+  useOwnerProjects,
+  useAdminStats,
+} from "./use-marketplace";
