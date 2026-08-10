@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { User } from "@/types";
 import { clearTokens, setTokens } from "@/services/api/client";
+import { normalizeRole } from "@/lib/rbac";
 
 interface AuthState {
   user: User | null;
@@ -16,6 +17,16 @@ interface AuthState {
   logout: () => void;
 }
 
+function sanitizeUser(user: User | null): User | null {
+  if (!user) return null;
+  const role = normalizeRole(user.role) ?? "investor";
+  return {
+    ...user,
+    role,
+    membershipTier: user.membershipTier ?? "none",
+  };
+}
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
@@ -24,13 +35,21 @@ export const useAuthStore = create<AuthState>()(
       isLoading: true,
       requires2fa: false,
       tempToken: null,
-      setUser: (user) => set({ user, isAuthenticated: !!user }),
+      setUser: (user) => {
+        const next = sanitizeUser(user);
+        set({ user: next, isAuthenticated: !!next });
+      },
       setLoading: (isLoading) => set({ isLoading }),
       setRequires2fa: (requires2fa, tempToken) =>
         set({ requires2fa, tempToken: tempToken || null }),
       login: (user, accessToken, refreshToken) => {
         setTokens(accessToken, refreshToken);
-        set({ user, isAuthenticated: true, requires2fa: false, tempToken: null });
+        set({
+          user: sanitizeUser(user),
+          isAuthenticated: true,
+          requires2fa: false,
+          tempToken: null,
+        });
       },
       logout: () => {
         clearTokens();
@@ -48,6 +67,16 @@ export const useAuthStore = create<AuthState>()(
         user: state.user,
         isAuthenticated: state.isAuthenticated,
       }),
+      merge: (persisted, current) => {
+        const stored = (persisted || {}) as Partial<AuthState>;
+        const user = sanitizeUser(stored.user ?? null);
+        return {
+          ...current,
+          ...stored,
+          user,
+          isAuthenticated: !!user && !!stored.isAuthenticated,
+        };
+      },
     }
   )
 );

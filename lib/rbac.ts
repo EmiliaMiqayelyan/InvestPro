@@ -70,8 +70,23 @@ export function hasRole(
   return !!user && allowedRoles.includes(user.role);
 }
 
-export function getRoleHome(role: UserRole | undefined): string {
-  return role ? ROLE_HOME[role] : ROUTES.LOGIN;
+const LEGACY_ROLE_MAP: Record<string, UserRole> = {
+  user: "investor",
+  projectowner: "project_owner",
+  "project-owner": "project_owner",
+};
+
+/** Normalize persisted/legacy role strings to the current UserRole union. */
+export function normalizeRole(role: string | undefined | null): UserRole | undefined {
+  if (!role) return undefined;
+  if (role === "investor" || role === "project_owner" || role === "admin") return role;
+  return LEGACY_ROLE_MAP[role.toLowerCase()];
+}
+
+export function getRoleHome(role: string | undefined | null): string {
+  const normalized = normalizeRole(role);
+  if (normalized && ROLE_HOME[normalized]) return ROLE_HOME[normalized];
+  return ROUTES.LOGIN || "/login";
 }
 
 export function hasMembershipAccess(
