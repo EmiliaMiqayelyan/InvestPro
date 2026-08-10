@@ -8,19 +8,22 @@ import { PLATFORM_NAME, ROUTES } from "@/constants";
 import { useAuthStore } from "@/store";
 import { getRoleHome } from "@/lib/rbac";
 import { buttonVariants } from "@/components/ui/button";
+import { LanguageSwitcher } from "@/components/shared/language-switcher";
+import { useI18n } from "@/hooks/use-i18n";
 import { cn } from "@/lib/utils";
-
-const NAV = [
-  { href: ROUTES.PROJECTS || "/projects", label: "Projects" },
-  { href: ROUTES.MEMBERSHIP || "/membership", label: "Membership" },
-  { href: ROUTES.ABOUT || "/about", label: "About" },
-  { href: ROUTES.CONTACT || "/contact", label: "Contact" },
-] as const;
 
 export function MarketingHeader() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const { isAuthenticated, user } = useAuthStore();
+  const { t } = useI18n();
+
+  const NAV = [
+    { href: ROUTES.PROJECTS || "/projects", label: t("nav.projects") },
+    { href: ROUTES.MEMBERSHIP || "/membership", label: t("nav.membership") },
+    { href: ROUTES.ABOUT || "/about", label: t("nav.about") },
+    { href: ROUTES.CONTACT || "/contact", label: t("nav.contact") },
+  ];
 
   const homeHref = ROUTES.HOME || "/";
   const loginHref = ROUTES.LOGIN || "/login";
@@ -29,7 +32,7 @@ export function MarketingHeader() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/70 bg-white/80 backdrop-blur-xl">
-      <div className="container-narrow section-pad flex h-16 items-center justify-between">
+      <div className="container-narrow section-pad flex h-16 items-center justify-between gap-3">
         <Link
           href={homeHref}
           className="font-display text-xl font-semibold tracking-tight text-slate-900"
@@ -53,25 +56,29 @@ export function MarketingHeader() {
         </nav>
 
         <div className="hidden items-center gap-3 md:flex">
+          <LanguageSwitcher compact />
           {isAuthenticated && user ? (
             <Link href={dashboardHref} className={cn(buttonVariants())}>
-              Go to dashboard <ArrowRight className="ml-1 h-4 w-4" />
+              {t("common.goToDashboard")} <ArrowRight className="ml-1 h-4 w-4" />
             </Link>
           ) : (
             <>
               <Link href={loginHref} className={cn(buttonVariants({ variant: "ghost" }))}>
-                Sign in
+                {t("common.signIn")}
               </Link>
               <Link href={registerHref} className={cn(buttonVariants())}>
-                Get started
+                {t("common.getStarted")}
               </Link>
             </>
           )}
         </div>
 
-        <button className="md:hidden" onClick={() => setOpen((v) => !v)} aria-label="Toggle menu">
-          {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
+        <div className="flex items-center gap-2 md:hidden">
+          <LanguageSwitcher compact />
+          <button onClick={() => setOpen((v) => !v)} aria-label="Toggle menu">
+            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
       </div>
 
       {open && (
@@ -91,7 +98,7 @@ export function MarketingHeader() {
               href={isAuthenticated ? dashboardHref : loginHref}
               onClick={() => setOpen(false)}
             >
-              {isAuthenticated ? "Dashboard" : "Sign in"}
+              {isAuthenticated ? t("common.dashboard") : t("common.signIn")}
             </Link>
           </div>
         </div>
@@ -101,6 +108,7 @@ export function MarketingHeader() {
 }
 
 export function MarketingFooter() {
+  const { t } = useI18n();
   const homeRegisterInvestor = `${ROUTES.REGISTER || "/register"}?role=investor`;
   const homeRegisterOwner = `${ROUTES.REGISTER || "/register"}?role=project_owner`;
 
@@ -109,32 +117,28 @@ export function MarketingFooter() {
       <div className="container-narrow section-pad grid gap-8 py-12 md:grid-cols-4">
         <div className="md:col-span-2">
           <p className="font-display text-lg font-semibold">{PLATFORM_NAME}</p>
-          <p className="mt-2 max-w-md text-sm text-muted-foreground">
-            A secure investment marketplace connecting innovative project owners with verified
-            investors.
-          </p>
+          <p className="mt-2 max-w-md text-sm text-muted-foreground">{t("footer.tagline")}</p>
         </div>
         <div>
-          <p className="text-sm font-semibold">Platform</p>
+          <p className="text-sm font-semibold">{t("footer.platform")}</p>
           <div className="mt-3 flex flex-col gap-2 text-sm text-muted-foreground">
-            <Link href={ROUTES.PROJECTS || "/projects"}>Projects</Link>
-            <Link href={ROUTES.MEMBERSHIP || "/membership"}>Membership</Link>
-            <Link href={ROUTES.ABOUT || "/about"}>About</Link>
-            <Link href={ROUTES.CONTACT || "/contact"}>Contact</Link>
+            <Link href={ROUTES.PROJECTS || "/projects"}>{t("nav.projects")}</Link>
+            <Link href={ROUTES.MEMBERSHIP || "/membership"}>{t("nav.membership")}</Link>
+            <Link href={ROUTES.ABOUT || "/about"}>{t("nav.about")}</Link>
+            <Link href={ROUTES.CONTACT || "/contact"}>{t("nav.contact")}</Link>
           </div>
         </div>
         <div>
-          <p className="text-sm font-semibold">Accounts</p>
+          <p className="text-sm font-semibold">{t("footer.accounts")}</p>
           <div className="mt-3 flex flex-col gap-2 text-sm text-muted-foreground">
-            <Link href={homeRegisterInvestor}>Investor signup</Link>
-            <Link href={homeRegisterOwner}>Owner signup</Link>
-            <Link href={ROUTES.LOGIN || "/login"}>Sign in</Link>
+            <Link href={homeRegisterInvestor}>{t("footer.investorSignup")}</Link>
+            <Link href={homeRegisterOwner}>{t("footer.ownerSignup")}</Link>
+            <Link href={ROUTES.LOGIN || "/login"}>{t("common.signIn")}</Link>
           </div>
         </div>
       </div>
       <div className="border-t border-border py-4 text-center text-xs text-muted-foreground">
-        © {new Date().getFullYear()} {PLATFORM_NAME}. All rights reserved. Communication stays
-        on-platform.
+        © {new Date().getFullYear()} {PLATFORM_NAME}. {t("footer.rights")}
       </div>
     </footer>
   );

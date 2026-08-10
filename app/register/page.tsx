@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect } from "react";
+import { Suspense, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
@@ -11,38 +11,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PLATFORM_NAME, ROUTES } from "@/constants";
-import { useAuth } from "@/hooks";
+import { useAuth, useI18n } from "@/hooks";
 import { cn } from "@/lib/utils";
 
-const registerSchema = z
-  .object({
-    firstName: z.string().min(2, "First name is required"),
-    lastName: z.string().min(2, "Last name is required"),
-    email: z.string().email("Invalid email address"),
-    phone: z.string().optional(),
-    role: z.enum(["investor", "project_owner"]),
-    companyName: z.string().optional(),
-    password: z.string().min(8, "Password must be at least 8 characters"),
-    confirmPassword: z.string(),
-  })
-  .superRefine((data, ctx) => {
-    if (data.password !== data.confirmPassword) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Passwords don't match",
-        path: ["confirmPassword"],
-      });
-    }
-    if (data.role === "project_owner" && (!data.companyName || data.companyName.trim().length < 2)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Company name is required for project owners",
-        path: ["companyName"],
-      });
-    }
-  });
-
-type RegisterForm = z.infer<typeof registerSchema>;
+type RegisterForm = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  role: "investor" | "project_owner";
+  companyName?: string;
+  password: string;
+  confirmPassword: string;
+};
 
 function RegisterForm() {
   const searchParams = useSearchParams();
@@ -51,6 +32,43 @@ function RegisterForm() {
     roleParam === "project_owner" || roleParam === "investor" ? roleParam : "investor";
 
   const { register: registerUser, isRegistering } = useAuth();
+  const { t } = useI18n();
+
+  const registerSchema = useMemo(
+    () =>
+      z
+        .object({
+          firstName: z.string().min(2, t("auth.firstNameRequired")),
+          lastName: z.string().min(2, t("auth.lastNameRequired")),
+          email: z.string().email(t("auth.invalidEmail")),
+          phone: z.string().optional(),
+          role: z.enum(["investor", "project_owner"]),
+          companyName: z.string().optional(),
+          password: z.string().min(8, t("auth.passwordMin8")),
+          confirmPassword: z.string(),
+        })
+        .superRefine((data, ctx) => {
+          if (data.password !== data.confirmPassword) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: t("auth.passwordsMismatch"),
+              path: ["confirmPassword"],
+            });
+          }
+          if (
+            data.role === "project_owner" &&
+            (!data.companyName || data.companyName.trim().length < 2)
+          ) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: t("auth.companyRequired"),
+              path: ["companyName"],
+            });
+          }
+        }),
+    [t]
+  );
+
   const {
     register,
     handleSubmit,
@@ -92,13 +110,13 @@ function RegisterForm() {
         >
           {PLATFORM_NAME}
         </Link>
-        <CardTitle className="text-2xl font-display">Create account</CardTitle>
-        <CardDescription>Join as an investor or project owner</CardDescription>
+        <CardTitle className="text-2xl font-display">{t("auth.createAccountShort")}</CardTitle>
+        <CardDescription>{t("auth.joinAs")}</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
-            <Label>I am a...</Label>
+            <Label>{t("auth.iAmA")}</Label>
             <Controller
               name="role"
               control={control}
@@ -106,9 +124,9 @@ function RegisterForm() {
                 <div className="grid grid-cols-2 gap-2">
                   {(
                     [
-                      { value: "investor", label: "Investor" },
-                      { value: "project_owner", label: "Project owner" },
-                    ] as const
+                      { value: "investor" as const, label: t("auth.investor") },
+                      { value: "project_owner" as const, label: t("auth.projectOwner") },
+                    ]
                   ).map((option) => (
                     <button
                       key={option.value}
@@ -134,14 +152,14 @@ function RegisterForm() {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="firstName">First Name</Label>
+              <Label htmlFor="firstName">{t("auth.firstName")}</Label>
               <Input id="firstName" className="bg-white" {...register("firstName")} />
               {errors.firstName && (
                 <p className="text-sm text-destructive">{errors.firstName.message}</p>
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="lastName">Last Name</Label>
+              <Label htmlFor="lastName">{t("auth.lastName")}</Label>
               <Input id="lastName" className="bg-white" {...register("lastName")} />
               {errors.lastName && (
                 <p className="text-sm text-destructive">{errors.lastName.message}</p>
@@ -151,11 +169,11 @@ function RegisterForm() {
 
           {role === "project_owner" && (
             <div className="space-y-2">
-              <Label htmlFor="companyName">Company name</Label>
+              <Label htmlFor="companyName">{t("auth.companyName")}</Label>
               <Input
                 id="companyName"
                 className="bg-white"
-                placeholder="Your company or venture"
+                placeholder={t("auth.companyPlaceholder")}
                 {...register("companyName")}
               />
               {errors.companyName && (
@@ -165,25 +183,25 @@ function RegisterForm() {
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{t("auth.email")}</Label>
             <Input id="email" type="email" className="bg-white" {...register("email")} />
             {errors.email && (
               <p className="text-sm text-destructive">{errors.email.message}</p>
             )}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="phone">Phone (optional)</Label>
+            <Label htmlFor="phone">{t("auth.phoneOptional")}</Label>
             <Input id="phone" type="tel" className="bg-white" {...register("phone")} />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">{t("auth.password")}</Label>
             <Input id="password" type="password" className="bg-white" {...register("password")} />
             {errors.password && (
               <p className="text-sm text-destructive">{errors.password.message}</p>
             )}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirm Password</Label>
+            <Label htmlFor="confirmPassword">{t("auth.confirmPassword")}</Label>
             <Input
               id="confirmPassword"
               type="password"
@@ -195,13 +213,13 @@ function RegisterForm() {
             )}
           </div>
           <Button type="submit" className="w-full" disabled={isRegistering}>
-            {isRegistering ? "Creating account..." : "Create Account"}
+            {isRegistering ? t("auth.creatingAccount") : t("auth.createAccountShort")}
           </Button>
         </form>
         <p className="mt-6 text-center text-sm text-muted-foreground">
-          Already have an account?{" "}
+          {t("auth.hasAccount")}{" "}
           <Link href={ROUTES.LOGIN} className="text-primary hover:underline">
-            Sign in
+            {t("common.signIn")}
           </Link>
         </p>
       </CardContent>
@@ -210,13 +228,15 @@ function RegisterForm() {
 }
 
 export default function RegisterPage() {
+  const { t } = useI18n();
+
   return (
     <div className="relative min-h-screen flex items-center justify-center bg-slate-50 p-4 py-10">
       <div className="pointer-events-none absolute inset-0 hero-mesh opacity-80" />
       <Suspense
         fallback={
           <Card className="w-full max-w-md border-border/80 bg-white p-8 shadow-soft">
-            <p className="text-center text-sm text-muted-foreground">Loading...</p>
+            <p className="text-center text-sm text-muted-foreground">{t("common.loading")}</p>
           </Card>
         }
       >

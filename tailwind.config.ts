@@ -11,8 +11,9 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["var(--font-sans)", "system-ui", "sans-serif"],
-        display: ["var(--font-display)", "var(--font-sans)", "system-ui", "sans-serif"],
+        sans: ["var(--font-sans)", "var(--font-armenian)", "system-ui", "sans-serif"],
+        display: ["var(--font-display)", "var(--font-armenian)", "var(--font-sans)", "system-ui", "sans-serif"],
+        armenian: ["var(--font-armenian)", "var(--font-sans)", "system-ui", "sans-serif"],
       },
       colors: {
         background: "hsl(var(--background))",

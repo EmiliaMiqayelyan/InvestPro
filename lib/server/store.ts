@@ -94,7 +94,7 @@ export const MEMBERSHIP_PLANS: MembershipPlan[] = [
 
 declare global {
   // eslint-disable-next-line no-var
-  var __ventureBridgeStore: DevStore | undefined;
+  var __ventureBridgeStoreV2: DevStore | undefined;
 }
 
 function createUser(
@@ -130,27 +130,36 @@ function seedTeam(): TeamMember[] {
       id: crypto.randomUUID(),
       name: "Elena Vargas",
       position: "CEO & Co-founder",
+      positionHy: "Գործադիր տնօրեն և համահիմնադիր",
       role: "member",
       experience: "12 years in deep-tech startups",
+      experienceHy: "12 տարվա փորձ deep-tech ստարտափներում",
       biography: "Former product lead at a Series C climate-tech company.",
+      biographyHy: "Նախկինում ապրանքային ղեկավար Series C կլիմայական տեխնոլոգիաների ընկերությունում։",
       portfolio: "https://example.com/elena",
     },
     {
       id: crypto.randomUUID(),
       name: "James Okonkwo",
       position: "CTO",
+      positionHy: "Տեխնիկական տնօրեն",
       role: "developer",
       experience: "15 years distributed systems",
+      experienceHy: "15 տարվա փորձ բաշխված համակարգերում",
       biography: "Built high-scale infrastructure for two unicorns.",
+      biographyHy: "Կառուցել է բարձր մասշտաբի ենթակառուցվածք երկու միաեղջյուր ընկերությունների համար։",
       portfolio: "https://example.com/james",
     },
     {
       id: crypto.randomUUID(),
       name: "Priya Shah",
       position: "Advisor",
+      positionHy: "Խորհրդատու",
       role: "advisor",
       experience: "Ex-partner at growth VC fund",
+      experienceHy: "Նախկին գործընկեր աճի վենչուրային ֆոնդում",
       biography: "Advises early-stage founders on fundraising and GTM.",
+      biographyHy: "Խորհուրդ է տալիս վաղ փուլի հիմնադիրներին ֆինանսավորման և շուկա մուտքի հարցերում։",
     },
   ];
 }
@@ -187,9 +196,13 @@ function seedProjects(ownerId: string, ownerName: string): Project[] {
   const base = [
     {
       title: "Aurora Grid Storage",
+      titleHy: "Aurora ցանցային պահեստավորում",
       category: "Clean Energy",
+      categoryHy: "Մաքուր էներգիա",
       industry: "Renewable Energy",
+      industryHy: "Վերականգնվող էներգիա",
       location: "Austin, TX",
+      locationHy: "Օստին, Տեխաս",
       stage: "growth" as const,
       requiredInvestment: 2500000,
       minInvestment: 25000,
@@ -199,12 +212,17 @@ function seedProjects(ownerId: string, ownerName: string): Project[] {
       image:
         "https://images.unsplash.com/photo-1509391366360-2e959784a276?w=1200&q=80",
       description: "Modular battery storage for commercial microgrids.",
+      descriptionHy: "Մոդուլային մարտկոցային պահեստավորում առևտրային միկրոցանցերի համար։",
     },
     {
       title: "Nimbus Health AI",
+      titleHy: "Nimbus առողջապահական ԱԲ",
       category: "Healthcare",
+      categoryHy: "Առողջապահություն",
       industry: "Biotechnology",
+      industryHy: "Կենսատեխնոլոգիա",
       location: "Boston, MA",
+      locationHy: "Բոստոն, Մասաչուսեթս",
       stage: "early_revenue" as const,
       requiredInvestment: 1800000,
       minInvestment: 10000,
@@ -214,12 +232,17 @@ function seedProjects(ownerId: string, ownerName: string): Project[] {
       image:
         "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=1200&q=80",
       description: "Clinical decision support for outpatient clinics.",
+      descriptionHy: "Կլինիկական որոշումների աջակցություն ամբուլատոր կլինիկաների համար։",
     },
     {
       title: "Harbor Logistics OS",
+      titleHy: "Harbor լոգիստիկական ՀՕՀ",
       category: "Technology",
+      categoryHy: "Տեխնոլոգիա",
       industry: "Logistics",
+      industryHy: "Լոգիստիկա",
       location: "Singapore",
+      locationHy: "Սինգապուր",
       stage: "mvp" as const,
       requiredInvestment: 1200000,
       minInvestment: 15000,
@@ -229,12 +252,17 @@ function seedProjects(ownerId: string, ownerName: string): Project[] {
       image:
         "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1200&q=80",
       description: "Port operations software for mid-size terminals.",
+      descriptionHy: "Նավահանգստային գործառնությունների ծրագրակազմ միջին տերմինալների համար։",
     },
     {
       title: "Lumen Farm Robotics",
+      titleHy: "Lumen գյուղատնտեսական ռոբոտիկա",
       category: "Agriculture",
+      categoryHy: "Գյուղատնտեսություն",
       industry: "Manufacturing",
+      industryHy: "Արտադրություն",
       location: "Wageningen, NL",
+      locationHy: "Վագենինգեն, Նիդերլանդներ",
       stage: "expansion" as const,
       requiredInvestment: 3200000,
       minInvestment: 50000,
@@ -244,6 +272,7 @@ function seedProjects(ownerId: string, ownerName: string): Project[] {
       image:
         "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=1200&q=80",
       description: "Autonomous greenhouse harvesting robots.",
+      descriptionHy: "Ինքնավար ջերմոցային բերքահավաքի ռոբոտներ։",
     },
   ];
 
@@ -254,23 +283,34 @@ function seedProjects(ownerId: string, ownerName: string): Project[] {
       ownerId,
       ownerName,
       title: p.title,
+      titleHy: p.titleHy,
       slug: p.title.toLowerCase().replace(/\s+/g, "-"),
       description: p.description,
+      descriptionHy: p.descriptionHy,
       fullDescription: `${p.description} Built for institutional and angel investors seeking verified deal flow with transparent diligence materials. The founding team has shipped products in regulated markets and maintains audited financial projections.`,
+      fullDescriptionHy: `${p.descriptionHy} Ստեղծված է ինստիտուցիոնալ և հրեշտակ ներդրողների համար, ովքեր փնտրում են ստուգված գործարքներ և թափանցիկ ստուգման նյութեր։ Հիմնադիր թիմը աշխատել է կարգավորվող շուկաներում և պահպանում է աուդիտ արված ֆինանսական կանխատեսումներ։`,
       category: p.category,
+      categoryHy: p.categoryHy,
       industry: p.industry,
+      industryHy: p.industryHy,
       location: p.location,
+      locationHy: p.locationHy,
       stage: p.stage,
       timeline: "18–36 months to next milestone",
+      timelineHy: "18–36 ամիս մինչև հաջորդ նշաձող",
       image: p.image,
       requiredInvestment: p.requiredInvestment,
       minInvestment: p.minInvestment,
       currentFunding: p.currentFunding,
       expectedRoi: p.expectedRoi,
       revenueModel: "SaaS subscription + usage-based services",
+      revenueModelHy: "SaaS բաժանորդագրություն + օգտագործման վրա հիմնված ծառայություններ",
       financialProjections: "Projected break-even in month 24 with 35% gross margin by year 3.",
+      financialProjectionsHy: "Կանխատեսվող ինքնաարժեքի հասնում 24-րդ ամսում՝ 35% համախառն մարժա 3-րդ տարում։",
       investmentPlan: "Funds allocated to product (40%), go-to-market (35%), and operations (25%).",
+      investmentPlanHy: "Միջոցները բաշխվում են արտադրանքին (40%), շուկա մուտքին (35%) և գործառնություններին (25%)։",
       businessModel: "B2B enterprise sales with multi-year contracts and expansion revenue.",
+      businessModelHy: "B2B ձեռնարկությունների վաճառք՝ բազմամյա պայմանագրերով և ընդլայնման եկամտով։",
       riskLevel: p.riskLevel,
       status: "published",
       investorCount: 8 + i * 3,
@@ -281,7 +321,9 @@ function seedProjects(ownerId: string, ownerName: string): Project[] {
         {
           id: crypto.randomUUID(),
           title: "Q2 progress update",
+          titleHy: "Ե2 առաջընթացի թարմացում",
           content: "Closed two pilot customers and completed SOC2 Type I readiness.",
+          contentHy: "Փակվել են երկու փորձնական հաճախորդներ և ավարտվել է SOC2 Type I պատրաստությունը։",
           createdAt: now,
         },
       ],
@@ -362,10 +404,10 @@ function initStore(): DevStore {
 }
 
 export function getStore(): DevStore {
-  if (!globalThis.__ventureBridgeStore) {
-    globalThis.__ventureBridgeStore = initStore();
+  if (!globalThis.__ventureBridgeStoreV2) {
+    globalThis.__ventureBridgeStoreV2 = initStore();
   }
-  return globalThis.__ventureBridgeStore;
+  return globalThis.__ventureBridgeStoreV2;
 }
 
 export function sanitizeUser(user: StoredUser): User {

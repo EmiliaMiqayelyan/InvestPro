@@ -42,6 +42,70 @@
   h1, h2, h3, h4 {
     @apply tracking-tight text-foreground;
   }
+
+  /* Armenian typography: avoid cramped glyphs from Latin tracking-tight */
+  html[lang="hy"],
+  html.locale-hy {
+    font-family: var(--font-armenian), var(--font-sans), system-ui, sans-serif;
+    letter-spacing: 0.02em;
+    word-spacing: 0.06em;
+  }
+
+  html[lang="hy"] body,
+  html.locale-hy body {
+    color: #475569; /* slate-600 */
+    font-weight: 400;
+    line-height: 1.75;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  html[lang="hy"] h1,
+  html[lang="hy"] h2,
+  html[lang="hy"] h3,
+  html[lang="hy"] h4,
+  html[lang="hy"] .font-display,
+  html.locale-hy h1,
+  html.locale-hy h2,
+  html.locale-hy h3,
+  html.locale-hy h4,
+  html.locale-hy .font-display {
+    font-family: var(--font-armenian), var(--font-sans), system-ui, sans-serif !important;
+    letter-spacing: 0.03em !important;
+    word-spacing: 0.08em !important;
+    font-weight: 500 !important;
+    line-height: 1.5 !important;
+    color: #475569 !important;
+  }
+
+  html[lang="hy"] p,
+  html[lang="hy"] li,
+  html[lang="hy"] label,
+  html.locale-hy p,
+  html.locale-hy li,
+  html.locale-hy label {
+    letter-spacing: 0.02em;
+    word-spacing: 0.06em;
+    line-height: 1.75;
+    color: #64748b; /* slate-500 — softer */
+  }
+
+  html[lang="hy"] .font-semibold,
+  html[lang="hy"] .font-bold,
+  html.locale-hy .font-semibold,
+  html.locale-hy .font-bold {
+    font-weight: 500 !important;
+  }
+
+  html[lang="hy"] .tracking-tight,
+  html.locale-hy .tracking-tight {
+    letter-spacing: 0.02em !important;
+  }
+
+  html[lang="hy"] .leading-tight,
+  html.locale-hy .leading-tight {
+    line-height: 1.5 !important;
+  }
 }
 
 @layer utilities {

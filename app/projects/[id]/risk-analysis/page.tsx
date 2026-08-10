@@ -14,12 +14,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CardSkeleton } from "@/components/shared/loading-skeleton";
 import { useRiskAnalysis } from "@/hooks/use-marketplace";
+import { useI18n } from "@/hooks";
 import { RISK_LEVELS, ROUTES } from "@/constants";
 import { formatDate } from "@/utils/format";
 import { cn } from "@/lib/utils";
 
 export default function RiskAnalysisPage() {
   const { id } = useParams<{ id: string }>();
+  const { t } = useI18n();
   const { data: report, isLoading, error } = useRiskAnalysis(id);
   const risk = RISK_LEVELS.find((r) => r.value === report?.level);
 
@@ -31,16 +33,14 @@ export default function RiskAnalysisPage() {
         <Button variant="ghost" size="sm" className="mb-6 -ml-2" asChild>
           <Link href={`/projects/${id}`}>
             <ArrowLeft className="h-4 w-4" />
-            Back to project
+            {t("risk.backToProject")}
           </Link>
         </Button>
 
         <h1 className="font-display text-3xl font-semibold text-slate-900 md:text-4xl">
-          Investment Risk Report
+          {t("risk.title")}
         </h1>
-        <p className="mt-2 text-muted-foreground">
-          Automated diligence signals for this listing. Always do your own research.
-        </p>
+        <p className="mt-2 text-muted-foreground">{t("risk.subtitle")}</p>
 
         {isLoading ? (
           <div className="mt-10">
@@ -48,42 +48,39 @@ export default function RiskAnalysisPage() {
           </div>
         ) : error || !report ? (
           <div className="premium-card mt-10 p-8 text-center">
-            <p className="text-sm text-muted-foreground">
-              Risk analysis is unavailable. You may need a membership or the project may not be
-              published.
-            </p>
+            <p className="text-sm text-muted-foreground">{t("risk.unavailable")}</p>
             <Button className="mt-4" asChild>
-              <Link href={ROUTES.MEMBERSHIP}>View membership</Link>
+              <Link href={ROUTES.MEMBERSHIP}>{t("risk.viewMembership")}</Link>
             </Button>
           </div>
         ) : (
           <div className="mt-10 space-y-8 animate-slide-up">
             <div className="premium-card grid gap-6 p-6 sm:grid-cols-3">
               <div>
-                <p className="text-xs text-muted-foreground">Risk score</p>
+                <p className="text-xs text-muted-foreground">{t("risk.score")}</p>
                 <p className="mt-1 font-display text-4xl font-semibold text-slate-900">
                   {report.score}
                   <span className="text-lg text-muted-foreground">/100</span>
                 </p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Level</p>
+                <p className="text-xs text-muted-foreground">{t("risk.level")}</p>
                 <Badge className={cn("mt-2 border capitalize", risk?.bg, risk?.color)}>
                   {risk?.label ?? report.level}
                 </Badge>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Completeness</p>
+                <p className="text-xs text-muted-foreground">{t("risk.completeness")}</p>
                 <p className="mt-1 font-display text-2xl font-semibold">{report.completeness}%</p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Generated {formatDate(report.generatedAt)}
+                  {t("risk.generated", { date: formatDate(report.generatedAt) })}
                 </p>
               </div>
             </div>
 
             {report.summary && (
               <div className="premium-card p-6">
-                <h2 className="font-display text-lg font-semibold">Summary</h2>
+                <h2 className="font-display text-lg font-semibold">{t("risk.summary")}</h2>
                 <p className="mt-3 text-sm leading-relaxed text-slate-700">{report.summary}</p>
               </div>
             )}
@@ -92,7 +89,7 @@ export default function RiskAnalysisPage() {
               <section className="premium-card p-6">
                 <div className="mb-4 flex items-center gap-2 text-emerald-700">
                   <CheckCircle2 className="h-5 w-5" />
-                  <h2 className="font-display text-lg font-semibold">Positive indicators</h2>
+                  <h2 className="font-display text-lg font-semibold">{t("risk.positive")}</h2>
                 </div>
                 <ul className="space-y-3">
                   {(report.positiveIndicators ?? []).length ? (
@@ -103,7 +100,7 @@ export default function RiskAnalysisPage() {
                       </li>
                     ))
                   ) : (
-                    <li className="text-sm text-muted-foreground">No positives flagged.</li>
+                    <li className="text-sm text-muted-foreground">{t("risk.noPositives")}</li>
                   )}
                 </ul>
               </section>
@@ -111,7 +108,7 @@ export default function RiskAnalysisPage() {
               <section className="premium-card p-6">
                 <div className="mb-4 flex items-center gap-2 text-amber-700">
                   <AlertTriangle className="h-5 w-5" />
-                  <h2 className="font-display text-lg font-semibold">Warnings</h2>
+                  <h2 className="font-display text-lg font-semibold">{t("risk.warningsShort")}</h2>
                 </div>
                 <ul className="space-y-3">
                   {(report.warningIndicators ?? []).length ? (
@@ -122,7 +119,7 @@ export default function RiskAnalysisPage() {
                       </li>
                     ))
                   ) : (
-                    <li className="text-sm text-muted-foreground">No warnings flagged.</li>
+                    <li className="text-sm text-muted-foreground">{t("risk.noWarnings")}</li>
                   )}
                 </ul>
               </section>
@@ -132,7 +129,7 @@ export default function RiskAnalysisPage() {
               <section className="premium-card p-6">
                 <div className="mb-4 flex items-center gap-2 text-slate-700">
                   <FileWarning className="h-5 w-5" />
-                  <h2 className="font-display text-lg font-semibold">Missing documents</h2>
+                  <h2 className="font-display text-lg font-semibold">{t("risk.missing")}</h2>
                 </div>
                 <ul className="space-y-2">
                   {(report.missingDocuments ?? []).length ? (
@@ -143,7 +140,7 @@ export default function RiskAnalysisPage() {
                       </li>
                     ))
                   ) : (
-                    <li className="text-sm text-muted-foreground">No missing documents listed.</li>
+                    <li className="text-sm text-muted-foreground">{t("risk.noMissing")}</li>
                   )}
                 </ul>
               </section>
@@ -151,7 +148,7 @@ export default function RiskAnalysisPage() {
               <section className="premium-card p-6">
                 <div className="mb-4 flex items-center gap-2 text-blue-700">
                   <HelpCircle className="h-5 w-5" />
-                  <h2 className="font-display text-lg font-semibold">Questions to ask</h2>
+                  <h2 className="font-display text-lg font-semibold">{t("risk.questionsShort")}</h2>
                 </div>
                 <ul className="space-y-2">
                   {(report.questionsToAsk ?? []).length ? (
@@ -162,7 +159,7 @@ export default function RiskAnalysisPage() {
                       </li>
                     ))
                   ) : (
-                    <li className="text-sm text-muted-foreground">No suggested questions.</li>
+                    <li className="text-sm text-muted-foreground">{t("risk.noQuestions")}</li>
                   )}
                 </ul>
               </section>

@@ -9,23 +9,28 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PLATFORM_NAME, ROUTES } from "@/constants";
-import { useAuth } from "@/hooks";
+import { useAuth, useI18n } from "@/hooks";
 
-const loginSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-});
-
-type LoginForm = z.infer<typeof loginSchema>;
+type LoginForm = {
+  email: string;
+  password: string;
+};
 
 const DEMO_ACCOUNTS = [
-  { role: "Investor", email: "investor@venturebridge.com", password: "investor123" },
-  { role: "Owner", email: "owner@venturebridge.com", password: "owner123" },
-  { role: "Admin", email: "admin@venturebridge.com", password: "admin123" },
-] as const;
+  { roleKey: "auth.demoInvestor" as const, email: "investor@venturebridge.com", password: "investor123" },
+  { roleKey: "auth.demoOwner" as const, email: "owner@venturebridge.com", password: "owner123" },
+  { roleKey: "auth.demoAdmin" as const, email: "admin@venturebridge.com", password: "admin123" },
+];
 
 export default function LoginPage() {
   const { login, isLoggingIn } = useAuth();
+  const { t } = useI18n();
+
+  const loginSchema = z.object({
+    email: z.string().email(t("auth.invalidEmail")),
+    password: z.string().min(6, t("auth.passwordMin")),
+  });
+
   const {
     register,
     handleSubmit,
@@ -48,13 +53,13 @@ export default function LoginPage() {
           >
             {PLATFORM_NAME}
           </Link>
-          <CardTitle className="text-2xl font-display">Welcome back</CardTitle>
-          <CardDescription>Sign in to your {PLATFORM_NAME} account</CardDescription>
+          <CardTitle className="text-2xl font-display">{t("auth.welcomeBack")}</CardTitle>
+          <CardDescription>{t("auth.signInToAccount")}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t("auth.email")}</Label>
               <Input
                 id="email"
                 type="email"
@@ -68,12 +73,12 @@ export default function LoginPage() {
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">{t("auth.password")}</Label>
                 <Link
                   href={ROUTES.FORGOT_PASSWORD}
                   className="text-sm text-primary hover:underline"
                 >
-                  Forgot password?
+                  {t("auth.forgotPassword")}
                 </Link>
               </div>
               <Input
@@ -88,13 +93,13 @@ export default function LoginPage() {
               )}
             </div>
             <Button type="submit" className="w-full" disabled={isLoggingIn}>
-              {isLoggingIn ? "Signing in..." : "Sign In"}
+              {isLoggingIn ? t("auth.signingIn") : t("common.signIn")}
             </Button>
           </form>
 
           <div className="mt-6 rounded-xl border border-border bg-slate-50 p-3">
             <p className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-500">
-              Demo accounts
+              {t("auth.demoAccounts")}
             </p>
             <div className="space-y-2">
               {DEMO_ACCOUNTS.map((account) => (
@@ -107,7 +112,7 @@ export default function LoginPage() {
                     setValue("password", account.password);
                   }}
                 >
-                  <span className="font-medium text-slate-800">{account.role}</span>
+                  <span className="font-medium text-slate-800">{t(account.roleKey)}</span>
                   <span className="text-muted-foreground">{account.email}</span>
                 </button>
               ))}
@@ -115,9 +120,9 @@ export default function LoginPage() {
           </div>
 
           <p className="mt-6 text-center text-sm text-muted-foreground">
-            Don&apos;t have an account?{" "}
+            {t("auth.noAccount")}{" "}
             <Link href={ROUTES.REGISTER} className="text-primary hover:underline">
-              Sign up
+              {t("auth.signUp")}
             </Link>
           </p>
         </CardContent>

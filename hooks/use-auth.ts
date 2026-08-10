@@ -9,6 +9,8 @@ import { getRoleHome } from "@/lib/rbac";
 import { getErrorMessage } from "@/services/api/client";
 import type { LoginCredentials, RegisterData } from "@/services/api/auth";
 import { toast } from "sonner";
+import { translate } from "@/i18n";
+import { useLocaleStore } from "@/store/locale-store";
 
 export function useAuth() {
   const router = useRouter();
@@ -26,7 +28,7 @@ export function useAuth() {
       }
       login(user, tokens.accessToken, tokens.refreshToken);
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.AUTH] });
-      toast.success("Welcome back!");
+      toast.success(translate(useLocaleStore.getState().locale, "auth.loginSuccess"));
       router.push(getRoleHome(user.role));
     },
     onError: (error) => toast.error(getErrorMessage(error)),
@@ -37,7 +39,7 @@ export function useAuth() {
     onSuccess: (response) => {
       const { user, tokens } = response.data.data;
       login(user, tokens.accessToken, tokens.refreshToken);
-      toast.success("Account created successfully!");
+      toast.success(translate(useLocaleStore.getState().locale, "auth.registerSuccess"));
       router.push(getRoleHome(user.role));
     },
     onError: (error) => toast.error(getErrorMessage(error)),

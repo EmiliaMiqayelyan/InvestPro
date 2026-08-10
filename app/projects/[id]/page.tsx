@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/dialog";
 import { CardSkeleton } from "@/components/shared/loading-skeleton";
 import { useProject } from "@/hooks/use-marketplace";
+import { useI18n } from "@/hooks";
 import { projectsApi, offersApi, chatApi } from "@/services/api";
 import { useAuthStore } from "@/store";
 import { getErrorMessage } from "@/services/api/client";
@@ -37,11 +38,13 @@ import {
 } from "@/constants";
 import { formatCurrency, formatPercent, formatDate } from "@/utils/format";
 import { canAccessFullProject, canMessage, canSendOffers } from "@/lib/rbac";
+import { projectText, teamMemberText, updateText } from "@/i18n/localize";
 import { cn } from "@/lib/utils";
 
 export default function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const { t, locale } = useI18n();
   const { user, isAuthenticated } = useAuthStore();
   const { data: project, isLoading } = useProject(id);
 
@@ -58,16 +61,28 @@ export default function ProjectDetailPage() {
   const fullAccess = canAccessFullProject(user?.membershipTier);
   const showLocked = accessLimited || !fullAccess;
 
+  const title = projectText(project, "title", locale);
+  const description = projectText(project, "description", locale);
+  const fullDescription = projectText(project, "fullDescription", locale);
+  const category = projectText(project, "category", locale);
+  const industry = projectText(project, "industry", locale);
+  const location = projectText(project, "location", locale);
+  const timeline = projectText(project, "timeline", locale);
+  const revenueModel = projectText(project, "revenueModel", locale);
+  const financialProjections = projectText(project, "financialProjections", locale);
+  const investmentPlan = projectText(project, "investmentPlan", locale);
+  const businessModel = projectText(project, "businessModel", locale);
+
   const handleSave = async () => {
     if (!isAuthenticated) {
-      toast.error("Sign in to save projects.");
+      toast.error(t("projects.toastSaveLogin"));
       router.push(ROUTES.LOGIN);
       return;
     }
     setBusy("save");
     try {
       await projectsApi.save(id);
-      toast.success("Project saved.");
+      toast.success(t("projects.toastSaved"));
     } catch (error) {
       toast.error(getErrorMessage(error));
     } finally {
@@ -77,19 +92,19 @@ export default function ProjectDetailPage() {
 
   const handleMessage = async () => {
     if (!isAuthenticated) {
-      toast.error("Sign in to message the owner.");
+      toast.error(t("projects.toastMessageLogin"));
       router.push(ROUTES.LOGIN);
       return;
     }
     if (!canMessage(user?.membershipTier, user?.role)) {
-      toast.error("Premium membership required to message owners.");
+      toast.error(t("projects.toastMessagePremium"));
       router.push(ROUTES.MEMBERSHIP);
       return;
     }
     setBusy("message");
     try {
       const { data } = await chatApi.start({ projectId: id });
-      toast.success("Conversation started.");
+      toast.success(t("projects.toastConversationStarted"));
       router.push(
         user?.role === "project_owner"
           ? `${ROUTES.OWNER_MESSAGES}?c=${data.data.id}`
@@ -104,17 +119,17 @@ export default function ProjectDetailPage() {
 
   const handleOffer = async () => {
     if (!isAuthenticated || user?.role !== "investor") {
-      toast.error("Investors must be signed in to send offers.");
+      toast.error(t("projects.toastOfferLogin"));
       return;
     }
     if (!canSendOffers(user?.membershipTier)) {
-      toast.error("Premium membership required to send offers.");
+      toast.error(t("projects.toastOfferPremium"));
       router.push(ROUTES.MEMBERSHIP);
       return;
     }
     const parsed = parseFloat(amount);
     if (!parsed || parsed <= 0) {
-      toast.error("Enter a valid offer amount.");
+      toast.error(t("projects.toastInvalidAmount"));
       return;
     }
     setBusy("offer");
@@ -126,7 +141,7 @@ export default function ProjectDetailPage() {
         questions: questions || undefined,
         notes: notes || undefined,
       });
-      toast.success("Investment offer sent.");
+      toast.success(t("projects.toastOfferSent"));
       setOfferOpen(false);
       setAmount("");
       setConditions("");
@@ -156,9 +171,9 @@ export default function ProjectDetailPage() {
       <div className="min-h-screen bg-white">
         <MarketingHeader />
         <div className="container-narrow section-pad py-24 text-center">
-          <h1 className="font-display text-2xl font-semibold">Project not found</h1>
+          <h1 className="font-display text-2xl font-semibold">{t("projects.notFound")}</h1>
           <Button className="mt-6" asChild>
-            <Link href={ROUTES.PROJECTS}>Back to marketplace</Link>
+            <Link href={ROUTES.PROJECTS}>{t("projects.backToMarketplace")}</Link>
           </Button>
         </div>
         <MarketingFooter />
@@ -182,7 +197,7 @@ export default function ProjectDetailPage() {
             <div className="relative aspect-[16/9] overflow-hidden rounded-2xl bg-slate-100">
               <Image
                 src={project.image}
-                alt={project.title}
+                alt={title}
                 fill
                 className="object-cover"
                 sizes="(max-width:1024px) 100vw, 60vw"
@@ -193,29 +208,34 @@ export default function ProjectDetailPage() {
               <Badge className={cn("border capitalize", STATUS_COLORS[project.status])}>
                 {project.status.replace("_", " ")}
               </Badge>
-              <Badge variant="outline">{project.category}</Badge>
+              <Badge variant="outline">{category}</Badge>
               {risk && (
-                <Badge className={cn("border", risk.bg, risk.color)}>{risk.label}</Badge>
+                <Badge className={cn("border", risk.bg, risk.color)}>
+                  {project.riskLevel === "low"
+                    ? t("projects.lowRisk")
+                    : project.riskLevel === "high"
+                      ? t("projects.highRisk")
+                      : t("projects.mediumRisk")}
+                </Badge>
               )}
             </div>
             <h1 className="mt-4 font-display text-3xl font-semibold text-slate-900 md:text-4xl">
-              {project.title}
+              {title}
             </h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              {project.location} · {project.industry} · Stage: {project.stage.replace("_", " ")}
+              {location} · {industry} · {t("projects.stage")}: {project.stage.replace("_", " ")}
             </p>
 
             {accessLimited && (
               <div className="mt-6 flex gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
                 <Lock className="mt-0.5 h-4 w-4 shrink-0" />
                 <div>
-                  <p className="font-medium">Gated content</p>
+                  <p className="font-medium">{t("projects.gatedContent")}</p>
                   <p className="mt-0.5 text-amber-800">
-                    Some details are limited by your membership.{" "}
+                    {t("projects.gatedBody")}{" "}
                     <Link href={ROUTES.MEMBERSHIP} className="font-medium underline">
-                      Upgrade to unlock
-                    </Link>{" "}
-                    documents, team, and financials.
+                      {t("projects.upgradeToUnlock")}
+                    </Link>
                   </p>
                 </div>
               </div>
@@ -223,51 +243,68 @@ export default function ProjectDetailPage() {
 
             <Tabs defaultValue="overview" className="mt-8">
               <TabsList className="w-full justify-start overflow-x-auto">
-                <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value="financial">Financial</TabsTrigger>
-                <TabsTrigger value="team">Team</TabsTrigger>
-                <TabsTrigger value="documents">Documents</TabsTrigger>
-                <TabsTrigger value="updates">Updates</TabsTrigger>
+                <TabsTrigger value="overview">{t("projects.overview")}</TabsTrigger>
+                <TabsTrigger value="financial">{t("projects.financialShort")}</TabsTrigger>
+                <TabsTrigger value="team">{t("projects.team")}</TabsTrigger>
+                <TabsTrigger value="documents">{t("projects.documents")}</TabsTrigger>
+                <TabsTrigger value="updates">{t("projects.updates")}</TabsTrigger>
               </TabsList>
 
               <TabsContent value="overview" className="mt-6 space-y-4">
                 <p className="text-slate-700 leading-relaxed whitespace-pre-line">
-                  {project.fullDescription || project.description}
+                  {fullDescription || description}
                 </p>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="premium-card p-4">
-                    <p className="text-xs text-muted-foreground">Business model</p>
-                    <p className="mt-1 text-sm text-slate-800">{project.businessModel}</p>
+                    <p className="text-xs text-muted-foreground">{t("projects.businessModel")}</p>
+                    <p className="mt-1 text-sm text-slate-800">{businessModel}</p>
                   </div>
                   <div className="premium-card p-4">
-                    <p className="text-xs text-muted-foreground">Timeline</p>
-                    <p className="mt-1 text-sm text-slate-800">{project.timeline}</p>
+                    <p className="text-xs text-muted-foreground">{t("projects.timeline")}</p>
+                    <p className="mt-1 text-sm text-slate-800">{timeline}</p>
                   </div>
                 </div>
               </TabsContent>
 
               <TabsContent value="financial" className="mt-6 space-y-4">
                 {showLocked && !project.financialProjections ? (
-                  <LockedPanel href={ROUTES.MEMBERSHIP} label="financial analysis" />
+                  <LockedPanel
+                    href={ROUTES.MEMBERSHIP}
+                    label={t("projects.financialAnalysis")}
+                    t={t}
+                  />
                 ) : (
                   <>
                     <div className="grid gap-4 sm:grid-cols-3">
-                      <Metric label="Required" value={formatCurrency(project.requiredInvestment)} />
-                      <Metric label="Raised" value={formatCurrency(project.currentFunding)} />
-                      <Metric label="Expected ROI" value={formatPercent(project.expectedRoi)} />
+                      <Metric
+                        label={t("projects.required")}
+                        value={formatCurrency(project.requiredInvestment)}
+                      />
+                      <Metric
+                        label={t("projects.raised")}
+                        value={formatCurrency(project.currentFunding)}
+                      />
+                      <Metric
+                        label={t("projects.expectedRoi")}
+                        value={formatPercent(project.expectedRoi)}
+                      />
                     </div>
                     <div className="premium-card space-y-3 p-5">
-                      <h3 className="font-display font-semibold">Revenue model</h3>
+                      <h3 className="font-display font-semibold">{t("projects.revenueModel")}</h3>
                       <p className="text-sm text-muted-foreground whitespace-pre-line">
-                        {project.revenueModel}
+                        {revenueModel}
                       </p>
-                      <h3 className="font-display font-semibold pt-2">Projections</h3>
+                      <h3 className="font-display font-semibold pt-2">
+                        {t("projects.projections")}
+                      </h3>
                       <p className="text-sm text-muted-foreground whitespace-pre-line">
-                        {project.financialProjections}
+                        {financialProjections}
                       </p>
-                      <h3 className="font-display font-semibold pt-2">Investment plan</h3>
+                      <h3 className="font-display font-semibold pt-2">
+                        {t("projects.investmentPlan")}
+                      </h3>
                       <p className="text-sm text-muted-foreground whitespace-pre-line">
-                        {project.investmentPlan}
+                        {investmentPlan}
                       </p>
                     </div>
                   </>
@@ -276,17 +313,25 @@ export default function ProjectDetailPage() {
 
               <TabsContent value="team" className="mt-6">
                 {showLocked || !project.team?.length ? (
-                  <LockedPanel href={ROUTES.MEMBERSHIP} label="team information" />
+                  <LockedPanel
+                    href={ROUTES.MEMBERSHIP}
+                    label={t("projects.teamInformation")}
+                    t={t}
+                  />
                 ) : (
                   <div className="grid gap-4 sm:grid-cols-2">
                     {project.team.map((member) => (
                       <div key={member.id} className="premium-card p-5">
                         <h3 className="font-display font-semibold">{member.name}</h3>
                         <p className="text-sm text-blue-600">
-                          {member.position} · {member.role}
+                          {teamMemberText(member, "position", locale)} · {member.role}
                         </p>
-                        <p className="mt-2 text-sm text-muted-foreground">{member.biography}</p>
-                        <p className="mt-2 text-xs text-slate-500">{member.experience}</p>
+                        <p className="mt-2 text-sm text-muted-foreground">
+                          {teamMemberText(member, "biography", locale)}
+                        </p>
+                        <p className="mt-2 text-xs text-slate-500">
+                          {teamMemberText(member, "experience", locale)}
+                        </p>
                       </div>
                     ))}
                   </div>
@@ -295,7 +340,11 @@ export default function ProjectDetailPage() {
 
               <TabsContent value="documents" className="mt-6">
                 {showLocked || !project.documents?.length ? (
-                  <LockedPanel href={ROUTES.MEMBERSHIP} label="documents" />
+                  <LockedPanel
+                    href={ROUTES.MEMBERSHIP}
+                    label={t("projects.documents")}
+                    t={t}
+                  />
                 ) : (
                   <ul className="space-y-3">
                     {project.documents.map((doc) => (
@@ -314,7 +363,7 @@ export default function ProjectDetailPage() {
                         </div>
                         <Button variant="outline" size="sm" asChild>
                           <a href={doc.url} target="_blank" rel="noreferrer">
-                            View
+                            {t("common.view")}
                           </a>
                         </Button>
                       </li>
@@ -328,18 +377,20 @@ export default function ProjectDetailPage() {
                   project.updates.map((update) => (
                     <div key={update.id} className="premium-card p-5">
                       <div className="flex items-center justify-between gap-3">
-                        <h3 className="font-display font-semibold">{update.title}</h3>
+                        <h3 className="font-display font-semibold">
+                          {updateText(update, "title", locale)}
+                        </h3>
                         <span className="text-xs text-muted-foreground">
                           {formatDate(update.createdAt)}
                         </span>
                       </div>
                       <p className="mt-2 text-sm text-muted-foreground whitespace-pre-line">
-                        {update.content}
+                        {updateText(update, "content", locale)}
                       </p>
                     </div>
                   ))
                 ) : (
-                  <p className="text-sm text-muted-foreground">No updates published yet.</p>
+                  <p className="text-sm text-muted-foreground">{t("projects.noUpdates")}</p>
                 )}
               </TabsContent>
             </Tabs>
@@ -347,23 +398,26 @@ export default function ProjectDetailPage() {
 
           <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start animate-slide-up">
             <div className="premium-card p-6">
-              <p className="text-xs text-muted-foreground">Funding progress</p>
+              <p className="text-xs text-muted-foreground">{t("projects.fundingProgress")}</p>
               <p className="mt-1 font-display text-2xl font-semibold">
                 {formatCurrency(project.currentFunding)}
               </p>
               <p className="text-sm text-muted-foreground">
-                of {formatCurrency(project.requiredInvestment)} · {progress}%
+                {t("projects.ofAmount", {
+                  amount: formatCurrency(project.requiredInvestment),
+                  progress,
+                })}
               </p>
               <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
                 <div className="h-full rounded-full bg-blue-600" style={{ width: `${progress}%` }} />
               </div>
               <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
                 <div>
-                  <p className="text-xs text-muted-foreground">Min investment</p>
+                  <p className="text-xs text-muted-foreground">{t("projects.minInvestment")}</p>
                   <p className="font-medium">{formatCurrency(project.minInvestment)}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Investors</p>
+                  <p className="text-xs text-muted-foreground">{t("projects.investors")}</p>
                   <p className="font-medium">{project.investorCount}</p>
                 </div>
               </div>
@@ -372,32 +426,32 @@ export default function ProjectDetailPage() {
                 <Button
                   onClick={() => {
                     if (!isAuthenticated || user?.role !== "investor") {
-                      toast.error("Sign in as an investor to send an offer.");
+                      toast.error(t("projects.toastOfferSignIn"));
                       router.push(`${ROUTES.REGISTER}?role=investor`);
                       return;
                     }
                     if (!canSendOffers(user?.membershipTier)) {
-                      toast.error("Premium membership required.");
+                      toast.error(t("projects.toastPremiumRequired"));
                       router.push(ROUTES.MEMBERSHIP);
                       return;
                     }
                     setOfferOpen(true);
                   }}
                 >
-                  Send Investment Offer
+                  {t("projects.sendOffer")}
                 </Button>
                 <Button variant="outline" onClick={handleMessage} disabled={busy === "message"}>
                   <MessageSquare className="h-4 w-4" />
-                  {busy === "message" ? "Starting..." : "Message"}
+                  {busy === "message" ? t("common.starting") : t("projects.message")}
                 </Button>
                 <Button variant="outline" onClick={handleSave} disabled={busy === "save"}>
                   <Bookmark className="h-4 w-4" />
-                  {busy === "save" ? "Saving..." : "Save"}
+                  {busy === "save" ? t("common.saving") : t("common.save")}
                 </Button>
                 <Button variant="secondary" asChild>
                   <Link href={`/projects/${id}/risk-analysis`}>
                     <ShieldAlert className="h-4 w-4" />
-                    View Risk Analysis
+                    {t("projects.viewRiskAnalysis")}
                   </Link>
                 </Button>
               </div>
@@ -409,14 +463,14 @@ export default function ProjectDetailPage() {
       <Dialog open={offerOpen} onOpenChange={setOfferOpen}>
         <DialogContent className="bg-white sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Send investment offer</DialogTitle>
+            <DialogTitle>{t("projects.sendOfferTitle")}</DialogTitle>
             <DialogDescription>
-              Submit a structured offer for {project.title}. Communication stays on-platform.
+              {t("projects.sendOfferDesc", { title })}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="amount">Amount (USD)</Label>
+              <Label htmlFor="amount">{t("projects.amountUsd")}</Label>
               <Input
                 id="amount"
                 type="number"
@@ -427,7 +481,7 @@ export default function ProjectDetailPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="conditions">Conditions</Label>
+              <Label htmlFor="conditions">{t("projects.conditions")}</Label>
               <textarea
                 id="conditions"
                 rows={2}
@@ -437,7 +491,7 @@ export default function ProjectDetailPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="questions">Questions</Label>
+              <Label htmlFor="questions">{t("projects.questions")}</Label>
               <textarea
                 id="questions"
                 rows={2}
@@ -447,7 +501,7 @@ export default function ProjectDetailPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="notes">Notes</Label>
+              <Label htmlFor="notes">{t("projects.notes")}</Label>
               <textarea
                 id="notes"
                 rows={2}
@@ -457,7 +511,7 @@ export default function ProjectDetailPage() {
               />
             </div>
             <Button className="w-full" onClick={handleOffer} disabled={busy === "offer"}>
-              {busy === "offer" ? "Sending..." : "Submit offer"}
+              {busy === "offer" ? t("common.sending") : t("projects.submitOffer")}
             </Button>
           </div>
         </DialogContent>
@@ -477,16 +531,21 @@ function Metric({ label, value }: { label: string; value: string }) {
   );
 }
 
-function LockedPanel({ href, label }: { href: string; label: string }) {
+function LockedPanel({
+  href,
+  label,
+  t,
+}: {
+  href: string;
+  label: string;
+  t: (key: string, params?: Record<string, string | number>) => string;
+}) {
   return (
     <div className="premium-card flex flex-col items-start gap-3 p-8 text-center sm:items-center">
       <Lock className="h-8 w-8 text-slate-400" />
-      <p className="text-sm text-muted-foreground">
-        {label.charAt(0).toUpperCase() + label.slice(1)} is available with Premium membership or
-        higher.
-      </p>
+      <p className="text-sm text-muted-foreground">{t("projects.lockedLabel", { label })}</p>
       <Button asChild>
-        <Link href={href}>View membership plans</Link>
+        <Link href={href}>{t("projects.viewMembershipPlans")}</Link>
       </Button>
     </div>
   );

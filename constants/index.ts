@@ -30,7 +30,7 @@ export const ROUTES = {
   INVESTOR_SECURITY: "/investor/security",
   MESSAGES: "/messages",
 
-  // Ownerr
+  // Owner
   OWNER_DASHBOARD: "/owner/dashboard",
   OWNER_PROJECTS: "/owner/projects",
   OWNER_PROJECT_CREATE: "/owner/projects/create",

@@ -112,9 +112,12 @@ export interface TeamMember {
   id: string;
   name: string;
   position: string;
+  positionHy?: string;
   role: TeamRole;
   experience: string;
+  experienceHy?: string;
   biography: string;
+  biographyHy?: string;
   portfolio?: string;
   avatar?: string;
 }
@@ -122,6 +125,7 @@ export interface TeamMember {
 export interface ProjectDocument {
   id: string;
   name: string;
+  nameHy?: string;
   url: string;
   category: DocumentCategory;
   size?: number;
@@ -131,7 +135,9 @@ export interface ProjectDocument {
 export interface ProjectUpdate {
   id: string;
   title: string;
+  titleHy?: string;
   content: string;
+  contentHy?: string;
   createdAt: string;
 }
 
@@ -140,23 +146,34 @@ export interface Project {
   ownerId: string;
   ownerName?: string;
   title: string;
+  titleHy?: string;
   slug: string;
   description: string;
+  descriptionHy?: string;
   fullDescription: string;
+  fullDescriptionHy?: string;
   category: string;
+  categoryHy?: string;
   industry: string;
+  industryHy?: string;
   location: string;
+  locationHy?: string;
   stage: ProjectStage;
   timeline: string;
+  timelineHy?: string;
   image: string;
   requiredInvestment: number;
   minInvestment: number;
   currentFunding: number;
   expectedRoi: number;
   revenueModel: string;
+  revenueModelHy?: string;
   financialProjections: string;
+  financialProjectionsHy?: string;
   investmentPlan: string;
+  investmentPlanHy?: string;
   businessModel: string;
+  businessModelHy?: string;
   riskLevel: RiskLevel;
   status: ProjectStatus;
   investorCount: number;

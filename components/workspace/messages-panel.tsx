@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { MessageSquare, Send, ShieldAlert } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { useI18n } from "@/hooks";
 import { useConversations, useMessages } from "@/hooks/use-marketplace";
 import { chatApi } from "@/services/api";
 import { getErrorMessage } from "@/services/api/client";
@@ -17,6 +18,7 @@ import { toast } from "sonner";
 
 export function MessagesPanel() {
   const { user } = useAuth();
+  const { t } = useI18n();
   const queryClient = useQueryClient();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
@@ -40,21 +42,21 @@ export function MessagesPanel() {
     <div className="space-y-4">
       <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
         <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" />
-        <p>Contact details are blocked — communicate only on-platform</p>
+        <p>{t("messages.securityNoteShort")}</p>
       </div>
 
       <div className="premium-card grid min-h-[520px] overflow-hidden lg:grid-cols-[280px_1fr]">
         <aside className="border-b border-border bg-slate-50/80 lg:border-b-0 lg:border-r">
           <div className="border-b border-border px-4 py-3">
-            <p className="text-sm font-semibold text-slate-900">Conversations</p>
+            <p className="text-sm font-semibold text-slate-900">{t("messages.conversations")}</p>
           </div>
           <div className="max-h-[220px] overflow-y-auto lg:max-h-[480px]">
             {isLoading ? (
-              <p className="p-4 text-sm text-muted-foreground">Loading…</p>
+              <p className="p-4 text-sm text-muted-foreground">{t("common.loading")}</p>
             ) : conversations.length === 0 ? (
               <div className="flex flex-col items-center gap-2 p-8 text-center text-sm text-muted-foreground">
                 <MessageSquare className="h-8 w-8 text-slate-300" />
-                No conversations yet
+                {t("messages.noConversations")}
               </div>
             ) : (
               conversations.map((c) => (
@@ -120,8 +122,11 @@ export function MessagesPanel() {
                         </p>
                         <p className="whitespace-pre-wrap">{m.content}</p>
                         {m.isFlagged && (
-                          <Badge variant="outline" className="mt-2 border-red-200 bg-red-50 text-red-700">
-                            Flagged
+                          <Badge
+                            variant="outline"
+                            className="mt-2 border-red-200 bg-red-50 text-red-700"
+                          >
+                            {t("messages.flagged")}
                           </Badge>
                         )}
                       </div>
@@ -140,7 +145,7 @@ export function MessagesPanel() {
                 <Textarea
                   value={draft}
                   onChange={(e) => setDraft(e.target.value)}
-                  placeholder="Write a message…"
+                  placeholder={t("messages.placeholder")}
                   className="min-h-[44px] resize-none"
                   rows={2}
                 />
@@ -156,7 +161,7 @@ export function MessagesPanel() {
           ) : (
             <div className="flex flex-1 flex-col items-center justify-center gap-2 text-muted-foreground">
               <MessageSquare className="h-10 w-10 text-slate-300" />
-              <p className="text-sm">Select a conversation</p>
+              <p className="text-sm">{t("messages.selectConversation")}</p>
             </div>
           )}
         </div>

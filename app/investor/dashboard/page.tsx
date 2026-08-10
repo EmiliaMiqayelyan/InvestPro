@@ -10,46 +10,48 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { useInvestorDashboard } from "@/hooks/use-marketplace";
+import { useI18n } from "@/hooks";
 import { ROUTES } from "@/constants";
 import { formatCurrency } from "@/utils/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
-const links = [
-  { href: ROUTES.PROJECTS, label: "Browse projects", icon: Briefcase },
-  { href: ROUTES.INVESTOR_INVESTMENTS, label: "My investments", icon: Handshake },
-  { href: ROUTES.INVESTOR_MESSAGES, label: "Messages", icon: MessageSquare },
-  { href: ROUTES.MEMBERSHIP, label: "Membership", icon: CreditCard },
-];
-
 export default function InvestorDashboardPage() {
+  const { t } = useI18n();
   const { data: stats, isLoading } = useInvestorDashboard();
 
+  const links = [
+    { href: ROUTES.PROJECTS, label: t("investor.browseProjects"), icon: Briefcase },
+    { href: ROUTES.INVESTOR_INVESTMENTS, label: t("investor.myInvestments"), icon: Handshake },
+    { href: ROUTES.INVESTOR_MESSAGES, label: t("nav.messages"), icon: MessageSquare },
+    { href: ROUTES.MEMBERSHIP, label: t("investor.membershipStatus"), icon: CreditCard },
+  ];
+
   const cards = [
-    { label: "Available projects", value: stats?.availableProjects ?? 0 },
-    { label: "My investments", value: stats?.myInvestments ?? 0 },
-    { label: "Saved projects", value: stats?.savedProjects ?? 0 },
-    { label: "Unread messages", value: stats?.unreadMessages ?? 0 },
+    { label: t("investor.availableProjects"), value: stats?.availableProjects ?? 0 },
+    { label: t("investor.myInvestments"), value: stats?.myInvestments ?? 0 },
+    { label: t("investor.savedProjects"), value: stats?.savedProjects ?? 0 },
+    { label: t("investor.unreadMessages"), value: stats?.unreadMessages ?? 0 },
     {
-      label: "Portfolio value",
+      label: t("investor.portfolioValue"),
       value: formatCurrency(stats?.portfolioValue ?? 0),
     },
-    { label: "Active offers", value: stats?.activeOffers ?? 0 },
+    { label: t("investor.activeOffers"), value: stats?.activeOffers ?? 0 },
   ];
 
   return (
     <div className="space-y-8">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h2 className="font-display text-2xl font-semibold text-slate-900">Dashboard</h2>
-          <p className="text-sm text-muted-foreground">
-            Your investment overview and quick actions
-          </p>
+          <h2 className="font-display text-2xl font-semibold text-slate-900">
+            {t("investor.dashboard")}
+          </h2>
+          <p className="text-sm text-muted-foreground">{t("investor.overview")}</p>
         </div>
         {stats?.membershipTier && (
           <Badge className="border border-blue-200 bg-blue-50 capitalize text-blue-700">
-            {stats.membershipTier} plan
+            {t("investor.planBadge", { tier: stats.membershipTier })}
           </Badge>
         )}
       </div>
@@ -78,11 +80,16 @@ export default function InvestorDashboardPage() {
         {links.map((link) => {
           const Icon = link.icon;
           return (
-            <Link key={link.href} href={link.href} className="premium-card group p-5 transition hover:-translate-y-0.5">
+            <Link
+              key={link.href}
+              href={link.href}
+              className="premium-card group p-5 transition hover:-translate-y-0.5"
+            >
               <Icon className="mb-3 h-5 w-5 text-blue-600" />
               <p className="font-medium text-slate-900">{link.label}</p>
               <span className="mt-2 inline-flex items-center gap-1 text-xs text-blue-600">
-                Open <ArrowRight className="h-3 w-3 transition group-hover:translate-x-0.5" />
+                {t("common.open")}{" "}
+                <ArrowRight className="h-3 w-3 transition group-hover:translate-x-0.5" />
               </span>
             </Link>
           );
@@ -92,11 +99,11 @@ export default function InvestorDashboardPage() {
       <div className="flex flex-wrap gap-3">
         <Button asChild className="bg-blue-600 hover:bg-blue-700">
           <Link href={ROUTES.INVESTOR_SAVED}>
-            <Bookmark className="h-4 w-4" /> Saved projects
+            <Bookmark className="h-4 w-4" /> {t("investor.savedProjects")}
           </Link>
         </Button>
         <Button asChild variant="outline">
-          <Link href={ROUTES.INVESTOR_KYC}>Complete verification</Link>
+          <Link href={ROUTES.INVESTOR_KYC}>{t("investor.completeVerification")}</Link>
         </Button>
       </div>
     </div>
