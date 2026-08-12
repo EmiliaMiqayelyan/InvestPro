@@ -33,7 +33,8 @@ export const GUEST_ONLY_ROUTES = [
   ROUTES.FORGOT_PASSWORD,
 ] as string[];
 
-/** Membership tiers required for gated marketplace features */
+/** Legacy compatibility: membership tiers still exist in the data model,
+ * but the marketplace UI/product no longer uses them for gating. */
 export const MEMBERSHIP_RANK: Record<MembershipPlanId | "none", number> = {
   none: 0,
   basic: 1,
@@ -98,14 +99,17 @@ export function hasMembershipAccess(
 
 /** Premium+ can access documents, team, messaging, offers */
 export function canAccessFullProject(tier: MembershipPlanId | "none" | undefined): boolean {
-  return hasMembershipAccess(tier, "premium");
+  // Marketplace content is open to investors (no Premium/Enterprise gating).
+  return true;
 }
 
 export function canSendOffers(tier: MembershipPlanId | "none" | undefined): boolean {
-  return hasMembershipAccess(tier, "premium");
+  // Investors can submit proposals without subscription tiers.
+  return true;
 }
 
 export function canMessage(tier: MembershipPlanId | "none" | undefined, role?: UserRole): boolean {
+  // Communication stays within the platform and is not subscription gated.
   if (role === "project_owner" || role === "admin") return true;
-  return hasMembershipAccess(tier, "premium");
+  return true;
 }

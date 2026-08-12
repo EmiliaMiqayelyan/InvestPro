@@ -1,6 +1,6 @@
 export const en = {
   common: {
-    platformName: "VentureBridge",
+    platformName: "InvestPro",
     signIn: "Sign in",
     signOut: "Sign out",
     getStarted: "Get started",
@@ -40,6 +40,9 @@ export const en = {
   },
   nav: {
     projects: "Projects",
+    howItWorks: "How it works",
+    forInvestors: "Investors",
+    forOwners: "Owners",
     membership: "Membership",
     about: "About",
     contact: "Contact",
@@ -72,9 +75,11 @@ export const en = {
     rights: "All rights reserved. Communication stays on-platform.",
   },
   landing: {
-    heroTitle: "Connect innovative projects with trusted investors",
+    heroTitle: "Discover projects worth investing in",
     heroSubtitle:
-      "VentureBridge is a professional investment marketplace where founders raise capital and investors diligence deals — securely, on-platform.",
+      "Connect with founders, explore real opportunities, analyze projects and make informed investment decisions — all in one secure platform.",
+    exploreProjects: "Explore Projects",
+    publishProject: "Publish a Project",
     raiseCapital: "Raise capital for your project",
     discoverOpportunities: "Discover verified opportunities",
     forOwners: "For Project Owners",
@@ -86,7 +91,7 @@ export const en = {
     discover: "Discover",
     discoverDesc: "Browse verified projects with clear funding goals, stages, and risk previews.",
     diligence: "Diligence",
-    diligenceDesc: "Review financials, documents, and risk reports with membership access.",
+    diligenceDesc: "Review financials, documents, and risk reports before you invest.",
     connect: "Connect",
     connectDesc: "Message owners and send investment offers — all communication stays on-platform.",
     forInvestorsTitle: "Built for serious investors",
@@ -104,12 +109,12 @@ export const en = {
       "Listings and accounts go through review so investors engage with credible teams.",
     accessControls: "Access controls",
     accessControlsDesc:
-      "Sensitive documents and team details unlock with the right membership tier.",
+      "Verified projects, document review, and secure on-platform communication.",
     onPlatformOnly: "On-platform only",
     onPlatformOnlyDesc:
-      "Offers and messages stay inside VentureBridge — no off-channel contact sharing.",
+      "Offers and messages stay inside InvestPro — no off-channel contact sharing.",
     successStories: "Success stories",
-    successStoriesSub: "Founders and investors building outcomes on VentureBridge.",
+    successStoriesSub: "Founders and investors building outcomes on InvestPro.",
     featuredProjects: "Featured projects",
     featuredSub: "Live opportunities from the marketplace.",
     featuredEmpty: "Featured projects will appear here once listings are published.",
@@ -117,10 +122,11 @@ export const en = {
     membershipSub: "Unlock deeper access as an investor — documents, messaging, and offers.",
     viewPlan: "View plan",
     faq: "FAQ",
-    faqSub: "Quick answers about how VentureBridge works.",
+    faqSub: "Quick answers about how InvestPro works.",
     contactCta: "Ready to get started?",
     contactCtaSub: "Create an investor or owner account in minutes.",
-    contactCtaHelp: "Questions about membership, listings, or diligence? Our team is here to help.",
+    contactCtaHelp:
+      "Questions about projects, verification, or getting started? Our team is here to help.",
     contactUs: "Contact us",
     createAccount: "Create account",
     investorPoints: {
@@ -133,7 +139,7 @@ export const en = {
       p1: "Publish projects with documents, team, and updates",
       p2: "Reach verified investors ready to diligence",
       p3: "Receive structured offers with clear terms",
-      p4: "Keep conversations secure inside VentureBridge",
+      p4: "Keep conversations secure inside InvestPro",
     },
     stories: {
       s1Quote:
@@ -155,25 +161,25 @@ export const en = {
       q2: "Do I need a membership to browse?",
       a2: "Anyone can browse titles and limited previews. Premium and Enterprise unlock documents, team details, messaging, and offers.",
       q3: "How does investment work?",
-      a3: "Investors send structured offers on-platform. Owners respond, negotiate, and keep communication inside VentureBridge.",
+      a3: "Investors send structured offers on-platform. Owners respond, negotiate, and keep communication inside InvestPro.",
       q4: "Is off-platform contact allowed?",
       a4: "No. Sharing emails, phones, or messaging apps is blocked to protect both parties and keep deals auditable.",
     },
   },
   about: {
-    title: "About VentureBridge",
+    title: "About InvestPro",
     eyebrow: "About",
-    heroTitle: "Why VentureBridge exists",
+    heroTitle: "Why InvestPro exists",
     heroSub:
       "We connect innovative project owners with trusted investors in a marketplace designed for clarity, verification, and secure on-platform collaboration.",
     mission: "Our mission",
     missionBody:
       "We exist to connect innovative projects with trusted investors through a secure, transparent marketplace.",
     missionBodyLong:
-      "Capital formation should not depend on opaque networks or risky off-channel deals. VentureBridge gives founders a professional surface to present their ventures and gives investors structured access to the materials they need — with communication that stays auditable and inside the platform.",
+      "Capital formation should not depend on opaque networks or risky off-channel deals. InvestPro gives founders a professional surface to present their ventures and gives investors structured access to the materials they need — with communication that stays auditable and inside the platform.",
     why: "Why we exist",
     whyBody:
-      "Traditional deal flow is fragmented and opaque. VentureBridge brings discovery, diligence, messaging, and offers into one professional platform.",
+      "Traditional deal flow is fragmented and opaque. InvestPro brings discovery, diligence, messaging, and offers into one professional platform.",
     whyBodyLong:
       "Early-stage investing is often fragmented: incomplete data rooms, unverified claims, and pressure to move conversations to email or chat apps. We built a light, premium marketplace that prioritizes verification, membership-gated diligence, and investor protection without sacrificing speed for serious teams.",
     security: "How investment security works",
@@ -227,7 +233,7 @@ export const en = {
     title: "Contact us",
     eyebrow: "Contact",
     subtitle: "Questions about investing, raising capital, or partnership? Send a message.",
-    heroTitle: "Talk with VentureBridge",
+    heroTitle: "Talk with InvestPro",
     heroSub:
       "Questions about membership, listings, or diligence? Send a message and our team will respond.",
     formTitle: "Send a message",
@@ -249,7 +255,7 @@ export const en = {
     welcomeBack: "Welcome back",
     createAccount: "Create your account",
     createAccountShort: "Create account",
-    signInToAccount: "Sign in to your VentureBridge account",
+    signInToAccount: "Sign in to your InvestPro account",
     joinAs: "Join as an investor or project owner",
     email: "Email",
     password: "Password",

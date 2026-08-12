@@ -7,7 +7,6 @@ import { useParams, useRouter } from "next/navigation";
 import {
   Bookmark,
   FileText,
-  Lock,
   MessageSquare,
   ShieldAlert,
 } from "lucide-react";
@@ -17,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
@@ -33,11 +33,9 @@ import { useAuthStore } from "@/store";
 import { getErrorMessage } from "@/services/api/client";
 import {
   ROUTES,
-  STATUS_COLORS,
   RISK_LEVELS,
 } from "@/constants";
 import { formatCurrency, formatPercent, formatDate } from "@/utils/format";
-import { canAccessFullProject, canMessage, canSendOffers } from "@/lib/rbac";
 import { projectText, teamMemberText, updateText } from "@/i18n/localize";
 import { cn } from "@/lib/utils";
 
@@ -54,12 +52,6 @@ export default function ProjectDetailPage() {
   const [questions, setQuestions] = useState("");
   const [notes, setNotes] = useState("");
   const [busy, setBusy] = useState<"save" | "message" | "offer" | null>(null);
-
-  const accessLimited = Boolean(
-    (project as { accessLimited?: boolean } | undefined)?.accessLimited
-  );
-  const fullAccess = canAccessFullProject(user?.membershipTier);
-  const showLocked = accessLimited || !fullAccess;
 
   const title = projectText(project, "title", locale);
   const description = projectText(project, "description", locale);
@@ -96,11 +88,6 @@ export default function ProjectDetailPage() {
       router.push(ROUTES.LOGIN);
       return;
     }
-    if (!canMessage(user?.membershipTier, user?.role)) {
-      toast.error(t("projects.toastMessagePremium"));
-      router.push(ROUTES.MEMBERSHIP);
-      return;
-    }
     setBusy("message");
     try {
       const { data } = await chatApi.start({ projectId: id });
@@ -120,11 +107,6 @@ export default function ProjectDetailPage() {
   const handleOffer = async () => {
     if (!isAuthenticated || user?.role !== "investor") {
       toast.error(t("projects.toastOfferLogin"));
-      return;
-    }
-    if (!canSendOffers(user?.membershipTier)) {
-      toast.error(t("projects.toastOfferPremium"));
-      router.push(ROUTES.MEMBERSHIP);
       return;
     }
     const parsed = parseFloat(amount);
@@ -186,6 +168,26 @@ export default function ProjectDetailPage() {
     100,
     Math.round((project.currentFunding / Math.max(project.requiredInvestment, 1)) * 100)
   );
+  const remainingFunding = Math.max(0, project.requiredInvestment - project.currentFunding);
+
+  const verification = (() => {
+    switch (project.status) {
+      case "published":
+      case "funded":
+      case "closed":
+        return { label: "Verified", className: "border-emerald-200 bg-emerald-50 text-emerald-700" };
+      case "pending_review":
+        return { label: "Under Review", className: "border-amber-200 bg-amber-50 text-amber-700" };
+      case "draft":
+        return {
+          label: "Additional Information Required",
+          className: "border-blue-200 bg-blue-50 text-blue-700",
+        };
+      case "rejected":
+      default:
+        return { label: "Not Verified", className: "border-slate-200 bg-slate-100 text-slate-700" };
+    }
+  })();
 
   return (
     <div className="min-h-screen bg-white">
@@ -205,8 +207,8 @@ export default function ProjectDetailPage() {
               />
             </div>
             <div className="mt-6 flex flex-wrap items-center gap-2">
-              <Badge className={cn("border capitalize", STATUS_COLORS[project.status])}>
-                {project.status.replace("_", " ")}
+              <Badge variant="outline" className={cn(verification.className)}>
+                {verification.label}
               </Badge>
               <Badge variant="outline">{category}</Badge>
               {risk && (
@@ -226,20 +228,7 @@ export default function ProjectDetailPage() {
               {location} · {industry} · {t("projects.stage")}: {project.stage.replace("_", " ")}
             </p>
 
-            {accessLimited && (
-              <div className="mt-6 flex gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-                <Lock className="mt-0.5 h-4 w-4 shrink-0" />
-                <div>
-                  <p className="font-medium">{t("projects.gatedContent")}</p>
-                  <p className="mt-0.5 text-amber-800">
-                    {t("projects.gatedBody")}{" "}
-                    <Link href={ROUTES.MEMBERSHIP} className="font-medium underline">
-                      {t("projects.upgradeToUnlock")}
-                    </Link>
-                  </p>
-                </div>
-              </div>
-            )}
+            {/* Content is not subscription-gated. */}
 
             <Tabs defaultValue="overview" className="mt-8">
               <TabsList className="w-full justify-start overflow-x-auto">
@@ -256,96 +245,142 @@ export default function ProjectDetailPage() {
                 </p>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="premium-card p-4">
-                    <p className="text-xs text-muted-foreground">{t("projects.businessModel")}</p>
-                    <p className="mt-1 text-sm text-slate-800">{businessModel}</p>
+                    <p className="text-xs text-muted-foreground">Industry</p>
+                    <p className="mt-1 text-sm text-slate-800">{industry}</p>
                   </div>
                   <div className="premium-card p-4">
-                    <p className="text-xs text-muted-foreground">{t("projects.timeline")}</p>
-                    <p className="mt-1 text-sm text-slate-800">{timeline}</p>
+                    <p className="text-xs text-muted-foreground">Location</p>
+                    <p className="mt-1 text-sm text-slate-800">{location}</p>
+                  </div>
+                  <div className="premium-card p-4">
+                    <p className="text-xs text-muted-foreground">Stage</p>
+                    <p className="mt-1 text-sm text-slate-800">{project.stage.replace("_", " ")}</p>
+                  </div>
+                  <div className="premium-card p-4">
+                    <p className="text-xs text-muted-foreground">Founded</p>
+                    <p className="mt-1 text-sm text-slate-800">{formatDate(project.createdAt)}</p>
+                  </div>
+                  <div className="premium-card p-4">
+                    <p className="text-xs text-muted-foreground">Project owner</p>
+                    <p className="mt-1 text-sm text-slate-800">{project.ownerName || "—"}</p>
+                  </div>
+                  <div className="premium-card p-4">
+                    <p className="text-xs text-muted-foreground">Team size</p>
+                    <p className="mt-1 text-sm text-slate-800">{project.team.length} members</p>
+                  </div>
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="premium-card p-4">
+                    <p className="text-xs text-muted-foreground">Business model</p>
+                    <p className="mt-1 text-sm text-slate-800 whitespace-pre-line">{businessModel}</p>
+                  </div>
+                  <div className="premium-card p-4">
+                    <p className="text-xs text-muted-foreground">Growth strategy</p>
+                    <p className="mt-1 text-sm text-slate-800 whitespace-pre-line">{timeline}</p>
                   </div>
                 </div>
               </TabsContent>
 
               <TabsContent value="financial" className="mt-6 space-y-4">
-                {showLocked && !project.financialProjections ? (
-                  <LockedPanel
-                    href={ROUTES.MEMBERSHIP}
-                    label={t("projects.financialAnalysis")}
-                    t={t}
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <Metric
+                    label={t("projects.required")}
+                    value={formatCurrency(project.requiredInvestment)}
                   />
-                ) : (
-                  <>
-                    <div className="grid gap-4 sm:grid-cols-3">
-                      <Metric
-                        label={t("projects.required")}
-                        value={formatCurrency(project.requiredInvestment)}
-                      />
-                      <Metric
-                        label={t("projects.raised")}
-                        value={formatCurrency(project.currentFunding)}
-                      />
-                      <Metric
-                        label={t("projects.expectedRoi")}
-                        value={formatPercent(project.expectedRoi)}
-                      />
-                    </div>
-                    <div className="premium-card space-y-3 p-5">
-                      <h3 className="font-display font-semibold">{t("projects.revenueModel")}</h3>
-                      <p className="text-sm text-muted-foreground whitespace-pre-line">
-                        {revenueModel}
-                      </p>
-                      <h3 className="font-display font-semibold pt-2">
-                        {t("projects.projections")}
-                      </h3>
-                      <p className="text-sm text-muted-foreground whitespace-pre-line">
-                        {financialProjections}
-                      </p>
-                      <h3 className="font-display font-semibold pt-2">
-                        {t("projects.investmentPlan")}
-                      </h3>
-                      <p className="text-sm text-muted-foreground whitespace-pre-line">
-                        {investmentPlan}
-                      </p>
-                    </div>
-                  </>
-                )}
+                  <Metric
+                    label={t("projects.raised")}
+                    value={formatCurrency(project.currentFunding)}
+                  />
+                  <Metric
+                    label={t("projects.expectedRoi")}
+                    value={formatPercent(project.expectedRoi)}
+                  />
+                </div>
+                <div className="premium-card space-y-3 p-5">
+                  <h3 className="font-display font-semibold">{t("projects.revenueModel")}</h3>
+                  <p className="text-sm text-muted-foreground whitespace-pre-line">{revenueModel}</p>
+                  <h3 className="font-display font-semibold pt-2">{t("projects.projections")}</h3>
+                  <p className="text-sm text-muted-foreground whitespace-pre-line">{financialProjections}</p>
+                  <h3 className="font-display font-semibold pt-2">{t("projects.investmentPlan")}</h3>
+                  <p className="text-sm text-muted-foreground whitespace-pre-line">{investmentPlan}</p>
+                </div>
               </TabsContent>
 
               <TabsContent value="team" className="mt-6">
-                {showLocked || !project.team?.length ? (
-                  <LockedPanel
-                    href={ROUTES.MEMBERSHIP}
-                    label={t("projects.teamInformation")}
-                    t={t}
-                  />
-                ) : (
+                {project.team?.length ? (
                   <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="premium-card p-5">
+                      <div className="flex items-start gap-3">
+                        <Avatar className="h-10 w-10">
+                          <AvatarFallback>
+                            {(project.ownerName || "Founder")
+                              .split(" ")
+                              .filter(Boolean)
+                              .slice(0, 2)
+                              .map((p) => p[0]?.toUpperCase())
+                              .join("")}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0 flex-1">
+                          <h3 className="font-display font-semibold">{project.ownerName || "Founder"}</h3>
+                          <p className="text-sm text-blue-600">Founder</p>
+                          <p className="mt-2 text-sm text-muted-foreground">
+                            {project.ownerName ? `Project owner and founder.` : "—"}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
                     {project.team.map((member) => (
                       <div key={member.id} className="premium-card p-5">
-                        <h3 className="font-display font-semibold">{member.name}</h3>
-                        <p className="text-sm text-blue-600">
-                          {teamMemberText(member, "position", locale)} · {member.role}
-                        </p>
-                        <p className="mt-2 text-sm text-muted-foreground">
-                          {teamMemberText(member, "biography", locale)}
-                        </p>
-                        <p className="mt-2 text-xs text-slate-500">
-                          {teamMemberText(member, "experience", locale)}
-                        </p>
+                        <div className="flex items-start gap-3">
+                          <Avatar className="h-10 w-10">
+                            {member.avatar ? (
+                              <AvatarImage alt={member.name} src={member.avatar} />
+                            ) : (
+                              <AvatarFallback>
+                                {member.name
+                                  .split(" ")
+                                  .filter(Boolean)
+                                  .slice(0, 2)
+                                  .map((p) => p[0]?.toUpperCase())
+                                  .join("")}
+                              </AvatarFallback>
+                            )}
+                          </Avatar>
+                          <div className="min-w-0 flex-1">
+                            <h3 className="font-display font-semibold">{member.name}</h3>
+                            <p className="text-sm text-blue-600">
+                              {teamMemberText(member, "position", locale)} · {member.role}
+                            </p>
+                            <p className="mt-2 text-sm text-muted-foreground line-clamp-3">
+                              {teamMemberText(member, "biography", locale)}
+                            </p>
+                            <p className="mt-2 text-xs text-slate-500">
+                              {teamMemberText(member, "experience", locale)}
+                            </p>
+                            {member.portfolio ? (
+                              <a
+                                href={member.portfolio}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="mt-3 inline-flex items-center text-sm font-medium text-blue-700 underline underline-offset-4"
+                              >
+                                View profile
+                              </a>
+                            ) : null}
+                          </div>
+                        </div>
                       </div>
                     ))}
                   </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">{t("projects.noTeam")}</p>
                 )}
               </TabsContent>
 
               <TabsContent value="documents" className="mt-6">
-                {showLocked || !project.documents?.length ? (
-                  <LockedPanel
-                    href={ROUTES.MEMBERSHIP}
-                    label={t("projects.documents")}
-                    t={t}
-                  />
-                ) : (
+                {project.documents?.length ? (
                   <ul className="space-y-3">
                     {project.documents.map((doc) => (
                       <li
@@ -369,6 +404,8 @@ export default function ProjectDetailPage() {
                       </li>
                     ))}
                   </ul>
+                ) : (
+                  <p className="text-sm text-muted-foreground">{t("projects.noDocuments")}</p>
                 )}
               </TabsContent>
 
@@ -413,11 +450,22 @@ export default function ProjectDetailPage() {
               </div>
               <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
                 <div>
+                  <p className="text-xs text-muted-foreground">Required amount</p>
+                  <p className="font-medium">{formatCurrency(project.requiredInvestment)}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Remaining</p>
+                  <p className="font-medium">{formatCurrency(remainingFunding)}</p>
+                </div>
+                <div className="col-span-2">
+                  <div className="mt-1 h-px bg-border/70" />
+                </div>
+                <div>
                   <p className="text-xs text-muted-foreground">{t("projects.minInvestment")}</p>
                   <p className="font-medium">{formatCurrency(project.minInvestment)}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">{t("projects.investors")}</p>
+                  <p className="text-xs text-muted-foreground">Investors</p>
                   <p className="font-medium">{project.investorCount}</p>
                 </div>
               </div>
@@ -428,11 +476,6 @@ export default function ProjectDetailPage() {
                     if (!isAuthenticated || user?.role !== "investor") {
                       toast.error(t("projects.toastOfferSignIn"));
                       router.push(`${ROUTES.REGISTER}?role=investor`);
-                      return;
-                    }
-                    if (!canSendOffers(user?.membershipTier)) {
-                      toast.error(t("projects.toastPremiumRequired"));
-                      router.push(ROUTES.MEMBERSHIP);
                       return;
                     }
                     setOfferOpen(true);
@@ -527,26 +570,6 @@ function Metric({ label, value }: { label: string; value: string }) {
     <div className="premium-card p-4">
       <p className="text-xs text-muted-foreground">{label}</p>
       <p className="mt-1 font-semibold text-slate-900">{value}</p>
-    </div>
-  );
-}
-
-function LockedPanel({
-  href,
-  label,
-  t,
-}: {
-  href: string;
-  label: string;
-  t: (key: string, params?: Record<string, string | number>) => string;
-}) {
-  return (
-    <div className="premium-card flex flex-col items-start gap-3 p-8 text-center sm:items-center">
-      <Lock className="h-8 w-8 text-slate-400" />
-      <p className="text-sm text-muted-foreground">{t("projects.lockedLabel", { label })}</p>
-      <Button asChild>
-        <Link href={href}>{t("projects.viewMembershipPlans")}</Link>
-      </Button>
     </div>
   );
 }

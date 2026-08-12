@@ -10,8 +10,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { PLATFORM_NAME, ROUTES } from "@/constants";
+import { ROUTES } from "@/constants";
 import { useAuth, useI18n } from "@/hooks";
+import { PlatformLogo } from "@/components/shared/platform-logo";
 import { cn } from "@/lib/utils";
 
 type RegisterForm = {
@@ -104,11 +105,8 @@ function RegisterForm() {
   return (
     <Card className="relative w-full max-w-md border-border/80 bg-white shadow-soft animate-slide-up">
       <CardHeader className="text-center">
-        <Link
-          href={ROUTES.HOME}
-          className="mb-2 font-display text-xl font-semibold tracking-tight text-slate-900"
-        >
-          {PLATFORM_NAME}
+        <Link href={ROUTES.HOME} className="mb-2 inline-flex justify-center">
+          <PlatformLogo />
         </Link>
         <CardTitle className="text-2xl font-display">{t("auth.createAccountShort")}</CardTitle>
         <CardDescription>{t("auth.joinAs")}</CardDescription>

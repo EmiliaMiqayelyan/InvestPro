@@ -21,10 +21,11 @@ import {
   Menu,
 } from "lucide-react";
 import { useState } from "react";
-import { PLATFORM_NAME, ROUTES } from "@/constants";
+import { ROUTES } from "@/constants";
 import { useAuth, useI18n } from "@/hooks";
 import { Button } from "@/components/ui/button";
 import { LanguageSwitcher } from "@/components/shared/language-switcher";
+import { PlatformLogo } from "@/components/shared/platform-logo";
 import { cn } from "@/lib/utils";
 import type { UserRole } from "@/types";
 import type { TranslationKey } from "@/i18n";
@@ -41,7 +42,6 @@ const INVESTOR_NAV: NavItem[] = [
   { href: ROUTES.INVESTOR_INVESTMENTS, labelKey: "nav.myInvestments", icon: Handshake },
   { href: ROUTES.INVESTOR_SAVED, labelKey: "nav.saved", icon: Bookmark },
   { href: ROUTES.INVESTOR_MESSAGES, labelKey: "nav.messages", icon: MessageSquare },
-  { href: ROUTES.MEMBERSHIP, labelKey: "nav.membership", icon: CreditCard },
   { href: ROUTES.INVESTOR_KYC, labelKey: "nav.verification", icon: Shield },
   { href: ROUTES.INVESTOR_PROFILE, labelKey: "nav.profile", icon: UserCircle },
 ];
@@ -103,8 +103,8 @@ export function WorkspaceShell({
   const Sidebar = (
     <aside className="flex h-full w-64 flex-col border-r border-border bg-white">
       <div className="flex h-16 items-center justify-between border-b border-border px-5">
-        <Link href={ROUTES.HOME} className="font-display text-lg font-semibold text-slate-900">
-          {PLATFORM_NAME}
+        <Link href={ROUTES.HOME}>
+          <PlatformLogo size="sm" />
         </Link>
       </div>
       <nav className="flex-1 space-y-1 overflow-y-auto p-3">
@@ -135,7 +135,6 @@ export function WorkspaceShell({
         </p>
         <p className="truncate text-xs text-muted-foreground">
           {roleLabel}
-          {user?.role === "investor" ? ` · ${user.membershipTier}` : ""}
         </p>
         <Button variant="ghost" size="sm" className="mt-3 w-full justify-start gap-2" onClick={onLogout}>
           <LogOut className="h-4 w-4" /> {t("common.signOut")}

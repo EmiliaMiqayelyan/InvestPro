@@ -6,7 +6,7 @@ export const API_BASE_URL =
       ? `https://${process.env.VERCEL_URL}/api/v1`
       : "/api/v1");
 
-export const PLATFORM_NAME = "VentureBridge";
+export const PLATFORM_NAME = "InvestPro";
 
 export const ROUTES = {
   HOME: "/",

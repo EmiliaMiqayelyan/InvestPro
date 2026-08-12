@@ -9,7 +9,6 @@ import {
   MessageSquareLock,
   Search,
   Shield,
-  Sparkles,
   Users,
 } from "lucide-react";
 import { MarketingHeader, MarketingFooter } from "@/components/layout/marketing-shell";
@@ -22,16 +21,14 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { PLATFORM_NAME, ROUTES } from "@/constants";
-import { useProjects, useMembershipPlans } from "@/hooks/use-marketplace";
+import { ROUTES } from "@/constants";
+import { useProjects } from "@/hooks/use-marketplace";
 import { useI18n } from "@/hooks";
-import { formatCurrency } from "@/utils/format";
 import { cn } from "@/lib/utils";
 
 export default function HomePage() {
   const { t, isHy } = useI18n();
   const { data: projectsPage } = useProjects({ limit: 3, status: "published" });
-  const { data: plans } = useMembershipPlans();
   const featured = projectsPage?.data?.slice(0, 3) ?? [];
 
   const howItWorks = [
@@ -108,14 +105,6 @@ export default function HomePage() {
       <section className="hero-mesh relative overflow-hidden border-b border-border/60">
         <div className="container-narrow section-pad py-20 md:py-28">
           <div className="mx-auto max-w-3xl text-center animate-fade-in">
-            <p
-              className={cn(
-                "font-display text-3xl text-slate-800 sm:text-4xl md:text-5xl",
-                isHy ? "font-medium tracking-normal leading-snug" : "font-semibold tracking-tight"
-              )}
-            >
-              {PLATFORM_NAME}
-            </p>
             <h1
               className={cn(
                 "mt-6 font-display text-3xl text-slate-700 sm:text-4xl md:text-[2.75rem]",
@@ -136,20 +125,22 @@ export default function HomePage() {
             </p>
             <div className="mt-10 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center animate-slide-up">
               <Button size="lg" asChild>
-                <Link href={`${ROUTES.REGISTER}?role=project_owner`}>
-                  {t("landing.raiseCapital")}
+                <Link href={ROUTES.PROJECTS}>
+                  {t("landing.exploreProjects")}
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
               <Button size="lg" variant="outline" asChild>
-                <Link href={ROUTES.PROJECTS}>{t("landing.discoverOpportunities")}</Link>
+                <Link href={`${ROUTES.REGISTER}?role=project_owner`}>
+                  {t("landing.publishProject")}
+                </Link>
               </Button>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="container-narrow section-pad py-20">
+      <section id="how-it-works" className="container-narrow section-pad py-20">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="font-display text-3xl font-semibold text-slate-900">
             {t("landing.howItWorks")}
@@ -291,101 +282,51 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="border-y border-border/60 bg-slate-50/80">
-        <div className="container-narrow section-pad py-20">
-          <div className="mx-auto max-w-2xl text-center">
-            <h2 className="font-display text-3xl font-semibold text-slate-900">
-              {t("landing.membershipPlans")}
+      <section className="border-t border-border/60 bg-slate-50/80">
+        <div className="container-narrow section-pad py-16 md:py-20">
+          <div className="mx-auto max-w-3xl">
+            <p className="text-center text-sm font-medium uppercase tracking-wide text-blue-600">
+              {t("landing.faq")}
+            </p>
+            <h2 className="mt-2 text-center font-display text-2xl font-semibold text-slate-900 md:text-3xl">
+              {t("landing.faqSub")}
             </h2>
-            <p className="mt-3 text-muted-foreground">{t("landing.membershipSub")}</p>
-          </div>
-          <div className="mt-12 grid gap-6 md:grid-cols-3">
-            {(plans ?? []).map((plan) => (
-              <div
-                key={plan.id}
-                className={cn(
-                  "premium-card flex flex-col p-6",
-                  plan.highlighted && "ring-2 ring-blue-600"
-                )}
-              >
-                <div className="flex items-center justify-between">
-                  <h3 className="font-display text-xl font-semibold">{plan.name}</h3>
-                  {plan.highlighted && (
-                    <Badge className="bg-blue-50 text-blue-700 border-blue-200">
-                      {t("common.popular")}
-                    </Badge>
-                  )}
-                </div>
-                <p className="mt-2 text-sm text-muted-foreground">{plan.description}</p>
-                <p className="mt-6 font-display text-3xl font-semibold text-slate-900">
-                  {formatCurrency(plan.price)}
-                  <span className="text-sm font-normal text-muted-foreground">
-                    {plan.billingPeriod === "yearly"
-                      ? t("common.perYear")
-                      : t("common.perMonth")}
-                  </span>
-                </p>
-                <ul className="mt-6 flex-1 space-y-2">
-                  {plan.features.slice(0, 5).map((f) => (
-                    <li key={f} className="flex gap-2 text-sm text-slate-700">
-                      <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-blue-600" />
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-                <Button
-                  className="mt-8 w-full"
-                  variant={plan.highlighted ? "default" : "outline"}
-                  asChild
-                >
-                  <Link href={ROUTES.MEMBERSHIP}>{t("landing.viewPlan")}</Link>
-                </Button>
-              </div>
-            ))}
+            <div className="premium-card mt-10 overflow-hidden rounded-2xl border border-border bg-white px-2 shadow-none sm:px-4">
+              <Accordion type="single" collapsible className="w-full">
+                {faqs.map((faq, i) => (
+                  <AccordionItem key={faq.q} value={`faq-${i}`} className="border-border/70 px-2">
+                    <AccordionTrigger className="text-left text-slate-900 hover:no-underline">
+                      {faq.q}
+                    </AccordionTrigger>
+                    <AccordionContent className="text-slate-600">{faq.a}</AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="container-narrow section-pad py-20">
-        <div className="mx-auto max-w-2xl">
-          <h2 className="text-center font-display text-3xl font-semibold text-slate-900">
-            {t("landing.faq")}
-          </h2>
-          <p className="mt-3 text-center text-muted-foreground">{t("landing.faqSub")}</p>
-          <Accordion type="single" collapsible className="mt-10">
-            {faqs.map((faq, i) => (
-              <AccordionItem key={faq.q} value={`faq-${i}`}>
-                <AccordionTrigger className="text-left">{faq.q}</AccordionTrigger>
-                <AccordionContent className="text-muted-foreground">{faq.a}</AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
-        </div>
-      </section>
-
-      <section className="border-t border-border/60 bg-blue-600">
-        <div className="container-narrow section-pad flex flex-col items-center py-16 text-center">
-          <h2 className="font-display text-3xl font-semibold text-white">
-            {t("landing.contactCta")}
-          </h2>
-          <p className="mt-3 max-w-lg text-blue-100">{t("landing.contactCtaHelp")}</p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Button
-              size="lg"
-              variant="secondary"
-              className="bg-white text-blue-700 hover:bg-blue-50"
-              asChild
-            >
-              <Link href={ROUTES.CONTACT}>{t("landing.contactUs")}</Link>
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="border-white/40 bg-transparent text-white hover:bg-white/10 hover:text-white"
-              asChild
-            >
-              <Link href={ROUTES.REGISTER}>{t("landing.createAccount")}</Link>
-            </Button>
+      <section className="border-t border-border/60 bg-white">
+        <div className="container-narrow section-pad py-16 md:py-20">
+          <div className="premium-card mx-auto max-w-3xl rounded-2xl border border-border bg-slate-50/50 p-8 text-center shadow-none md:p-12">
+            <p className="text-sm font-medium uppercase tracking-wide text-blue-600">
+              {t("landing.contactCta")}
+            </p>
+            <h2 className="mt-3 font-display text-2xl font-semibold text-slate-900 md:text-3xl">
+              {t("landing.contactCtaSub")}
+            </h2>
+            <p className="mx-auto mt-4 max-w-lg text-base text-slate-600">
+              {t("landing.contactCtaHelp")}
+            </p>
+            <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row sm:items-center">
+              <Button size="lg" asChild>
+                <Link href={ROUTES.CONTACT}>{t("landing.contactUs")}</Link>
+              </Button>
+              <Button size="lg" variant="outline" asChild>
+                <Link href={ROUTES.REGISTER}>{t("landing.createAccount")}</Link>
+              </Button>
+            </div>
           </div>
         </div>
       </section>

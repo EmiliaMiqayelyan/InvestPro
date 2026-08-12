@@ -165,6 +165,7 @@ export interface Project {
   requiredInvestment: number;
   minInvestment: number;
   currentFunding: number;
+  views: number;
   expectedRoi: number;
   revenueModel: string;
   revenueModelHy?: string;
@@ -368,6 +369,11 @@ export interface FilterParams {
   search?: string;
   status?: string;
   category?: string;
+  industry?: string;
+  location?: string;
+  stage?: string;
+  minInvestment?: number;
+  fundingStatus?: string;
   riskLevel?: string;
   sortBy?: string;
   sortOrder?: "asc" | "desc";

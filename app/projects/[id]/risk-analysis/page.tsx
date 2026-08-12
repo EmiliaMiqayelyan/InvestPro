@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { CardSkeleton } from "@/components/shared/loading-skeleton";
 import { useRiskAnalysis } from "@/hooks/use-marketplace";
 import { useI18n } from "@/hooks";
-import { RISK_LEVELS, ROUTES } from "@/constants";
+import { RISK_LEVELS } from "@/constants";
 import { formatDate } from "@/utils/format";
 import { cn } from "@/lib/utils";
 
@@ -42,6 +42,15 @@ export default function RiskAnalysisPage() {
         </h1>
         <p className="mt-2 text-muted-foreground">{t("risk.subtitle")}</p>
 
+        <div className="mt-6 premium-card border-slate-200 bg-slate-50 p-5">
+          <p className="font-display text-sm font-semibold text-slate-900">
+            Informational risk assessment
+          </p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            This report helps investors understand diligence completeness and potential warning signs. It is not financial advice and does not guarantee returns.
+          </p>
+        </div>
+
         {isLoading ? (
           <div className="mt-10">
             <CardSkeleton className="max-w-3xl" />
@@ -49,9 +58,6 @@ export default function RiskAnalysisPage() {
         ) : error || !report ? (
           <div className="premium-card mt-10 p-8 text-center">
             <p className="text-sm text-muted-foreground">{t("risk.unavailable")}</p>
-            <Button className="mt-4" asChild>
-              <Link href={ROUTES.MEMBERSHIP}>{t("risk.viewMembership")}</Link>
-            </Button>
           </div>
         ) : (
           <div className="mt-10 space-y-8 animate-slide-up">

@@ -31,7 +31,7 @@ import {
   payloadToUser,
   type TokenPayload,
 } from "./jwt";
-import { canAccessFullProject, canMessage, canSendOffers } from "@/lib/rbac";
+import { canMessage } from "@/lib/rbac";
 
 type Handler = (
   req: NextRequest,
@@ -93,37 +93,23 @@ function publicProjectCard(project: Project) {
     requiredInvestment: project.requiredInvestment,
     currentFunding: project.currentFunding,
     expectedRoi: project.expectedRoi,
+    views: project.views,
     riskLevel: project.riskLevel,
     status: project.status,
     minInvestment: project.minInvestment,
     stage: project.stage,
     investorCount: project.investorCount,
+    teamSize: project.team?.length ?? 0,
     description: project.description,
     ownerName: project.ownerName,
   };
 }
 
 function gatedProject(project: Project, auth: TokenPayload | null) {
-  const tier = auth?.membershipTier || "none";
-  const isOwner = auth?.sub === project.ownerId;
-  const isAdmin = auth?.role === "admin";
-  const full = isOwner || isAdmin || canAccessFullProject(tier);
-
-  if (full) return project;
-
-  return {
-    ...publicProjectCard(project),
-    fullDescription: project.description,
-    timeline: project.timeline,
-    businessModel: "Upgrade to Premium to view the full business model.",
-    financialProjections: "Locked — Premium membership required.",
-    investmentPlan: "Locked — Premium membership required.",
-    revenueModel: "Locked — Premium membership required.",
-    team: [],
-    documents: [],
-    updates: project.updates.map((u) => ({ ...u, content: "Upgrade to view updates." })),
-    accessLimited: true,
-  };
+  // Marketplace content is not subscription-gated anymore.
+  // Access is still restricted by project visibility (published/funded/private)
+  // in the route handler above.
+  return project;
 }
 
 const handlers: Record<string, Handler> = {
@@ -224,7 +210,17 @@ const handlers: Record<string, Handler> = {
     const { searchParams } = new URL(req.url);
     const search = searchParams.get("search")?.toLowerCase();
     const category = searchParams.get("category");
+    const industry = searchParams.get("industry");
+    const location = searchParams.get("location")?.toLowerCase();
+    const stage = searchParams.get("stage");
+    const minInvestment = searchParams.get("minInvestment")
+      ? Number(searchParams.get("minInvestment"))
+      : undefined;
+    const fundingStatus = searchParams.get("fundingStatus");
     const riskLevel = searchParams.get("riskLevel");
+    const sortBy = searchParams.get("sortBy") || "newest";
+    const sortOrder = (searchParams.get("sortOrder") as "asc" | "desc" | null) || "desc";
+
     let projects = Array.from(getStore().projects.values()).filter(
       (p) => p.status === "published" || p.status === "funded"
     );
@@ -237,7 +233,30 @@ const handlers: Record<string, Handler> = {
       );
     }
     if (category) projects = projects.filter((p) => p.category === category);
+    if (industry) projects = projects.filter((p) => p.industry === industry);
+    if (stage) projects = projects.filter((p) => p.stage === stage);
+    if (location) projects = projects.filter((p) => p.location.toLowerCase().includes(location));
+    if (typeof minInvestment === "number" && !Number.isNaN(minInvestment)) {
+      // Investor budget filter: include projects where the investor can meet the minimum ticket.
+      projects = projects.filter((p) => p.minInvestment <= minInvestment);
+    }
     if (riskLevel) projects = projects.filter((p) => p.riskLevel === riskLevel);
+    if (fundingStatus) {
+      if (fundingStatus === "open") projects = projects.filter((p) => p.status === "published");
+      if (fundingStatus === "funded") projects = projects.filter((p) => p.status === "funded");
+    }
+
+    projects = projects.sort((a, b) => {
+      const dir = sortOrder === "asc" ? 1 : -1;
+      if (sortBy === "most_viewed") return dir * ((b.views || 0) - (a.views || 0));
+      if (sortBy === "funding_progress") {
+        const ap = a.currentFunding / Math.max(a.requiredInvestment, 1);
+        const bp = b.currentFunding / Math.max(b.requiredInvestment, 1);
+        return dir * (bp - ap);
+      }
+      // newest
+      return dir * (new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    });
     const page = Number(searchParams.get("page") || 1);
     const limit = Number(searchParams.get("limit") || 12);
     const cards = projects.map(publicProjectCard);
@@ -264,18 +283,6 @@ const handlers: Record<string, Handler> = {
     const project = getStore().projects.get(params.id);
     if (!project) return fail("Project not found", 404);
     const analysis = analyzeProjectRisk(project);
-    const tier = auth!.membershipTier || "none";
-    if (!canAccessFullProject(tier) && auth!.role === "investor") {
-      return ok({
-        ...analysis,
-        warningIndicators: analysis.warningIndicators.slice(0, 1),
-        positiveIndicators: analysis.positiveIndicators.slice(0, 2),
-        questionsToAsk: [],
-        missingDocuments: ["Upgrade to Premium for full report"],
-        summary: "Limited preview — upgrade membership for the full Investment Risk Report.",
-        limited: true,
-      });
-    }
     return ok(analysis);
   },
 
@@ -330,9 +337,6 @@ const handlers: Record<string, Handler> = {
   "POST /offers": async (req, _p, auth) => {
     const err = requireRole(auth, ["investor"]);
     if (err) return err;
-    if (!canSendOffers(auth!.membershipTier)) {
-      return fail("Premium membership required to send investment offers", 403);
-    }
     const body = await parseBody<{
       projectId: string;
       amount: number;
@@ -470,6 +474,7 @@ const handlers: Record<string, Handler> = {
       requiredInvestment: Number(body.requiredInvestment) || 0,
       minInvestment: Number(body.minInvestment) || 0,
       currentFunding: 0,
+      views: 0,
       expectedRoi: Number(body.expectedRoi) || 0,
       revenueModel: body.revenueModel || "",
       financialProjections: body.financialProjections || "",

@@ -6,7 +6,6 @@ import {
   Handshake,
   MessageSquare,
   Bookmark,
-  CreditCard,
   ArrowRight,
 } from "lucide-react";
 import { useInvestorDashboard } from "@/hooks/use-marketplace";
@@ -25,7 +24,6 @@ export default function InvestorDashboardPage() {
     { href: ROUTES.PROJECTS, label: t("investor.browseProjects"), icon: Briefcase },
     { href: ROUTES.INVESTOR_INVESTMENTS, label: t("investor.myInvestments"), icon: Handshake },
     { href: ROUTES.INVESTOR_MESSAGES, label: t("nav.messages"), icon: MessageSquare },
-    { href: ROUTES.MEMBERSHIP, label: t("investor.membershipStatus"), icon: CreditCard },
   ];
 
   const cards = [
@@ -49,11 +47,6 @@ export default function InvestorDashboardPage() {
           </h2>
           <p className="text-sm text-muted-foreground">{t("investor.overview")}</p>
         </div>
-        {stats?.membershipTier && (
-          <Badge className="border border-blue-200 bg-blue-50 capitalize text-blue-700">
-            {t("investor.planBadge", { tier: stats.membershipTier })}
-          </Badge>
-        )}
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">

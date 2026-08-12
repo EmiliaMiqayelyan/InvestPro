@@ -302,6 +302,7 @@ function seedProjects(ownerId: string, ownerName: string): Project[] {
       requiredInvestment: p.requiredInvestment,
       minInvestment: p.minInvestment,
       currentFunding: p.currentFunding,
+      views: 1200 + i * 415,
       expectedRoi: p.expectedRoi,
       revenueModel: "SaaS subscription + usage-based services",
       revenueModelHy: "SaaS բաժանորդագրություն + օգտագործման վրա հիմնված ծառայություններ",
