@@ -19,6 +19,7 @@ import {
   Settings,
   AlertTriangle,
   Menu,
+  Milestone,
 } from "lucide-react";
 import { useState } from "react";
 import { ROUTES } from "@/constants";
@@ -38,10 +39,12 @@ type NavItem = {
 
 const INVESTOR_NAV: NavItem[] = [
   { href: ROUTES.INVESTOR_DASHBOARD, labelKey: "common.dashboard", icon: LayoutDashboard },
-  { href: ROUTES.PROJECTS, labelKey: "nav.marketplace", icon: Briefcase },
+  { href: ROUTES.INVESTOR_PROJECTS, labelKey: "nav.marketplace", icon: Briefcase },
+  { href: ROUTES.INVESTOR_MILESTONES, labelKey: "nav.milestones", icon: Milestone },
   { href: ROUTES.INVESTOR_INVESTMENTS, labelKey: "nav.myInvestments", icon: Handshake },
   { href: ROUTES.INVESTOR_SAVED, labelKey: "nav.saved", icon: Bookmark },
   { href: ROUTES.INVESTOR_MESSAGES, labelKey: "nav.messages", icon: MessageSquare },
+  { href: ROUTES.INVESTOR_MEMBERSHIP, labelKey: "nav.serviceFee", icon: CreditCard },
   { href: ROUTES.INVESTOR_KYC, labelKey: "nav.verification", icon: Shield },
   { href: ROUTES.INVESTOR_PROFILE, labelKey: "nav.profile", icon: UserCircle },
 ];
@@ -51,6 +54,7 @@ const OWNER_NAV: NavItem[] = [
   { href: ROUTES.OWNER_PROJECTS, labelKey: "nav.myProjects", icon: FolderKanban },
   { href: ROUTES.OWNER_PROJECT_CREATE, labelKey: "nav.createProject", icon: FileText },
   { href: ROUTES.OWNER_OFFERS, labelKey: "nav.investorRequests", icon: Handshake },
+  { href: ROUTES.OWNER_MILESTONES, labelKey: "nav.milestones", icon: Milestone },
   { href: ROUTES.OWNER_MESSAGES, labelKey: "nav.messages", icon: MessageSquare },
   { href: ROUTES.OWNER_DOCUMENTS, labelKey: "nav.documents", icon: FileText },
   { href: ROUTES.OWNER_ANALYTICS, labelKey: "nav.analytics", icon: BarChart3 },
@@ -101,7 +105,7 @@ export function WorkspaceShell({
   };
 
   const Sidebar = (
-    <aside className="flex h-full w-64 flex-col border-r border-border bg-white">
+    <aside className="flex h-full w-64 flex-col border-r border-border bg-[hsl(var(--card))]">
       <div className="flex h-16 items-center justify-between border-b border-border px-5">
         <Link href={ROUTES.HOME}>
           <PlatformLogo size="sm" />
@@ -119,7 +123,7 @@ export function WorkspaceShell({
               className={cn(
                 "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition",
                 active
-                  ? "bg-blue-50 text-blue-700"
+                  ? "bg-teal-50 text-teal-900"
                   : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
               )}
             >
@@ -133,9 +137,7 @@ export function WorkspaceShell({
         <p className="truncate text-sm font-medium text-slate-900">
           {user?.firstName} {user?.lastName}
         </p>
-        <p className="truncate text-xs text-muted-foreground">
-          {roleLabel}
-        </p>
+        <p className="truncate text-xs text-muted-foreground">{roleLabel}</p>
         <Button variant="ghost" size="sm" className="mt-3 w-full justify-start gap-2" onClick={onLogout}>
           <LogOut className="h-4 w-4" /> {t("common.signOut")}
         </Button>
@@ -144,7 +146,7 @@ export function WorkspaceShell({
   );
 
   return (
-    <div className="flex min-h-screen bg-[#f7f9fc]">
+    <div className="flex min-h-screen bg-[hsl(var(--background))]">
       <div className="hidden lg:block">{Sidebar}</div>
       {open && (
         <div className="fixed inset-0 z-50 flex lg:hidden">
@@ -153,7 +155,7 @@ export function WorkspaceShell({
         </div>
       )}
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-16 items-center justify-between border-b border-border bg-white/90 px-4 backdrop-blur lg:px-8">
+        <header className="flex h-16 items-center justify-between border-b border-border bg-[hsl(var(--card))]/95 px-4 backdrop-blur lg:px-8">
           <div className="flex items-center gap-3">
             <button className="lg:hidden" onClick={() => setOpen(true)} aria-label="Open menu">
               <Menu className="h-5 w-5" />

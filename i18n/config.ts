@@ -5,7 +5,7 @@ export const LOCALES: { code: Locale; label: string; nativeLabel: string }[] = [
   { code: "hy", label: "Armenian", nativeLabel: "Հայերեն" },
 ];
 
-export const DEFAULT_LOCALE: Locale = "en";
+export const DEFAULT_LOCALE: Locale = "hy";
 
 export type Messages = typeof import("./locales/en").en;
 

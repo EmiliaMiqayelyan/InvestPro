@@ -9,6 +9,9 @@ import type {
   ChatMessage,
   UserRole,
   MembershipPlanId,
+  MilestonePlan,
+  MilestoneItem,
+  MilestonePlanStatus,
 } from "@/types";
 import {
   getStore,
@@ -31,7 +34,21 @@ import {
   payloadToUser,
   type TokenPayload,
 } from "./jwt";
-import { canMessage } from "@/lib/rbac";
+import {
+  canAccessFullProject,
+  canMessage,
+  canSendOffers,
+  hasActiveServiceAccess,
+} from "@/lib/rbac";
+
+function authUserObj(auth: TokenPayload | null) {
+  if (!auth) return null;
+  return {
+    role: auth.role,
+    membershipTier: auth.membershipTier,
+    membershipExpiresAt: auth.membershipExpiresAt,
+  };
+}
 
 type Handler = (
   req: NextRequest,
@@ -85,10 +102,14 @@ function publicProjectCard(project: Project) {
   return {
     id: project.id,
     title: project.title,
+    titleHy: project.titleHy,
     slug: project.slug,
     category: project.category,
+    categoryHy: project.categoryHy,
     industry: project.industry,
+    industryHy: project.industryHy,
     location: project.location,
+    locationHy: project.locationHy,
     image: project.image,
     requiredInvestment: project.requiredInvestment,
     currentFunding: project.currentFunding,
@@ -101,15 +122,56 @@ function publicProjectCard(project: Project) {
     investorCount: project.investorCount,
     teamSize: project.team?.length ?? 0,
     description: project.description,
+    descriptionHy: project.descriptionHy,
     ownerName: project.ownerName,
+    ownerKycStatus: project.ownerKycStatus,
   };
 }
 
 function gatedProject(project: Project, auth: TokenPayload | null) {
-  // Marketplace content is not subscription-gated anymore.
-  // Access is still restricted by project visibility (published/funded/private)
-  // in the route handler above.
-  return project;
+  const userObj = authUserObj(auth);
+  if (canAccessFullProject(userObj)) return project;
+  if (auth?.role === "project_owner" && auth.sub === project.ownerId) return project;
+
+  const teaserPhases = (project.phases || []).map((ph) => ({
+    id: ph.id,
+    title: ph.title,
+    titleHy: ph.titleHy,
+    description: "",
+    descriptionHy: undefined,
+    budgetAsk: 0,
+    durationWeeks: undefined,
+    deliverables: [] as string[],
+    sortOrder: ph.sortOrder,
+    status: ph.status,
+  }));
+
+  return {
+    ...project,
+    limited: true as const,
+    documents: [],
+    team: [],
+    teamCount: project.team?.length ?? 0,
+    financialProjections: project.financialProjections
+      ? `${project.financialProjections.slice(0, 80)}…`
+      : "",
+    financialProjectionsHy: project.financialProjectionsHy
+      ? `${project.financialProjectionsHy.slice(0, 80)}…`
+      : undefined,
+    investmentPlan: project.investmentPlan
+      ? `${project.investmentPlan.slice(0, 80)}…`
+      : "",
+    investmentPlanHy: project.investmentPlanHy
+      ? `${project.investmentPlanHy.slice(0, 80)}…`
+      : undefined,
+    fullDescription: project.fullDescription.slice(0, 200) + (project.fullDescription.length > 200 ? "…" : ""),
+    fullDescriptionHy: project.fullDescriptionHy
+      ? project.fullDescriptionHy.slice(0, 200) + (project.fullDescriptionHy.length > 200 ? "…" : "")
+      : undefined,
+    budgetBreakdown: undefined,
+    phases: teaserPhases,
+    updates: [],
+  };
 }
 
 const handlers: Record<string, Handler> = {
@@ -199,11 +261,39 @@ const handlers: Record<string, Handler> = {
   "POST /membership/subscribe": async (req, _p, auth) => {
     const err = requireRole(auth, ["investor"]);
     if (err) return err;
-    const { planId } = await parseBody<{ planId: MembershipPlanId }>(req);
+    const body = await parseBody<{ planId?: MembershipPlanId }>(req);
+    const planId: MembershipPlanId = body.planId || "service";
     const result = upgradeMembership(auth!.sub, planId);
     if (!result) return fail("Invalid plan", 400);
     const tokens = await createTokenPair(result.user);
+    try {
+      const { sendServiceFeeReceipt } = await import("./email");
+      await sendServiceFeeReceipt(result.user.email, result.subscription.amount);
+    } catch {
+      /* non-blocking */
+    }
     return ok({ ...result, tokens }, "Membership activated");
+  },
+
+  "POST /membership/checkout": async (req, _p, auth) => {
+    const err = requireRole(auth, ["investor"]);
+    if (err) return err;
+    const body = await parseBody<{ planId?: MembershipPlanId }>(req);
+    const planId: MembershipPlanId = body.planId || "service";
+    if (planId !== "service") return fail("Invalid plan", 400);
+    const user = getStore().users.get(auth!.sub);
+    const { createServiceFeeCheckoutSession } = await import("./stripe");
+    const session = await createServiceFeeCheckoutSession({
+      userId: auth!.sub,
+      email: user?.email || "",
+      successUrl: "/membership?checkout=mock",
+      cancelUrl: "/membership",
+    });
+    return ok({
+      checkoutUrl: session.checkoutUrl,
+      sessionId: session.sessionId,
+      planId,
+    });
   },
 
   "GET /projects": async (req) => {
@@ -283,6 +373,22 @@ const handlers: Record<string, Handler> = {
     const project = getStore().projects.get(params.id);
     if (!project) return fail("Project not found", 404);
     const analysis = analyzeProjectRisk(project);
+    if (!hasActiveServiceAccess(authUserObj(auth))) {
+      return ok({
+        projectId: analysis.projectId,
+        score: analysis.score,
+        level: analysis.level,
+        completeness: 0,
+        positiveIndicators: [],
+        warningIndicators: [],
+        missingDocuments: [],
+        questionsToAsk: [],
+        summary: "Subscribe to the platform service to unlock the full risk report.",
+        summaryHy: "Բաժանորդագրվեք հարթակի ծառայությանը՝ լրիվ ռիսկի զեկույցը բացելու համար։",
+        generatedAt: analysis.generatedAt,
+        limited: true,
+      });
+    }
     return ok(analysis);
   },
 
@@ -337,6 +443,9 @@ const handlers: Record<string, Handler> = {
   "POST /offers": async (req, _p, auth) => {
     const err = requireRole(auth, ["investor"]);
     if (err) return err;
+    if (!canSendOffers(authUserObj(auth))) {
+      return fail("Platform service access required to send offers", 403);
+    }
     const body = await parseBody<{
       projectId: string;
       amount: number;
@@ -459,6 +568,7 @@ const handlers: Record<string, Handler> = {
       id,
       ownerId: auth!.sub,
       ownerName: `${owner.firstName} ${owner.lastName}`,
+      ownerKycStatus: owner.kycStatus,
       title: body.title,
       slug: body.title.toLowerCase().replace(/\s+/g, "-"),
       description: body.description || "",
@@ -480,6 +590,8 @@ const handlers: Record<string, Handler> = {
       financialProjections: body.financialProjections || "",
       investmentPlan: body.investmentPlan || "",
       businessModel: body.businessModel || "",
+      budgetBreakdown: body.budgetBreakdown,
+      phases: body.phases || [],
       riskLevel: body.riskLevel || "medium",
       status: "pending_review",
       investorCount: 0,
@@ -561,8 +673,8 @@ const handlers: Record<string, Handler> = {
   "POST /conversations": async (req, _p, auth) => {
     const err = requireRole(auth, ["investor", "project_owner"]);
     if (err) return err;
-    if (auth!.role === "investor" && !canMessage(auth!.membershipTier, auth!.role)) {
-      return fail("Premium membership required to message owners", 403);
+    if (!canMessage(authUserObj(auth))) {
+      return fail("Platform service access required to message", 403);
     }
     const { projectId, investorId } = await parseBody<{ projectId: string; investorId?: string }>(req);
     const project = getStore().projects.get(projectId);
@@ -616,8 +728,8 @@ const handlers: Record<string, Handler> = {
     const allowed =
       auth!.sub === conversation.investorId || auth!.sub === conversation.ownerId;
     if (!allowed) return fail("Forbidden", 403);
-    if (auth!.role === "investor" && !canMessage(auth!.membershipTier, auth!.role)) {
-      return fail("Premium membership required", 403);
+    if (!canMessage(authUserObj(auth))) {
+      return fail("Platform service access required", 403);
     }
 
     const body = await parseBody<{ content: string; attachmentUrl?: string; attachmentName?: string }>(req);
@@ -806,6 +918,162 @@ const handlers: Record<string, Handler> = {
     };
     getStore().complaints.push(complaint);
     return ok(complaint, undefined, 201);
+  },
+
+  "GET /milestones": async (req, _p, auth) => {
+    const err = requireAuth(auth);
+    if (err) return err;
+    const { searchParams } = new URL(req.url);
+    let list = Array.from(getStore().milestonePlans.values());
+    if (auth!.role === "investor") list = list.filter((m) => m.investorId === auth!.sub);
+    else if (auth!.role === "project_owner") list = list.filter((m) => m.ownerId === auth!.sub);
+    const projectId = searchParams.get("projectId");
+    if (projectId) list = list.filter((m) => m.projectId === projectId);
+    const status = searchParams.get("status");
+    if (status) list = list.filter((m) => m.status === status);
+    list.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+    return ok(list);
+  },
+
+  "GET /milestones/:id": async (_req, params, auth) => {
+    const err = requireAuth(auth);
+    if (err) return err;
+    const plan = getStore().milestonePlans.get(params.id);
+    if (!plan) return fail("Milestone plan not found", 404);
+    const allowed =
+      auth!.role === "admin" ||
+      auth!.sub === plan.investorId ||
+      auth!.sub === plan.ownerId;
+    if (!allowed) return fail("Forbidden", 403);
+    return ok(plan);
+  },
+
+  "POST /milestones": async (req, _p, auth) => {
+    const err = requireRole(auth, ["investor"]);
+    if (err) return err;
+    if (!hasActiveServiceAccess(authUserObj(auth))) {
+      return fail("Platform service access required", 403);
+    }
+    const body = await parseBody<{
+      projectId: string;
+      items: Array<{
+        title: string;
+        titleHy?: string;
+        description?: string;
+        descriptionHy?: string;
+        amount: number;
+        dueDate?: string;
+      }>;
+      notes?: string;
+    }>(req);
+    const project = getStore().projects.get(body.projectId);
+    if (!project || (project.status !== "published" && project.status !== "funded")) {
+      return fail("Project not available", 404);
+    }
+    const investor = getStore().users.get(auth!.sub)!;
+    const owner = getStore().users.get(project.ownerId);
+    const now = new Date().toISOString();
+    const items: MilestoneItem[] = (body.items || []).map((item, idx) => ({
+      id: crypto.randomUUID(),
+      title: item.title,
+      titleHy: item.titleHy,
+      description: item.description,
+      descriptionHy: item.descriptionHy,
+      amount: Number(item.amount) || 0,
+      dueDate: item.dueDate,
+      status: "proposed" as const,
+      sortOrder: idx,
+    }));
+    if (items.length === 0) return fail("At least one milestone item is required", 400);
+
+    const plan: MilestonePlan = {
+      id: crypto.randomUUID(),
+      projectId: project.id,
+      projectTitle: project.title,
+      investorId: auth!.sub,
+      investorName: `${investor.firstName} ${investor.lastName}`,
+      ownerId: project.ownerId,
+      ownerName: owner ? `${owner.firstName} ${owner.lastName}` : project.ownerName || "",
+      items,
+      status: "proposed",
+      notes: body.notes,
+      createdAt: now,
+      updatedAt: now,
+    };
+    getStore().milestonePlans.set(plan.id, plan);
+    logActivity(auth!.sub, "milestone_created", "milestone", plan.id);
+
+    const notes = getStore().notifications.get(project.ownerId) || [];
+    notes.unshift({
+      id: crypto.randomUUID(),
+      userId: project.ownerId,
+      type: "milestone_update",
+      title: "New milestone plan",
+      message: `${plan.investorName} proposed milestones for ${project.title}`,
+      isRead: false,
+      createdAt: now,
+    });
+    getStore().notifications.set(project.ownerId, notes);
+
+    return ok(plan, "Milestone plan created", 201);
+  },
+
+  "PATCH /milestones/:id": async (req, params, auth) => {
+    const err = requireRole(auth, ["investor", "project_owner", "admin"]);
+    if (err) return err;
+    const plan = getStore().milestonePlans.get(params.id);
+    if (!plan) return fail("Milestone plan not found", 404);
+    const isOwner = auth!.sub === plan.ownerId;
+    const isInvestor = auth!.sub === plan.investorId;
+    if (auth!.role !== "admin" && !isOwner && !isInvestor) return fail("Forbidden", 403);
+
+    const body = await parseBody<{
+      status?: MilestonePlanStatus;
+      items?: MilestoneItem[];
+      ownerResponse?: string;
+      notes?: string;
+    }>(req);
+
+    if (body.status) plan.status = body.status;
+    if (body.items) plan.items = body.items;
+    if (typeof body.notes === "string") plan.notes = body.notes;
+    if (typeof body.ownerResponse === "string" && (isOwner || auth!.role === "admin")) {
+      plan.ownerResponse = body.ownerResponse;
+    }
+    plan.updatedAt = new Date().toISOString();
+    getStore().milestonePlans.set(plan.id, plan);
+    logActivity(auth!.sub, "milestone_updated", "milestone", plan.id, { status: plan.status });
+
+    const notifyUserId = isOwner ? plan.investorId : plan.ownerId;
+    const notes = getStore().notifications.get(notifyUserId) || [];
+    notes.unshift({
+      id: crypto.randomUUID(),
+      userId: notifyUserId,
+      type: "milestone_update",
+      title: "Milestone plan updated",
+      message: `Milestone plan for ${plan.projectTitle} was updated`,
+      isRead: false,
+      createdAt: plan.updatedAt,
+    });
+    getStore().notifications.set(notifyUserId, notes);
+
+    return ok(plan);
+  },
+
+  "POST /uploads": async (req, _p, auth) => {
+    const err = requireAuth(auth);
+    if (err) return err;
+    const body = await parseBody<{ name?: string; size?: number; category?: string }>(req);
+    const name = body.name || `upload-${Date.now()}.bin`;
+    const size = typeof body.size === "number" ? body.size : 0;
+    const { storeUploadedFile } = await import("./storage");
+    const stored = await storeUploadedFile({
+      name,
+      size,
+      category: body.category,
+      userId: auth!.sub,
+    });
+    return ok(stored, "Upload accepted", 201);
   },
 
   "POST /contact": async (req) => {

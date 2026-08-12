@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { User } from "@/types";
 import { clearTokens, setTokens } from "@/services/api/client";
-import { normalizeRole } from "@/lib/rbac";
+import { normalizeRole, normalizeMembershipTier } from "@/lib/rbac";
 
 interface AuthState {
   user: User | null;
@@ -23,7 +23,7 @@ function sanitizeUser(user: User | null): User | null {
   return {
     ...user,
     role,
-    membershipTier: user.membershipTier ?? "none",
+    membershipTier: normalizeMembershipTier(user.membershipTier),
   };
 }
 

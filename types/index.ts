@@ -1,10 +1,8 @@
 export type UserRole = "investor" | "project_owner" | "admin";
 
-export type MembershipTier = "none" | "basic" | "premium" | "enterprise";
-export type MembershipTierAlias = MembershipTier;
-export type MembershipTierPlan = MembershipTier;
-
-export type MembershipPlanId = "basic" | "premium" | "enterprise";
+/** Single platform service fee access (not investment capital). */
+export type MembershipPlanId = "service";
+export type MembershipTier = "none" | MembershipPlanId;
 
 export type ProjectStatus =
   | "draft"
@@ -37,6 +35,7 @@ export type DocumentCategory =
   | "legal"
   | "certificate"
   | "contract"
+  | "finance_plan"
   | "image"
   | "video"
   | "other";
@@ -56,7 +55,26 @@ export type NotificationType =
   | "kyc_update"
   | "project_update"
   | "security_alert"
+  | "milestone_update"
   | "general";
+
+export type PhaseStatus = "planned" | "active" | "completed";
+
+export type MilestoneItemStatus =
+  | "proposed"
+  | "agreed"
+  | "in_progress"
+  | "done"
+  | "cancelled";
+
+export type MilestonePlanStatus =
+  | "draft"
+  | "proposed"
+  | "negotiating"
+  | "agreed"
+  | "active"
+  | "completed"
+  | "cancelled";
 
 export interface User {
   id: string;
@@ -66,7 +84,7 @@ export interface User {
   avatar?: string;
   phone?: string;
   role: UserRole;
-  membershipTier: MembershipPlanId | "none";
+  membershipTier: MembershipTier;
   membershipExpiresAt?: string;
   isEmailVerified: boolean;
   is2faEnabled: boolean;
@@ -141,10 +159,25 @@ export interface ProjectUpdate {
   createdAt: string;
 }
 
+export interface ProjectPhase {
+  id: string;
+  title: string;
+  titleHy?: string;
+  description: string;
+  descriptionHy?: string;
+  budgetAsk: number;
+  durationWeeks?: number;
+  deliverables: string[];
+  deliverablesHy?: string[];
+  sortOrder: number;
+  status: PhaseStatus;
+}
+
 export interface Project {
   id: string;
   ownerId: string;
   ownerName?: string;
+  ownerKycStatus?: KycStatus;
   title: string;
   titleHy?: string;
   slug: string;
@@ -175,6 +208,8 @@ export interface Project {
   investmentPlanHy?: string;
   businessModel: string;
   businessModelHy?: string;
+  budgetBreakdown?: { label: string; labelHy?: string; percent: number }[];
+  phases: ProjectPhase[];
   riskLevel: RiskLevel;
   status: ProjectStatus;
   investorCount: number;
@@ -186,11 +221,15 @@ export interface Project {
   endDate?: string;
   createdAt: string;
   updatedAt: string;
+  /** Present when API returns a teaser for non-subscribers */
+  limited?: boolean;
 }
 
 export interface RiskIndicator {
   label: string;
+  labelHy?: string;
   detail: string;
+  detailHy?: string;
 }
 
 export interface RiskAnalysis {
@@ -201,18 +240,27 @@ export interface RiskAnalysis {
   positiveIndicators: RiskIndicator[];
   warningIndicators: RiskIndicator[];
   missingDocuments: string[];
+  missingDocumentsHy?: string[];
   questionsToAsk: string[];
+  questionsToAskHy?: string[];
   summary: string;
+  summaryHy?: string;
+  phaseBudgetTotal?: number;
+  phaseBudgetGap?: number;
   generatedAt: string;
+  limited?: boolean;
 }
 
 export interface MembershipPlan {
   id: MembershipPlanId;
   name: string;
+  nameHy?: string;
   price: number;
   billingPeriod: "monthly" | "yearly";
   description: string;
+  descriptionHy?: string;
   features: string[];
+  featuresHy?: string[];
   highlighted?: boolean;
 }
 
@@ -224,6 +272,7 @@ export interface MembershipSubscription {
   startedAt: string;
   expiresAt: string;
   amount: number;
+  stripeSessionId?: string;
 }
 
 export interface InvestmentOffer {
@@ -238,6 +287,34 @@ export interface InvestmentOffer {
   questions: string;
   notes: string;
   status: OfferStatus;
+  ownerResponse?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MilestoneItem {
+  id: string;
+  title: string;
+  titleHy?: string;
+  description?: string;
+  descriptionHy?: string;
+  amount: number;
+  dueDate?: string;
+  status: MilestoneItemStatus;
+  sortOrder: number;
+}
+
+export interface MilestonePlan {
+  id: string;
+  projectId: string;
+  projectTitle?: string;
+  investorId: string;
+  investorName?: string;
+  ownerId: string;
+  ownerName?: string;
+  items: MilestoneItem[];
+  status: MilestonePlanStatus;
+  notes?: string;
   ownerResponse?: string;
   createdAt: string;
   updatedAt: string;
@@ -335,9 +412,11 @@ export interface InvestorDashboardStats {
   myInvestments: number;
   savedProjects: number;
   unreadMessages: number;
-  membershipTier: MembershipPlanId | "none";
+  membershipTier: MembershipTier;
+  hasPlatformAccess: boolean;
   portfolioValue: number;
   activeOffers: number;
+  activeMilestones: number;
 }
 
 export interface OwnerDashboardStats {
@@ -348,6 +427,7 @@ export interface OwnerDashboardStats {
   totalFundingRaised: number;
   teamMembers: number;
   pendingOffers: number;
+  pendingMilestones: number;
 }
 
 export interface AdminStats {
@@ -382,3 +462,5 @@ export interface FilterParams {
 /** @deprecated kept for transitional imports during refactor */
 export type TransactionStatus = OfferStatus;
 export type DashboardStats = InvestorDashboardStats;
+export type MembershipTierAlias = MembershipTier;
+export type MembershipTierPlan = MembershipTier;

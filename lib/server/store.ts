@@ -3,6 +3,7 @@ import type {
   UserRole,
   Project,
   ProjectDocument,
+  ProjectPhase,
   TeamMember,
   InvestmentOffer,
   Conversation,
@@ -19,7 +20,10 @@ import type {
   OwnerDashboardStats,
   AdminStats,
   MembershipPlanId,
+  MilestonePlan,
+  KycStatus,
 } from "@/types";
+import { hasActiveServiceAccess, normalizeMembershipTier } from "@/lib/rbac";
 
 export interface StoredUser extends User {
   password: string;
@@ -38,6 +42,7 @@ export interface DevStore {
   kyc: Map<string, KycSubmission | null>;
   activityLogs: ActivityLog[];
   complaints: Complaint[];
+  milestonePlans: Map<string, MilestonePlan>;
 }
 
 export const SEED_USER_IDS = {
@@ -48,54 +53,34 @@ export const SEED_USER_IDS = {
 
 export const MEMBERSHIP_PLANS: MembershipPlan[] = [
   {
-    id: "basic",
-    name: "Basic Investor",
-    price: 29,
-    billingPeriod: "monthly",
-    description: "Explore curated opportunities with limited project detail.",
-    features: [
-      "View limited projects",
-      "Basic project information",
-      "Save projects",
-      "Risk score preview",
-    ],
-  },
-  {
-    id: "premium",
-    name: "Premium Investor",
+    id: "service",
+    name: "Platform Service Access",
+    nameHy: "Հարթակի ծառայության հասանելիություն",
     price: 99,
     billingPeriod: "monthly",
-    description: "Full diligence toolkit for serious investors.",
+    description:
+      "Monthly platform service fee for full diligence access, messaging, and offers. This is not investment capital.",
+    descriptionHy:
+      "Ամսական հարթակի ծառայության վճար՝ լրիվ ստուգման հասանելիության, հաղորդագրությունների և առաջարկների համար։ Սա ներդրումային կապիտալ չէ։",
     features: [
-      "Full project access",
-      "Documents & team access",
-      "Financial analysis",
+      "Full project materials & data room",
+      "Documents, team, and financial detail",
       "Direct platform messaging",
       "Send investment offers",
-      "Full risk reports",
+      "Full risk analysis reports",
+      "Milestone planning with owners",
+    ],
+    featuresHy: [
+      "Լրիվ նախագծի նյութեր և տվյալների սենյակ",
+      "Փաստաթղթեր, թիմ և ֆինանսական մանրամասներ",
+      "Ուղիղ հարթակային հաղորդագրություններ",
+      "Ներդրումային առաջարկներ ուղարկել",
+      "Լրիվ ռիսկի վերլուծության զեկույցներ",
+      "Նշաձողերի պլանավորում սեփականատերերի հետ",
     ],
     highlighted: true,
   },
-  {
-    id: "enterprise",
-    name: "Enterprise Investor",
-    price: 299,
-    billingPeriod: "monthly",
-    description: "Priority access and advanced analytics for institutions.",
-    features: [
-      "Everything in Premium",
-      "Priority communication",
-      "Advanced analytics",
-      "Dedicated support",
-      "Early access to listings",
-    ],
-  },
 ];
-
-declare global {
-  // eslint-disable-next-line no-var
-  var __ventureBridgeStoreV2: DevStore | undefined;
-}
 
 function createUser(
   id: string,
@@ -164,12 +149,60 @@ function seedTeam(): TeamMember[] {
   ];
 }
 
-function seedDocuments(projectId: string): ProjectDocument[] {
-  const now = new Date().toISOString();
+function seedPhases(requiredInvestment: number): ProjectPhase[] {
+  const p1 = Math.round(requiredInvestment * 0.35);
+  const p2 = Math.round(requiredInvestment * 0.4);
+  const p3 = requiredInvestment - p1 - p2;
   return [
     {
       id: crypto.randomUUID(),
+      title: "Foundation & product build",
+      titleHy: "Հիմք և արտադրանքի կառուցում",
+      description: "Core product delivery, hiring, and technical foundation.",
+      descriptionHy: "Հիմնական արտադրանքի մատակարարում, աշխատակազմ և տեխնիկական հիմք։",
+      budgetAsk: p1,
+      durationWeeks: 16,
+      deliverables: ["MVP release", "Core engineering hires", "Architecture docs"],
+      deliverablesHy: ["MVP թողարկում", "Հիմնական ինժեներական աշխատակազմ", "Ճարտարապետության փաստաթղթեր"],
+      sortOrder: 0,
+      status: "active",
+    },
+    {
+      id: crypto.randomUUID(),
+      title: "Market launch & traction",
+      titleHy: "Շուկա մուտք և աճ",
+      description: "Go-to-market, pilot customers, and early revenue loops.",
+      descriptionHy: "Շուկա մուտք, փորձնական հաճախորդներ և վաղ եկամտի ցիկլեր։",
+      budgetAsk: p2,
+      durationWeeks: 20,
+      deliverables: ["Pilot customers", "Sales playbook", "Retention metrics"],
+      deliverablesHy: ["Փորձնական հաճախորդներ", "Վաճառքի ուղեցույց", "Պահպանման ցուցանիշներ"],
+      sortOrder: 1,
+      status: "planned",
+    },
+    {
+      id: crypto.randomUUID(),
+      title: "Scale & operations",
+      titleHy: "Մասշտաբավորում և գործառնություններ",
+      description: "Expand capacity, compliance, and operating leverage.",
+      descriptionHy: "Հզորության ընդլայնում, համապատասխանություն և գործառնական լծակ։",
+      budgetAsk: p3,
+      durationWeeks: 24,
+      deliverables: ["Regional expansion", "Compliance package", "Unit economics report"],
+      deliverablesHy: ["Տարածաշրջանային ընդլայնում", "Համապատասխանության փաթեթ", "Միավոր տնտեսագիտության զեկույց"],
+      sortOrder: 2,
+      status: "planned",
+    },
+  ];
+}
+
+function seedDocuments(projectId: string, includeLegal: boolean): ProjectDocument[] {
+  const now = new Date().toISOString();
+  const docs: ProjectDocument[] = [
+    {
+      id: crypto.randomUUID(),
       name: "Business Plan.pdf",
+      nameHy: "Բիզնես պլան.pdf",
       url: `#doc-${projectId}-business`,
       category: "business_plan",
       uploadedAt: now,
@@ -177,21 +210,38 @@ function seedDocuments(projectId: string): ProjectDocument[] {
     {
       id: crypto.randomUUID(),
       name: "Pitch Deck.pdf",
+      nameHy: "Pitch Deck.pdf",
       url: `#doc-${projectId}-pitch`,
       category: "pitch_deck",
       uploadedAt: now,
     },
     {
       id: crypto.randomUUID(),
-      name: "Financial Model.xlsx",
-      url: `#doc-${projectId}-finance`,
-      category: "other",
+      name: "Finance Plan.xlsx",
+      nameHy: "Ֆինանսական պլան.xlsx",
+      url: `#doc-${projectId}-finance-plan`,
+      category: "finance_plan",
       uploadedAt: now,
     },
   ];
+  if (includeLegal) {
+    docs.push({
+      id: crypto.randomUUID(),
+      name: "Legal Package.pdf",
+      nameHy: "Իրավական փաթեթ.pdf",
+      url: `#doc-${projectId}-legal`,
+      category: "legal",
+      uploadedAt: now,
+    });
+  }
+  return docs;
 }
 
-function seedProjects(ownerId: string, ownerName: string): Project[] {
+function seedProjects(
+  ownerId: string,
+  ownerName: string,
+  ownerKycStatus: KycStatus
+): Project[] {
   const now = new Date().toISOString();
   const base = [
     {
@@ -210,7 +260,7 @@ function seedProjects(ownerId: string, ownerName: string): Project[] {
       expectedRoi: 18,
       riskLevel: "medium" as const,
       image:
-        "https://images.unsplash.com/photo-1509391366360-2e959784a276?w=1200&q=80",
+        "https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&w=800&q=60",
       description: "Modular battery storage for commercial microgrids.",
       descriptionHy: "Մոդուլային մարտկոցային պահեստավորում առևտրային միկրոցանցերի համար։",
     },
@@ -230,7 +280,7 @@ function seedProjects(ownerId: string, ownerName: string): Project[] {
       expectedRoi: 22,
       riskLevel: "high" as const,
       image:
-        "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=1200&q=80",
+        "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=800&q=60",
       description: "Clinical decision support for outpatient clinics.",
       descriptionHy: "Կլինիկական որոշումների աջակցություն ամբուլատոր կլինիկաների համար։",
     },
@@ -250,7 +300,7 @@ function seedProjects(ownerId: string, ownerName: string): Project[] {
       expectedRoi: 16,
       riskLevel: "medium" as const,
       image:
-        "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1200&q=80",
+        "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=800&q=60",
       description: "Port operations software for mid-size terminals.",
       descriptionHy: "Նավահանգստային գործառնությունների ծրագրակազմ միջին տերմինալների համար։",
     },
@@ -270,7 +320,7 @@ function seedProjects(ownerId: string, ownerName: string): Project[] {
       expectedRoi: 14,
       riskLevel: "low" as const,
       image:
-        "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=1200&q=80",
+        "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?auto=format&fit=crop&w=800&q=60",
       description: "Autonomous greenhouse harvesting robots.",
       descriptionHy: "Ինքնավար ջերմոցային բերքահավաքի ռոբոտներ։",
     },
@@ -278,10 +328,13 @@ function seedProjects(ownerId: string, ownerName: string): Project[] {
 
   return base.map((p, i) => {
     const id = `project-seed-${i + 1}`;
+    const includeLegal = i % 2 === 0;
+    const phases = seedPhases(p.requiredInvestment);
     return {
       id,
       ownerId,
       ownerName,
+      ownerKycStatus,
       title: p.title,
       titleHy: p.titleHy,
       slug: p.title.toLowerCase().replace(/\s+/g, "-"),
@@ -312,12 +365,18 @@ function seedProjects(ownerId: string, ownerName: string): Project[] {
       investmentPlanHy: "Միջոցները բաշխվում են արտադրանքին (40%), շուկա մուտքին (35%) և գործառնություններին (25%)։",
       businessModel: "B2B enterprise sales with multi-year contracts and expansion revenue.",
       businessModelHy: "B2B ձեռնարկությունների վաճառք՝ բազմամյա պայմանագրերով և ընդլայնման եկամտով։",
+      budgetBreakdown: [
+        { label: "Product", labelHy: "Արտադրանք", percent: 40 },
+        { label: "Go-to-market", labelHy: "Շուկա մուտք", percent: 35 },
+        { label: "Operations", labelHy: "Գործառնություններ", percent: 25 },
+      ],
+      phases,
       riskLevel: p.riskLevel,
       status: "published",
       investorCount: 8 + i * 3,
       savedCount: 20 + i * 5,
       team: seedTeam(),
-      documents: seedDocuments(id),
+      documents: seedDocuments(id, includeLegal),
       updates: [
         {
           id: crypto.randomUUID(),
@@ -338,29 +397,29 @@ function initStore(): DevStore {
   const users = new Map<string, StoredUser>();
   const admin = createUser(
     SEED_USER_IDS.admin,
-    "admin@venturebridge.com",
+    "admin@investpro.com",
     "admin123",
     "Platform",
     "Admin",
     "admin",
-    { kycStatus: "approved", membershipTier: "enterprise" }
+    { kycStatus: "approved", membershipTier: "none" }
   );
   const investor = createUser(
     SEED_USER_IDS.investor,
-    "investor@venturebridge.com",
+    "investor@investpro.com",
     "investor123",
     "Alex",
     "Investor",
     "investor",
     {
-      membershipTier: "premium",
+      membershipTier: "service",
       membershipExpiresAt: new Date(Date.now() + 30 * 86400000).toISOString(),
       kycStatus: "approved",
     }
   );
   const owner = createUser(
     SEED_USER_IDS.owner,
-    "owner@venturebridge.com",
+    "owner@investpro.com",
     "owner123",
     "Sam",
     "Founder",
@@ -373,7 +432,7 @@ function initStore(): DevStore {
   users.set(owner.id, owner);
 
   const projects = new Map<string, Project>();
-  for (const project of seedProjects(owner.id, `${owner.firstName} ${owner.lastName}`)) {
+  for (const project of seedProjects(owner.id, `${owner.firstName} ${owner.lastName}`, owner.kycStatus)) {
     projects.set(project.id, project);
   }
 
@@ -381,7 +440,7 @@ function initStore(): DevStore {
   subscriptions.set(investor.id, {
     id: crypto.randomUUID(),
     userId: investor.id,
-    planId: "premium",
+    planId: "service",
     status: "active",
     startedAt: new Date().toISOString(),
     expiresAt: new Date(Date.now() + 30 * 86400000).toISOString(),
@@ -401,19 +460,34 @@ function initStore(): DevStore {
     kyc: new Map(),
     activityLogs: [],
     complaints: [],
+    milestonePlans: new Map(),
   };
 }
 
+declare global {
+  // eslint-disable-next-line no-var
+  var __investProStoreV4: DevStore | undefined;
+}
+
 export function getStore(): DevStore {
-  if (!globalThis.__ventureBridgeStoreV2) {
-    globalThis.__ventureBridgeStoreV2 = initStore();
+  if (!globalThis.__investProStoreV4) {
+    globalThis.__investProStoreV4 = initStore();
   }
-  return globalThis.__ventureBridgeStoreV2;
+  return globalThis.__investProStoreV4;
+}
+
+export function hasServiceAccess(
+  user: Pick<User, "membershipTier" | "membershipExpiresAt" | "role"> | null | undefined
+): boolean {
+  return hasActiveServiceAccess(user);
 }
 
 export function sanitizeUser(user: StoredUser): User {
   const { password: _, ...safe } = user;
-  return safe;
+  return {
+    ...safe,
+    membershipTier: normalizeMembershipTier(safe.membershipTier),
+  };
 }
 
 export function paginate<T>(items: T[], page = 1, limit = 10) {
@@ -451,60 +525,187 @@ export function analyzeProjectRisk(project: Project): RiskAnalysis {
   const positive: RiskAnalysis["positiveIndicators"] = [];
   const warnings: RiskAnalysis["warningIndicators"] = [];
   const missing: string[] = [];
+  const missingHy: string[] = [];
   const questions: string[] = [];
+  const questionsHy: string[] = [];
 
   let score = 55;
+  const phases = project.phases || [];
+  const phaseBudgetTotal = phases.reduce((sum, ph) => sum + (ph.budgetAsk || 0), 0);
+  const phaseBudgetGap = project.requiredInvestment - phaseBudgetTotal;
 
   if (project.documents.some((d) => d.category === "business_plan")) {
-    positive.push({ label: "Business plan uploaded", detail: "Core planning document is available." });
+    positive.push({
+      label: "Business plan uploaded",
+      labelHy: "Բիզնես պլանը վերբեռնված է",
+      detail: "Core planning document is available.",
+      detailHy: "Հիմնական պլանավորման փաստաթուղթը հասանելի է։",
+    });
     score += 8;
   } else {
     missing.push("Business plan");
-    warnings.push({ label: "Missing business plan", detail: "Investors cannot validate strategy depth." });
+    missingHy.push("Բիզնես պլան");
+    warnings.push({
+      label: "Missing business plan",
+      labelHy: "Բացակայում է բիզնես պլանը",
+      detail: "Investors cannot validate strategy depth.",
+      detailHy: "Ներդրողները չեն կարող ստուգել ռազմավարության խորությունը։",
+    });
     score -= 10;
   }
 
   if (project.documents.some((d) => d.category === "pitch_deck")) {
-    positive.push({ label: "Pitch deck available", detail: "Presentation materials are ready for diligence." });
+    positive.push({
+      label: "Pitch deck available",
+      labelHy: "Pitch deck-ը հասանելի է",
+      detail: "Presentation materials are ready for diligence.",
+      detailHy: "Ներկայացման նյութերը պատրաստ են ստուգման համար։",
+    });
     score += 5;
   } else {
     missing.push("Pitch deck");
+    missingHy.push("Pitch deck");
   }
 
   if (project.documents.some((d) => d.category === "legal")) {
-    positive.push({ label: "Legal documents present", detail: "Legal package supports compliance review." });
+    positive.push({
+      label: "Legal documents present",
+      labelHy: "Իրավական փաստաթղթեր կան",
+      detail: "Legal package supports compliance review.",
+      detailHy: "Իրավական փաթեթը աջակցում է համապատասխանության վերանայմանը։",
+    });
     score += 8;
   } else {
     missing.push("Legal documents");
-    warnings.push({ label: "No legal package", detail: "Entity and IP status may be unclear." });
+    missingHy.push("Իրավական փաստաթղթեր");
+    warnings.push({
+      label: "No legal package",
+      labelHy: "Իրավական փաթեթ չկա",
+      detail: "Entity and IP status may be unclear.",
+      detailHy: "Կազմակերպության և մտավոր սեփականության կարգավիճակը կարող է անհասկանալի լինել։",
+    });
     score -= 8;
   }
 
+  if (project.documents.some((d) => d.category === "finance_plan")) {
+    positive.push({
+      label: "Finance plan available",
+      labelHy: "Ֆինանսական պլանը հասանելի է",
+      detail: "Dedicated finance plan supports capital allocation review.",
+      detailHy: "Առանձին ֆինանսական պլանը աջակցում է կապիտալի բաշխման վերանայմանը։",
+    });
+    score += 5;
+  } else {
+    missing.push("Finance plan");
+    missingHy.push("Ֆինանսական պլան");
+  }
+
+  if (phases.length >= 2) {
+    positive.push({
+      label: "Phased capital plan",
+      labelHy: "Փուլային կապիտալի պլան",
+      detail: `${phases.length} funding phases disclosed with budgets.`,
+      detailHy: `${phases.length} ֆինանսավորման փուլեր բյուջեներով։`,
+    });
+    score += 6;
+  } else {
+    warnings.push({
+      label: "Missing phases",
+      labelHy: "Փուլերը բացակայում են",
+      detail: "Fewer than 2 investment phases defined.",
+      detailHy: "Սահմանված է 2-ից պակաս ներդրումային փուլ։",
+    });
+    score -= 5;
+  }
+
+  if (Math.abs(phaseBudgetGap) <= project.requiredInvestment * 0.05) {
+    positive.push({
+      label: "Phase budgets aligned",
+      labelHy: "Փուլերի բյուջեները համաձայնեցված են",
+      detail: "Phase asks roughly match the total raise.",
+      detailHy: "Փուլերի պահանջները մոտավորապես համընկնում են ընդհանուր հավաքագրման հետ։",
+    });
+    score += 4;
+  } else if (phases.length > 0) {
+    warnings.push({
+      label: "Phase budget gap",
+      labelHy: "Փուլերի բյուջեի անհամապատասխանություն",
+      detail: `Phase total differs from raise by $${Math.abs(phaseBudgetGap).toLocaleString()}.`,
+      detailHy: `Փուլերի գումարը տարբերվում է հավաքագրումից $${Math.abs(phaseBudgetGap).toLocaleString()}-ով։`,
+    });
+    score -= 4;
+  }
+
   if (project.team.length >= 3) {
-    positive.push({ label: "Complete founding team", detail: `${project.team.length} team profiles listed.` });
+    positive.push({
+      label: "Complete founding team",
+      labelHy: "Լրիվ հիմնադիր թիմ",
+      detail: `${project.team.length} team profiles listed.`,
+      detailHy: `${project.team.length} թիմի պրոֆիլ նշված է։`,
+    });
     score += 7;
   } else {
-    warnings.push({ label: "Thin team roster", detail: "Fewer than 3 team members disclosed." });
+    warnings.push({
+      label: "Thin team roster",
+      labelHy: "Թույլ թիմի կազմ",
+      detail: "Fewer than 3 team members disclosed.",
+      detailHy: "Բացահայտված է 3-ից պակաս թիմի անդամ։",
+    });
     score -= 6;
   }
 
   if (project.team.some((t) => t.role === "advisor")) {
-    positive.push({ label: "Advisor on board", detail: "External advisory support disclosed." });
+    positive.push({
+      label: "Advisor on board",
+      labelHy: "Խորհրդատու կա",
+      detail: "External advisory support disclosed.",
+      detailHy: "Արտաքին խորհրդատվական աջակցությունը բացահայտված է։",
+    });
     score += 4;
   }
 
   if (project.financialProjections && project.financialProjections.length > 40) {
-    positive.push({ label: "Financial projections provided", detail: "Forward-looking numbers are documented." });
+    positive.push({
+      label: "Financial projections provided",
+      labelHy: "Ֆինանսական կանխատեսումներ կան",
+      detail: "Forward-looking numbers are documented.",
+      detailHy: "Ապագա թվերը փաստաթղթավորված են։",
+    });
     score += 6;
   } else {
-    warnings.push({ label: "Weak financial detail", detail: "Projections appear incomplete." });
+    warnings.push({
+      label: "Weak financial detail",
+      labelHy: "Թույլ ֆինանսական մանրամաս",
+      detail: "Projections appear incomplete.",
+      detailHy: "Կանխատեսումները թերի են թվում։",
+    });
     score -= 7;
+  }
+
+  if (project.ownerKycStatus === "approved") {
+    positive.push({
+      label: "Owner KYC approved",
+      labelHy: "Սեփականատիրոջ KYC-ն հաստատված է",
+      detail: "Project owner identity verification is complete.",
+      detailHy: "Նախագծի սեփականատիրոջ ինքնության ստուգումն ավարտված է։",
+    });
+    score += 4;
+  } else {
+    warnings.push({
+      label: "Owner KYC incomplete",
+      labelHy: "Սեփականատիրոջ KYC-ն թերի է",
+      detail: "Owner verification is not fully approved.",
+      detailHy: "Սեփականատիրոջ ստուգումը լրիվ հաստատված չէ։",
+    });
+    score -= 3;
   }
 
   if (project.currentFunding / project.requiredInvestment > 0.4) {
     positive.push({
       label: "Strong funding traction",
+      labelHy: "Ուժեղ ֆինանսավորման առաջընթաց",
       detail: `${Math.round((project.currentFunding / project.requiredInvestment) * 100)}% of goal raised.`,
+      detailHy: `Նպատակի ${Math.round((project.currentFunding / project.requiredInvestment) * 100)}%-ը հավաքված է։`,
     });
     score += 5;
   }
@@ -513,14 +714,24 @@ export function analyzeProjectRisk(project: Project): RiskAnalysis {
   if (project.riskLevel === "low") score += 6;
 
   questions.push("What is your current monthly burn rate and runway?");
+  questionsHy.push("Որքա՞ն է ձեր ամսական ծախսը և աշխատանքային կապիտալի պահուստը։");
   questions.push("Who are your top three competitors and differentiation?");
+  questionsHy.push("Ովքե՞ր են ձեր երեք հիմնական մրցակիցները և տարբերակիչ առավելությունը։");
   questions.push("How will investor funds be ring-fenced and reported?");
+  questionsHy.push("Ինչպե՞ս կմեկուսացվեն և կհաղորդվեն ներդրողների միջոցները։");
+  if (phases.length > 0) {
+    questions.push("How do phase deliverables unlock the next capital tranche?");
+    questionsHy.push("Ինչպե՞ս են փուլի արդյունքները բացում հաջորդ կապիտալի մասը։");
+  }
   if (missing.includes("Legal documents")) {
     questions.push("Can you share incorporation docs and cap table?");
+    questionsHy.push("Կարո՞ղ եք կիսվել գրանցման փաստաթղթերով և կապիտալի աղյուսակով։");
   }
   if (!project.documents.some((d) => d.category === "certificate")) {
     missing.push("Certificates / compliance proofs");
+    missingHy.push("Վկայագրեր / համապատասխանության ապացույցներ");
     questions.push("Do you hold any industry certifications or audits?");
+    questionsHy.push("Ունե՞ք արդյոք արդյունաբերական վկայագրեր կամ աուդիտներ։");
   }
 
   score = Math.max(5, Math.min(95, score));
@@ -530,10 +741,24 @@ export function analyzeProjectRisk(project: Project): RiskAnalysis {
       (project.team.length > 0 ? 1 : 0) +
       (project.financialProjections ? 1 : 0) +
       (project.investmentPlan ? 1 : 0) +
-      (project.businessModel ? 1 : 0)) /
-      5 *
+      (project.businessModel ? 1 : 0) +
+      (phases.length >= 2 ? 1 : 0)) /
+      6 *
       100
   );
+
+  const summary =
+    level === "low"
+      ? "Overall diligence posture looks solid with strong documentation, phases, and team disclosure."
+      : level === "medium"
+        ? "Moderate risk — several strengths exist, but investors should clarify gaps before committing."
+        : "Elevated risk — missing materials and weak signals warrant caution before investing.";
+  const summaryHy =
+    level === "low"
+      ? "Ընդհանուր ստուգման վիճակը ամուր է՝ ուժեղ փաստաթղթավորմամբ, փուլերով և թիմի բացահայտմամբ։"
+      : level === "medium"
+        ? "Միջին ռիսկ — կան ուժեղ կողմեր, սակայն ներդրողները պետք է պարզեն բացերը մինչև պարտավորվելը։"
+        : "Բարձր ռիսկ — բացակայող նյութերն ու թույլ ազդանշանները զգուշություն են պահանջում։";
 
   return {
     projectId: project.id,
@@ -543,13 +768,13 @@ export function analyzeProjectRisk(project: Project): RiskAnalysis {
     positiveIndicators: positive,
     warningIndicators: warnings,
     missingDocuments: missing,
+    missingDocumentsHy: missingHy,
     questionsToAsk: questions,
-    summary:
-      level === "low"
-        ? "Overall diligence posture looks solid with strong documentation and team disclosure."
-        : level === "medium"
-          ? "Moderate risk — several strengths exist, but investors should clarify gaps before committing."
-          : "Elevated risk — missing materials and weak signals warrant caution before investing.",
+    questionsToAskHy: questionsHy,
+    summary,
+    summaryHy,
+    phaseBudgetTotal,
+    phaseBudgetGap,
     generatedAt: new Date().toISOString(),
   };
 }
@@ -564,15 +789,33 @@ export function getInvestorStats(userId: string): InvestorDashboardStats {
   const unread = Array.from(store.conversations.values())
     .filter((c) => c.investorId === userId)
     .reduce((sum, c) => sum + c.unreadCount, 0);
+  const activeMilestones = Array.from(store.milestonePlans.values()).filter(
+    (m) =>
+      m.investorId === userId &&
+      (m.status === "proposed" ||
+        m.status === "negotiating" ||
+        m.status === "agreed" ||
+        m.status === "active")
+  ).length;
+
+  const safeUser = user
+    ? {
+        role: user.role,
+        membershipTier: normalizeMembershipTier(user.membershipTier),
+        membershipExpiresAt: user.membershipExpiresAt,
+      }
+    : null;
 
   return {
     availableProjects: published.length,
     myInvestments: investments.length,
     savedProjects: saved.length,
     unreadMessages: unread,
-    membershipTier: user?.membershipTier || "none",
+    membershipTier: normalizeMembershipTier(user?.membershipTier),
+    hasPlatformAccess: hasServiceAccess(safeUser),
     portfolioValue: investments.reduce((s, i) => s + i.amount, 0),
     activeOffers: offers.filter((o) => o.status === "pending" || o.status === "negotiating").length,
+    activeMilestones,
   };
 }
 
@@ -584,6 +827,11 @@ export function getOwnerStats(userId: string): OwnerDashboardStats {
     .filter((c) => c.ownerId === userId)
     .reduce((sum, c) => sum + c.unreadCount, 0);
   const teamMembers = myProjects.reduce((s, p) => s + p.team.length, 0);
+  const pendingMilestones = Array.from(store.milestonePlans.values()).filter(
+    (m) =>
+      m.ownerId === userId &&
+      (m.status === "proposed" || m.status === "negotiating" || m.status === "draft")
+  ).length;
 
   return {
     myProjects: myProjects.length,
@@ -593,6 +841,7 @@ export function getOwnerStats(userId: string): OwnerDashboardStats {
     totalFundingRaised: myProjects.reduce((s, p) => s + p.currentFunding, 0),
     teamMembers,
     pendingOffers: offers.filter((o) => o.status === "pending").length,
+    pendingMilestones,
   };
 }
 
@@ -615,15 +864,31 @@ export function getAdminStats(): AdminStats {
 }
 
 export function redactContactInfo(text: string): { text: string; blocked: boolean } {
-  const email = /\b[\w.+-]+@[\w-]+\.[\w.]+\b/gi;
-  const phone = /\b(?:\+?\d[\d\s().-]{7,}\d)\b/g;
-  const apps = /\b(?:whatsapp|telegram|signal|skype|wechat)\b/gi;
+  const patterns: { re: RegExp; replacement: string }[] = [
+    { re: /\b[\w.+-]+@[\w-]+\.[\w.]+\b/gi, replacement: "[contact hidden]" },
+    { re: /\b(?:\+?\d[\d\s().-]{7,}\d)\b/g, replacement: "[contact hidden]" },
+    { re: /https?:\/\/[^\s]+/gi, replacement: "[link hidden]" },
+    { re: /(?:www\.)[^\s]+/gi, replacement: "[link hidden]" },
+    { re: /(?:discord\.gg|discord\.com\/invite)\/\S+/gi, replacement: "[app hidden]" },
+    { re: /t\.me\/\S+/gi, replacement: "[app hidden]" },
+    { re: /wa\.me\/\S+|whatsapp\.me\/\S+/gi, replacement: "[app hidden]" },
+    { re: /(?:^|[\s])@[a-zA-Z0-9_]{3,}/g, replacement: " [handle hidden]" },
+    {
+      re: /\b(?:whatsapp|telegram|signal|skype|wechat|discord)\b/gi,
+      replacement: "[app hidden]",
+    },
+    {
+      re: /\b(?:call me|email me|text me|dm me|contact me at|message me at)\b/gi,
+      replacement: "[contact request hidden]",
+    },
+  ];
+
   let blocked = false;
   let cleaned = text;
-  if (email.test(cleaned) || phone.test(cleaned) || apps.test(cleaned)) blocked = true;
-  cleaned = cleaned.replace(email, "[contact hidden]");
-  cleaned = cleaned.replace(phone, "[contact hidden]");
-  cleaned = cleaned.replace(apps, "[app hidden]");
+  for (const { re, replacement } of patterns) {
+    if (re.test(cleaned)) blocked = true;
+    cleaned = cleaned.replace(re, replacement);
+  }
   return { text: cleaned, blocked };
 }
 
@@ -631,16 +896,17 @@ export function upgradeMembership(userId: string, planId: MembershipPlanId) {
   const store = getStore();
   const user = store.users.get(userId);
   if (!user) return null;
+  if (planId !== "service") return null;
   const plan = MEMBERSHIP_PLANS.find((p) => p.id === planId);
   if (!plan) return null;
   const expiresAt = new Date(Date.now() + 30 * 86400000).toISOString();
-  user.membershipTier = planId;
+  user.membershipTier = "service";
   user.membershipExpiresAt = expiresAt;
   user.updatedAt = new Date().toISOString();
   const sub: MembershipSubscription = {
     id: crypto.randomUUID(),
     userId,
-    planId,
+    planId: "service",
     status: "active",
     startedAt: new Date().toISOString(),
     expiresAt,

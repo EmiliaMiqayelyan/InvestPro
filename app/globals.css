@@ -4,31 +4,34 @@
 
 @layer base {
   :root {
-    --background: 210 40% 98%;
-    --foreground: 222 47% 11%;
-    --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
-    --primary: 221 83% 53%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 214 32% 91%;
-    --secondary-foreground: 222 47% 11%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 160 84% 39%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 84% 60%;
+    /* Calm finance / diligence — deep teal + warm paper */
+    --background: 40 33% 97%;
+    --foreground: 200 25% 12%;
+    --card: 40 40% 99%;
+    --card-foreground: 200 25% 12%;
+    --popover: 40 40% 99%;
+    --popover-foreground: 200 25% 12%;
+    --primary: 188 55% 28%;
+    --primary-foreground: 40 33% 98%;
+    --secondary: 35 25% 92%;
+    --secondary-foreground: 200 25% 18%;
+    --muted: 40 20% 93%;
+    --muted-foreground: 200 10% 42%;
+    --accent: 162 42% 36%;
+    --accent-foreground: 40 33% 98%;
+    --destructive: 4 72% 48%;
     --destructive-foreground: 0 0% 98%;
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 221 83% 53%;
-    --radius: 0.75rem;
-    --chart-1: 221 83% 53%;
-    --chart-2: 160 84% 39%;
-    --chart-3: 45 93% 47%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+    --border: 35 18% 86%;
+    --input: 35 18% 86%;
+    --ring: 188 55% 28%;
+    --radius: 0.625rem;
+    --chart-1: 188 55% 32%;
+    --chart-2: 162 42% 36%;
+    --chart-3: 32 70% 48%;
+    --chart-4: 200 30% 40%;
+    --chart-5: 10 55% 50%;
+    --surface-warm: 38 40% 95%;
+    --ink: 200 30% 10%;
   }
 }
 
@@ -38,12 +41,16 @@
   }
   body {
     @apply bg-background text-foreground antialiased;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 10% -10%, rgba(15, 118, 110, 0.07), transparent 55%),
+      radial-gradient(ellipse 60% 40% at 90% 0%, rgba(180, 140, 80, 0.06), transparent 50%);
+    background-attachment: fixed;
   }
   h1, h2, h3, h4 {
     @apply tracking-tight text-foreground;
+    color: hsl(var(--ink));
   }
 
-  /* Armenian typography: avoid cramped glyphs from Latin tracking-tight */
   html[lang="hy"],
   html.locale-hy {
     font-family: var(--font-armenian), var(--font-sans), system-ui, sans-serif;
@@ -53,7 +60,6 @@
 
   html[lang="hy"] body,
   html.locale-hy body {
-    color: #475569; /* slate-600 */
     font-weight: 400;
     line-height: 1.75;
     -webkit-font-smoothing: antialiased;
@@ -86,7 +92,6 @@
     letter-spacing: 0.02em;
     word-spacing: 0.06em;
     line-height: 1.75;
-    color: #64748b; /* slate-500 — softer */
   }
 
   html[lang="hy"] .font-semibold,
@@ -109,10 +114,10 @@
 
 @layer utilities {
   .premium-card {
-    @apply bg-card rounded-2xl border border-border/80 shadow-[0_1px_3px_rgba(15,23,42,0.06),0_8px_24px_rgba(15,23,42,0.04)];
+    @apply rounded-2xl border border-border/90 bg-card shadow-[0_1px_2px_rgba(28,40,48,0.04),0_10px_28px_rgba(28,40,48,0.05)];
   }
   .soft-shadow {
-    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 12px 40px rgba(15, 23, 42, 0.06);
+    box-shadow: 0 1px 2px rgba(28, 40, 48, 0.04), 0 14px 36px rgba(28, 40, 48, 0.06);
   }
   .section-pad {
     @apply px-4 sm:px-6 lg:px-8;
@@ -121,13 +126,16 @@
     @apply mx-auto w-full max-w-6xl;
   }
   .gradient-text {
-    @apply bg-gradient-to-r from-blue-600 to-emerald-600 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-teal-800 to-teal-600 bg-clip-text text-transparent;
   }
   .hero-mesh {
+    background-color: hsl(var(--surface-warm));
     background-image:
-      radial-gradient(at 20% 20%, rgba(59, 130, 246, 0.12) 0px, transparent 50%),
-      radial-gradient(at 80% 10%, rgba(16, 185, 129, 0.10) 0px, transparent 45%),
-      radial-gradient(at 50% 90%, rgba(99, 102, 241, 0.08) 0px, transparent 50%);
+      linear-gradient(165deg, rgba(15, 90, 95, 0.08) 0%, transparent 45%),
+      linear-gradient(340deg, rgba(160, 120, 60, 0.06) 0%, transparent 40%);
+  }
+  .surface-panel {
+    @apply rounded-2xl border border-border/80 bg-card/90 backdrop-blur-sm;
   }
 }
 

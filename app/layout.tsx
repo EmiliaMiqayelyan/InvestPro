@@ -31,7 +31,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="hy" className="locale-hy">
       <body className={`${sans.variable} ${display.variable} ${armenian.variable} font-sans`}>
         <QueryProvider>
           <LocaleProvider>

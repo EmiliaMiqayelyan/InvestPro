@@ -80,7 +80,7 @@ export default function AboutPage() {
 
       <section className="hero-mesh border-b border-border/60">
         <div className="container-narrow section-pad py-16 md:py-24 animate-fade-in">
-          <p className="text-sm font-medium uppercase tracking-wide text-blue-600">
+          <p className="text-sm font-medium uppercase tracking-wide text-teal-800">
             {t("about.eyebrow")}
           </p>
           <h1 className="mt-3 max-w-3xl font-display text-4xl font-semibold text-slate-900 md:text-5xl">

@@ -28,6 +28,9 @@ export const ROUTES = {
   INVESTOR_PROFILE: "/investor/profile",
   INVESTOR_KYC: "/investor/kyc",
   INVESTOR_SECURITY: "/investor/security",
+  INVESTOR_MILESTONES: "/investor/milestones",
+  INVESTOR_PROJECTS: "/investor/projects",
+  INVESTOR_MEMBERSHIP: "/investor/membership",
   MESSAGES: "/messages",
 
   // Owner
@@ -37,6 +40,7 @@ export const ROUTES = {
   OWNER_MESSAGES: "/owner/messages",
   OWNER_DOCUMENTS: "/owner/documents",
   OWNER_OFFERS: "/owner/offers",
+  OWNER_MILESTONES: "/owner/milestones",
   OWNER_ANALYTICS: "/owner/analytics",
   OWNER_TEAM: "/owner/team",
   OWNER_PROFILE: "/owner/profile",
@@ -101,6 +105,7 @@ export const DOCUMENT_CATEGORIES = [
   { value: "legal", label: "Legal Documents" },
   { value: "certificate", label: "Certificates" },
   { value: "contract", label: "Contracts" },
+  { value: "finance_plan", label: "Finance Plan" },
   { value: "image", label: "Images" },
   { value: "video", label: "Videos" },
   { value: "other", label: "Other" },
@@ -143,28 +148,14 @@ export const STATUS_COLORS: Record<string, string> = {
 };
 
 export const MEMBERSHIP_FEATURES = {
-  none: ["Browse project titles", "Limited marketplace preview"],
-  basic: [
-    "View limited projects",
-    "Basic project information",
-    "Save projects",
-    "Risk score preview",
-  ],
-  premium: [
-    "Full project access",
-    "Documents access",
-    "Team information",
-    "Financial analysis",
+  none: ["Browse project titles", "Limited marketplace preview", "Risk score preview"],
+  service: [
+    "Full project materials & data room",
+    "Documents, team, and financial detail",
     "Direct platform messaging",
     "Send investment offers",
-    "Full risk reports",
-  ],
-  enterprise: [
-    "Everything in Premium",
-    "Priority communication",
-    "Advanced analytics",
-    "Dedicated support",
-    "Early access to new listings",
+    "Full risk analysis reports",
+    "Milestone planning with owners",
   ],
 } as const;
 
@@ -180,6 +171,7 @@ export const QUERY_KEYS = {
   CONVERSATIONS: "conversations",
   MESSAGES: "messages",
   MEMBERSHIP: "membership",
+  MILESTONES: "milestones",
   NOTIFICATIONS: "notifications",
   KYC: "kyc",
   INVESTOR_DASHBOARD: "investor-dashboard",
@@ -199,5 +191,12 @@ export const DEFAULT_PAGE_SIZE = 10;
 export const CONTACT_BLOCKED_PATTERNS = [
   /\b[\w.+-]+@[\w-]+\.[\w.]+\b/i,
   /\b(?:\+?\d[\d\s().-]{7,}\d)\b/,
-  /\b(?:whatsapp|telegram|signal|skype|wechat)\b/i,
+  /https?:\/\/[^\s]+/i,
+  /(?:www\.)[^\s]+/i,
+  /(?:discord\.gg|discord\.com\/invite)\/\S+/i,
+  /t\.me\/\S+/i,
+  /wa\.me\/\S+|whatsapp\.me\/\S+/i,
+  /(?:^|[\s])@[a-zA-Z0-9_]{3,}/,
+  /\b(?:whatsapp|telegram|signal|skype|wechat|discord)\b/i,
+  /\b(?:call me|email me|text me|dm me|contact me at|message me at)\b/i,
 ];

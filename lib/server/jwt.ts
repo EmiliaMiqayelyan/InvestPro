@@ -1,5 +1,6 @@
 import { SignJWT, jwtVerify } from "jose";
-import type { User, UserRole, MembershipPlanId, KycStatus } from "@/types";
+import type { User, UserRole, MembershipTier, KycStatus } from "@/types";
+import { normalizeMembershipTier } from "@/lib/rbac";
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || "investpro-dev-secret-change-in-production"
@@ -11,7 +12,7 @@ export interface TokenPayload {
   firstName: string;
   lastName: string;
   role: UserRole;
-  membershipTier: MembershipPlanId | "none";
+  membershipTier: MembershipTier;
   membershipExpiresAt?: string;
   phone?: string;
   isEmailVerified: boolean;
@@ -36,11 +37,31 @@ export async function signRefreshToken(payload: TokenPayload): Promise<string> {
     .sign(JWT_SECRET);
 }
 
+function normalizePayload(raw: Record<string, unknown>): TokenPayload | null {
+  if (!raw.sub || typeof raw.email !== "string") return null;
+  return {
+    sub: String(raw.sub),
+    email: raw.email,
+    firstName: typeof raw.firstName === "string" ? raw.firstName : "",
+    lastName: typeof raw.lastName === "string" ? raw.lastName : "",
+    role: raw.role as TokenPayload["role"],
+    membershipTier: normalizeMembershipTier(
+      typeof raw.membershipTier === "string" ? raw.membershipTier : "none"
+    ),
+    membershipExpiresAt:
+      typeof raw.membershipExpiresAt === "string" ? raw.membershipExpiresAt : undefined,
+    phone: typeof raw.phone === "string" ? raw.phone : undefined,
+    isEmailVerified: Boolean(raw.isEmailVerified),
+    is2faEnabled: Boolean(raw.is2faEnabled),
+    kycStatus: (raw.kycStatus as TokenPayload["kycStatus"]) || "not_submitted",
+    companyName: typeof raw.companyName === "string" ? raw.companyName : undefined,
+  };
+}
+
 export async function verifyAccessToken(token: string): Promise<TokenPayload | null> {
   try {
     const { payload } = await jwtVerify(token, JWT_SECRET);
-    if (!payload.sub || typeof payload.email !== "string") return null;
-    return payload as unknown as TokenPayload;
+    return normalizePayload(payload as Record<string, unknown>);
   } catch {
     return null;
   }
@@ -49,8 +70,8 @@ export async function verifyAccessToken(token: string): Promise<TokenPayload | n
 export async function verifyRefreshToken(token: string): Promise<TokenPayload | null> {
   try {
     const { payload } = await jwtVerify(token, JWT_SECRET);
-    if (payload.type !== "refresh" || typeof payload.sub !== "string") return null;
-    return payload as unknown as TokenPayload;
+    if (payload.type !== "refresh") return null;
+    return normalizePayload(payload as Record<string, unknown>);
   } catch {
     return null;
   }
@@ -65,7 +86,7 @@ export function payloadToUser(payload: TokenPayload): User {
     lastName: payload.lastName,
     phone: payload.phone,
     role: payload.role,
-    membershipTier: payload.membershipTier || "none",
+    membershipTier: normalizeMembershipTier(payload.membershipTier),
     membershipExpiresAt: payload.membershipExpiresAt,
     isEmailVerified: payload.isEmailVerified,
     is2faEnabled: payload.is2faEnabled,
@@ -84,7 +105,7 @@ export function userToPayload(user: User): TokenPayload {
     lastName: user.lastName,
     phone: user.phone,
     role: user.role,
-    membershipTier: user.membershipTier,
+    membershipTier: normalizeMembershipTier(user.membershipTier),
     membershipExpiresAt: user.membershipExpiresAt,
     isEmailVerified: user.isEmailVerified,
     is2faEnabled: user.is2faEnabled,

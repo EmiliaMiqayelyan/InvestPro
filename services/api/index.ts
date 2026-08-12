@@ -3,6 +3,8 @@ export { usersApi } from "./users";
 export {
   projectsApi,
   membershipApi,
+  milestonesApi,
+  uploadsApi,
   offersApi,
   chatApi,
   investorApi,

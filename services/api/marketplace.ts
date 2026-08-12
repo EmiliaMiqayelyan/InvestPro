@@ -9,6 +9,7 @@ import type {
   ChatMessage,
   MembershipPlan,
   MembershipSubscription,
+  MembershipTier,
   MembershipPlanId,
   InvestorDashboardStats,
   OwnerDashboardStats,
@@ -19,14 +20,20 @@ import type {
   Notification,
   KycSubmission,
   ActivityLog,
+  MilestonePlan,
+  MilestoneItem,
+  MilestonePlanStatus,
 } from "@/types";
 
 export const projectsApi = {
   list: (params?: FilterParams) =>
     apiClient.get<ApiResponse<PaginatedResponse<Project>>>("/projects", { params }),
-  getById: (id: string) => apiClient.get<ApiResponse<Project & { accessLimited?: boolean }>>(`/projects/${id}`),
+  getById: (id: string) =>
+    apiClient.get<ApiResponse<Project & { limited?: boolean; teamCount?: number }>>(
+      `/projects/${id}`
+    ),
   riskAnalysis: (id: string) =>
-    apiClient.get<ApiResponse<RiskAnalysis & { limited?: boolean }>>(`/projects/${id}/risk-analysis`),
+    apiClient.get<ApiResponse<RiskAnalysis>>(`/projects/${id}/risk-analysis`),
   save: (id: string) => apiClient.post<ApiResponse<{ saved: boolean }>>(`/projects/${id}/save`),
   unsave: (id: string) => apiClient.delete<ApiResponse<{ saved: boolean }>>(`/projects/${id}/save`),
 };
@@ -36,12 +43,12 @@ export const membershipApi = {
   getMine: () =>
     apiClient.get<
       ApiResponse<{
-        tier: MembershipPlanId | "none";
+        tier: MembershipTier;
         expiresAt?: string;
         subscription: MembershipSubscription | null;
       }>
     >("/membership/me"),
-  subscribe: (planId: MembershipPlanId) =>
+  subscribe: (planId: MembershipPlanId = "service") =>
     apiClient.post<
       ApiResponse<{
         user: User;
@@ -49,6 +56,42 @@ export const membershipApi = {
         tokens: { accessToken: string; refreshToken: string };
       }>
     >("/membership/subscribe", { planId }),
+  checkout: (planId: MembershipPlanId = "service") =>
+    apiClient.post<
+      ApiResponse<{ checkoutUrl: string; sessionId: string; planId: MembershipPlanId }>
+    >("/membership/checkout", { planId }),
+};
+
+export const milestonesApi = {
+  list: (params?: { projectId?: string; status?: string }) =>
+    apiClient.get<ApiResponse<MilestonePlan[]>>("/milestones", { params }),
+  getById: (id: string) => apiClient.get<ApiResponse<MilestonePlan>>(`/milestones/${id}`),
+  create: (data: {
+    projectId: string;
+    items: Array<{
+      title: string;
+      titleHy?: string;
+      description?: string;
+      descriptionHy?: string;
+      amount: number;
+      dueDate?: string;
+    }>;
+    notes?: string;
+  }) => apiClient.post<ApiResponse<MilestonePlan>>("/milestones", data),
+  update: (
+    id: string,
+    data: {
+      status?: MilestonePlanStatus;
+      items?: MilestoneItem[];
+      ownerResponse?: string;
+      notes?: string;
+    }
+  ) => apiClient.patch<ApiResponse<MilestonePlan>>(`/milestones/${id}`, data),
+};
+
+export const uploadsApi = {
+  create: (data: { name?: string; size?: number; category?: string }) =>
+    apiClient.post<ApiResponse<{ url: string; name: string; size: number }>>("/uploads", data),
 };
 
 export const offersApi = {

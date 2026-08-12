@@ -8,13 +8,17 @@ import { useI18n } from "@/hooks";
 import { useConversations, useMessages } from "@/hooks/use-marketplace";
 import { chatApi } from "@/services/api";
 import { getErrorMessage } from "@/services/api/client";
-import { QUERY_KEYS } from "@/constants";
+import { CONTACT_BLOCKED_PATTERNS, QUERY_KEYS } from "@/constants";
 import { formatDate, formatRelativeTime } from "@/utils/format";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+
+function draftContainsContact(text: string): boolean {
+  return CONTACT_BLOCKED_PATTERNS.some((pattern) => pattern.test(text));
+}
 
 export function MessagesPanel() {
   const { user } = useAuth();
@@ -38,11 +42,19 @@ export function MessagesPanel() {
     onError: (error) => toast.error(getErrorMessage(error)),
   });
 
+  const handleSend = () => {
+    if (!draft.trim() || !selectedId) return;
+    if (draftContainsContact(draft)) {
+      toast.warning(t("messages.securityNote"));
+    }
+    sendMutation.mutate();
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
         <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" />
-        <p>{t("messages.securityNoteShort")}</p>
+        <p>{t("messages.securityNote")}</p>
       </div>
 
       <div className="premium-card grid min-h-[520px] overflow-hidden lg:grid-cols-[280px_1fr]">
@@ -66,7 +78,7 @@ export function MessagesPanel() {
                   onClick={() => setSelectedId(c.id)}
                   className={cn(
                     "flex w-full flex-col gap-1 border-b border-border px-4 py-3 text-left transition hover:bg-white",
-                    selectedId === c.id && "bg-white ring-inset ring-2 ring-blue-100"
+                    selectedId === c.id && "bg-white ring-inset ring-2 ring-teal-100"
                   )}
                 >
                   <div className="flex items-center justify-between gap-2">
@@ -74,7 +86,7 @@ export function MessagesPanel() {
                       {c.projectTitle}
                     </span>
                     {c.unreadCount > 0 && (
-                      <Badge className="bg-blue-600 text-white">{c.unreadCount}</Badge>
+                      <Badge className="bg-teal-700 text-white">{c.unreadCount}</Badge>
                     )}
                   </div>
                   <span className="truncate text-xs text-muted-foreground">
@@ -113,7 +125,7 @@ export function MessagesPanel() {
                         className={cn(
                           "max-w-[80%] rounded-2xl px-4 py-2.5 text-sm",
                           mine
-                            ? "bg-blue-600 text-white"
+                            ? "bg-teal-700 text-white"
                             : "bg-slate-100 text-slate-800"
                         )}
                       >
@@ -138,8 +150,7 @@ export function MessagesPanel() {
                 className="flex gap-2 border-t border-border p-4"
                 onSubmit={(e) => {
                   e.preventDefault();
-                  if (!draft.trim() || !selectedId) return;
-                  sendMutation.mutate();
+                  handleSend();
                 }}
               >
                 <Textarea
@@ -151,7 +162,7 @@ export function MessagesPanel() {
                 />
                 <Button
                   type="submit"
-                  className="shrink-0 bg-blue-600 hover:bg-blue-700"
+                  className="shrink-0 bg-teal-700 hover:bg-teal-800"
                   disabled={sendMutation.isPending || !draft.trim()}
                 >
                   <Send className="h-4 w-4" />

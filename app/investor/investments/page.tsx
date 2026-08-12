@@ -24,7 +24,7 @@ export default function InvestorInvestmentsPage() {
           <p className="text-sm text-muted-foreground">Accepted offers and active positions</p>
         </div>
         <Button asChild variant="outline">
-          <Link href={ROUTES.PROJECTS}>Browse marketplace</Link>
+          <Link href={ROUTES.INVESTOR_PROJECTS}>Browse marketplace</Link>
         </Button>
       </div>
 
@@ -69,7 +69,7 @@ export default function InvestorInvestmentsPage() {
                 </Badge>
                 {inv.projectId && (
                   <Button asChild size="sm" variant="outline">
-                    <Link href={`/projects/${inv.projectId}`}>View</Link>
+                    <Link href={`${ROUTES.INVESTOR_PROJECTS}/${inv.projectId}`}>View</Link>
                   </Button>
                 )}
               </div>

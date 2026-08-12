@@ -18,9 +18,9 @@ type LoginForm = {
 };
 
 const DEMO_ACCOUNTS = [
-  { roleKey: "auth.demoInvestor" as const, email: "investor@venturebridge.com", password: "investor123" },
-  { roleKey: "auth.demoOwner" as const, email: "owner@venturebridge.com", password: "owner123" },
-  { roleKey: "auth.demoAdmin" as const, email: "admin@venturebridge.com", password: "admin123" },
+  { roleKey: "auth.demoInvestor" as const, email: "investor@investpro.com", password: "investor123" },
+  { roleKey: "auth.demoOwner" as const, email: "owner@investpro.com", password: "owner123" },
+  { roleKey: "auth.demoAdmin" as const, email: "admin@investpro.com", password: "admin123" },
 ];
 
 export default function LoginPage() {

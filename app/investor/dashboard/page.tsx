@@ -21,7 +21,7 @@ export default function InvestorDashboardPage() {
   const { data: stats, isLoading } = useInvestorDashboard();
 
   const links = [
-    { href: ROUTES.PROJECTS, label: t("investor.browseProjects"), icon: Briefcase },
+    { href: ROUTES.INVESTOR_PROJECTS, label: t("investor.browseProjects"), icon: Briefcase },
     { href: ROUTES.INVESTOR_INVESTMENTS, label: t("investor.myInvestments"), icon: Handshake },
     { href: ROUTES.INVESTOR_MESSAGES, label: t("nav.messages"), icon: MessageSquare },
   ];

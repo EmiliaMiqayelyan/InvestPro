@@ -57,12 +57,14 @@ const config: Config = {
           "5": "hsl(var(--chart-5))",
         },
         emerald: {
-          DEFAULT: "#10b981",
-          light: "#34d399",
+          DEFAULT: "#0f766e",
+          light: "#14b8a6",
         },
         brand: {
-          blue: "#2563eb",
-          "blue-dark": "#1d4ed8",
+          teal: "#0f5c61",
+          "teal-dark": "#0a3f43",
+          sand: "#f3ebe0",
+          ink: "#14202a",
         },
       },
       borderRadius: {

@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Bookmark } from "lucide-react";
 import { investorApi } from "@/services/api";
-import { QUERY_KEYS } from "@/constants";
+import { QUERY_KEYS, ROUTES } from "@/constants";
 import { MarketplaceProjectCard } from "@/features/projects/project-card";
 
 export default function InvestorSavedPage() {
@@ -36,7 +36,12 @@ export default function InvestorSavedPage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {projects.map((project) => (
-            <MarketplaceProjectCard key={project.id} project={project} savedByMe />
+            <MarketplaceProjectCard
+              key={project.id}
+              project={project}
+              savedByMe
+              basePath={ROUTES.INVESTOR_PROJECTS}
+            />
           ))}
         </div>
       )}

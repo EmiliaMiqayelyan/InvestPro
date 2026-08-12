@@ -7,6 +7,8 @@ export {
   useRiskAnalysis,
   useMembershipPlans,
   useMyMembership,
+  useMilestones,
+  useMilestone,
   useOffers,
   useConversations,
   useMessages,

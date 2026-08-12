@@ -1,0 +1,114 @@
+// Prisma schema for production persistence (Phase 5).
+// Install: npm i @prisma/client && npm i -D prisma
+// Then: npx prisma migrate dev
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  investor
+  project_owner
+  admin
+}
+
+enum MembershipTier {
+  none
+  service
+}
+
+enum ProjectStatus {
+  draft
+  pending_review
+  published
+  funded
+  closed
+  rejected
+}
+
+model User {
+  id                   String         @id @default(uuid())
+  email                String         @unique
+  passwordHash         String
+  firstName            String
+  lastName             String
+  role                 UserRole
+  membershipTier       MembershipTier @default(none)
+  membershipExpiresAt  DateTime?
+  isEmailVerified      Boolean        @default(false)
+  is2faEnabled         Boolean        @default(false)
+  kycStatus            String         @default("not_submitted")
+  companyName          String?
+  bio                  String?
+  phone                String?
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+  projects             Project[]      @relation("OwnerProjects")
+  subscriptions        Subscription[]
+  milestonePlansAsInvestor MilestonePlan[] @relation("InvestorMilestones")
+}
+
+model Project {
+  id                 String   @id @default(uuid())
+  ownerId            String
+  owner              User     @relation("OwnerProjects", fields: [ownerId], references: [id])
+  title              String
+  titleHy            String?
+  slug               String   @unique
+  description        String
+  descriptionHy      String?
+  fullDescription    String   @db.Text
+  requiredInvestment Float
+  minInvestment      Float
+  currentFunding     Float    @default(0)
+  status             ProjectStatus @default(draft)
+  riskLevel          String   @default("medium")
+  image              String?
+  phasesJson         Json     @default("[]")
+  documentsJson      Json     @default("[]")
+  teamJson           Json     @default("[]")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  milestonePlans     MilestonePlan[]
+}
+
+model Subscription {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  planId    String   @default("service")
+  status    String
+  amount    Float
+  startedAt DateTime
+  expiresAt DateTime
+  stripeSessionId String?
+}
+
+model MilestonePlan {
+  id         String   @id @default(uuid())
+  projectId  String
+  project    Project  @relation(fields: [projectId], references: [id])
+  investorId String
+  investor   User     @relation("InvestorMilestones", fields: [investorId], references: [id])
+  ownerId    String
+  status     String
+  itemsJson  Json
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model UploadedFile {
+  id        String   @id @default(uuid())
+  userId    String
+  name      String
+  url       String
+  size      Int
+  category  String?
+  createdAt DateTime @default(now())
+}

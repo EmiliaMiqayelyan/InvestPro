@@ -1,59 +1,80 @@
 "use client";
 
 import Link from "next/link";
-import { MapPin, Bookmark as BookmarkIcon } from "lucide-react";
+import Image from "next/image";
+import { MapPin, Bookmark as BookmarkIcon, BookmarkCheck } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import type { Project } from "@/types";
-
-type MarketplaceProject = Project & { teamSize?: number };
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { formatCurrency, formatNumber, formatPercent } from "@/utils/format";
+import { formatCurrency, formatNumber } from "@/utils/format";
 import { useI18n } from "@/hooks/use-i18n";
 import { projectText } from "@/i18n/localize";
-import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/store";
 import { projectsApi } from "@/services/api";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 import { getErrorMessage } from "@/services/api/client";
 import { ROUTES } from "@/constants";
-import { useState } from "react";
-import { BookmarkCheck } from "lucide-react";
-import { useEffect } from "react";
+
+type MarketplaceProject = Project & { teamSize?: number };
+
+function statusMeta(
+  status: Project["status"],
+  t: (key: string) => string
+): { label: string; className: string } {
+  switch (status) {
+    case "published":
+      return {
+        label: t("projects.statusVerified"),
+        className: "border-emerald-200 bg-emerald-50 text-emerald-800",
+      };
+    case "funded":
+      return {
+        label: t("projects.statusFunded"),
+        className: "border-teal-200 bg-teal-50 text-teal-800",
+      };
+    case "pending_review":
+      return {
+        label: t("projects.statusUnderReview"),
+        className: "border-amber-200 bg-amber-50 text-amber-800",
+      };
+    default:
+      return {
+        label: t("projects.statusNeedsInfo"),
+        className: "border-slate-200 bg-slate-50 text-slate-700",
+      };
+  }
+}
 
 export function MarketplaceProjectCard({
   project,
   savedByMe,
+  basePath = "/projects",
 }: {
   project: MarketplaceProject;
   savedByMe?: boolean;
+  /** Keep investors inside the panel (e.g. /investor/projects) */
+  basePath?: string;
 }) {
   const { t, locale } = useI18n();
-
   const router = useRouter();
   const { user, isAuthenticated } = useAuthStore();
   const [saved, setSaved] = useState(!!savedByMe);
   const [saving, setSaving] = useState(false);
+  const [imgFailed, setImgFailed] = useState(false);
+  const detailHref = `${basePath}/${project.id}`;
 
   useEffect(() => {
     setSaved(!!savedByMe);
   }, [savedByMe]);
 
-  const verification = (() => {
-    switch (project.status) {
-      case "published":
-      case "funded":
-      case "closed":
-        return { label: "Verified", variant: "verified" as const };
-      case "pending_review":
-        return { label: "Under Review", variant: "under_review" as const };
-      case "draft":
-      case "rejected":
-      default:
-        return { label: "Additional Information Required", variant: "needs_info" as const };
-    }
-  })();
+  useEffect(() => {
+    setImgFailed(false);
+  }, [project.image]);
 
+  const verification = statusMeta(project.status, t);
   const riskLabel =
     project.riskLevel === "low"
       ? t("projects.lowRisk")
@@ -61,6 +82,8 @@ export function MarketplaceProjectCard({
         ? t("projects.highRisk")
         : t("projects.mediumRisk");
 
+  const stageKey = `projects.stages.${project.stage ?? "idea"}`;
+  const stageLabel = t(stageKey);
   const progress = Math.min(
     100,
     Math.round((project.currentFunding / Math.max(project.requiredInvestment, 1)) * 100)
@@ -71,22 +94,22 @@ export function MarketplaceProjectCard({
   const category = projectText(project, "category", locale);
   const industry = projectText(project, "industry", locale);
   const location = projectText(project, "location", locale);
-  const stage = (project.stage ?? "idea").replaceAll("_", " ");
   const teamSize = project.teamSize ?? project.team?.length ?? 0;
   const views = project.views ?? 0;
+  const imageSrc = !imgFailed && project.image ? project.image : null;
 
   const riskColor =
     project.riskLevel === "low"
-      ? "text-emerald-600"
+      ? "text-emerald-700"
       : project.riskLevel === "high"
-        ? "text-red-600"
-        : "text-amber-600";
+        ? "text-red-700"
+        : "text-amber-700";
 
   const toggleSaved = async () => {
     if (saving) return;
     if (!isAuthenticated || user?.role !== "investor") {
-      toast.error("Please sign in as an investor to save projects.");
-      router.push(`${ROUTES.REGISTER}?role=investor`);
+      toast.error(t("projects.toastSaveLogin"));
+      router.push(`${ROUTES.LOGIN}?next=/projects`);
       return;
     }
 
@@ -95,7 +118,7 @@ export function MarketplaceProjectCard({
       if (saved) await projectsApi.unsave(project.id);
       else await projectsApi.save(project.id);
       setSaved((v) => !v);
-      toast.success(saved ? "Removed from saved projects" : "Saved project");
+      toast.success(saved ? t("projects.toastUnsaved") : t("projects.toastSaved"));
     } catch (err) {
       toast.error(getErrorMessage(err));
     } finally {
@@ -104,107 +127,129 @@ export function MarketplaceProjectCard({
   };
 
   return (
-    <div className="premium-card block p-5 transition hover:-translate-y-0.5 hover:shadow-soft">
-      <div className="flex flex-wrap items-center gap-2">
-        <Badge
-          variant="outline"
-          className={cn(
-            verification.variant === "verified" && "border-emerald-200 bg-emerald-50 text-emerald-700",
-            verification.variant === "under_review" && "border-amber-200 bg-amber-50 text-amber-700",
-            verification.variant === "needs_info" && "border-blue-200 bg-blue-50 text-blue-700"
-          )}
-        >
-          {verification.label}
-        </Badge>
-
-        <Badge variant="outline" className={cn("border", riskColor)}>
-          {riskLabel}
-        </Badge>
-
-        <Badge variant="outline" className="border-slate-200 text-slate-700">
-          {category}
-        </Badge>
-      </div>
-
-      <h3 className="mt-4 font-display text-lg font-semibold text-slate-900">{title}</h3>
-      <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{description}</p>
-
-      <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div className="text-sm text-muted-foreground">
-          <span className="font-medium text-slate-800">Industry:</span> {industry}
-        </div>
-        <div className="inline-flex items-center gap-2 text-sm text-muted-foreground">
-          <MapPin className="h-4 w-4 text-slate-400" />
-          {location}
-        </div>
-      </div>
-
-      <div className="mt-5 space-y-3">
-        <div className="flex justify-between gap-4 text-sm">
-          <div>
-            <p className="text-xs text-muted-foreground">{t("projects.required")}</p>
-            <p className="font-semibold text-slate-900">{formatCurrency(project.requiredInvestment)}</p>
+    <article className="premium-card overflow-hidden transition hover:-translate-y-0.5 hover:shadow-soft">
+      <Link href={detailHref} className="relative block aspect-[16/10] bg-slate-100">
+        {imageSrc ? (
+          <Image
+            src={imageSrc}
+            alt={title}
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            className="object-cover"
+            onError={() => setImgFailed(true)}
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-teal-900/20 to-amber-100/40">
+            <span className="font-display text-2xl font-semibold text-teal-900/40">
+              {title.slice(0, 1)}
+            </span>
           </div>
-          <div className="text-right">
-            <p className="text-xs text-muted-foreground">{t("projects.raised")}</p>
-            <p className="font-semibold text-slate-900">{formatCurrency(project.currentFunding)}</p>
-          </div>
+        )}
+      </Link>
+
+      <div className="p-5">
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge variant="outline" className={cn("border", verification.className)}>
+            {verification.label}
+          </Badge>
+          <Badge variant="outline" className={cn("border-slate-200", riskColor)}>
+            {riskLabel}
+          </Badge>
+          {category ? (
+            <Badge variant="outline" className="border-slate-200 text-slate-700">
+              {category}
+            </Badge>
+          ) : null}
         </div>
 
-        <div>
-          <div className="mb-1 flex items-center justify-between text-xs">
-            <span className="text-muted-foreground">Progress</span>
-            <span className="font-medium text-slate-800">{progress}%</span>
-          </div>
-          <div className="h-2 overflow-hidden rounded-full bg-slate-100">
-            <div className="h-full rounded-full bg-blue-600" style={{ width: `${progress}%` }} />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3 text-sm">
-          <div>
-            <p className="text-xs text-muted-foreground">Project stage</p>
-            <p className="font-medium text-slate-900">{stage}</p>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">Risk</p>
-            <p className={cn("font-medium", riskColor)}>{riskLabel}</p>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">Team</p>
-            <p className="font-medium text-slate-900">{teamSize} members</p>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">Views</p>
-            <p className="font-medium text-slate-900">{formatNumber(views, 0)}</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-5 flex gap-3">
-        <Button asChild className="flex-1" variant="default">
-          <Link href={`/projects/${project.id}`}>
-            View Project
+        <h3 className="mt-3 font-display text-lg font-semibold text-slate-900">
+          <Link href={detailHref} className="hover:text-teal-900">
+            {title}
           </Link>
-        </Button>
-        <Button
-          variant={saved ? "default" : "outline"}
-          className="gap-2"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            void toggleSaved();
-          }}
-          disabled={saving}
-        >
-          {saved ? (
-            <BookmarkCheck className="h-4 w-4" />
-          ) : (
-            <BookmarkIcon className="h-4 w-4" />
-          )}
-          {saving ? "…" : saved ? "Saved" : "Save"}
-        </Button>
+        </h3>
+        <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{description}</p>
+
+        <div className="mt-4 flex flex-col gap-2 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+          <span>
+            <span className="font-medium text-slate-800">{t("projects.industry")}:</span>{" "}
+            {industry || "—"}
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <MapPin className="h-4 w-4 text-slate-400" />
+            {location || "—"}
+          </span>
+        </div>
+
+        <div className="mt-5 space-y-3">
+          <div className="flex justify-between gap-4 text-sm">
+            <div>
+              <p className="text-xs text-muted-foreground">{t("projects.required")}</p>
+              <p className="font-semibold text-slate-900">
+                {formatCurrency(project.requiredInvestment)}
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-xs text-muted-foreground">{t("projects.raised")}</p>
+              <p className="font-semibold text-slate-900">
+                {formatCurrency(project.currentFunding)}
+              </p>
+            </div>
+          </div>
+
+          <div>
+            <div className="mb-1 flex items-center justify-between text-xs">
+              <span className="text-muted-foreground">{t("projects.progress")}</span>
+              <span className="font-medium text-slate-800">{progress}%</span>
+            </div>
+            <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+              <div
+                className="h-full rounded-full bg-teal-700"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 text-sm">
+            <div>
+              <p className="text-xs text-muted-foreground">{t("projects.projectStage")}</p>
+              <p className="font-medium text-slate-900">{stageLabel}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">{t("projects.risk")}</p>
+              <p className={cn("font-medium", riskColor)}>{riskLabel}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">{t("projects.team")}</p>
+              <p className="font-medium text-slate-900">
+                {t("projects.teamMembers", { count: teamSize })}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">{t("projects.viewsLabel")}</p>
+              <p className="font-medium text-slate-900">{formatNumber(views, 0)}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-5 flex gap-3">
+          <Button asChild className="flex-1">
+            <Link href={detailHref}>{t("projects.viewProject")}</Link>
+          </Button>
+          <Button
+            variant={saved ? "default" : "outline"}
+            className="gap-2"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              void toggleSaved();
+            }}
+            disabled={saving}
+          >
+            {saved ? <BookmarkCheck className="h-4 w-4" /> : <BookmarkIcon className="h-4 w-4" />}
+            {saving ? "…" : saved ? t("projects.saved") : t("projects.save")}
+          </Button>
+        </div>
       </div>
-    </div>
+    </article>
   );
 }

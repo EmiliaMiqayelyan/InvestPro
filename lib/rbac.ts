@@ -1,4 +1,4 @@
-import type { User, UserRole, MembershipPlanId } from "@/types";
+import type { User, UserRole, MembershipPlanId, MembershipTier } from "@/types";
 import { ROUTES } from "@/constants";
 
 export type { UserRole };
@@ -33,13 +33,9 @@ export const GUEST_ONLY_ROUTES = [
   ROUTES.FORGOT_PASSWORD,
 ] as string[];
 
-/** Legacy compatibility: membership tiers still exist in the data model,
- * but the marketplace UI/product no longer uses them for gating. */
-export const MEMBERSHIP_RANK: Record<MembershipPlanId | "none", number> = {
+export const MEMBERSHIP_RANK: Record<MembershipTier, number> = {
   none: 0,
-  basic: 1,
-  premium: 2,
-  enterprise: 3,
+  service: 1,
 };
 
 export function findRouteRule(pathname: string): RouteAccessRule | null {
@@ -90,26 +86,79 @@ export function getRoleHome(role: string | undefined | null): string {
   return ROUTES.LOGIN || "/login";
 }
 
-export function hasMembershipAccess(
-  tier: MembershipPlanId | "none" | undefined,
-  required: MembershipPlanId
+/** Normalize legacy tier strings (basic/premium/enterprise) to service access. */
+export function normalizeMembershipTier(
+  tier: string | undefined | null
+): MembershipTier {
+  if (!tier || tier === "none") return "none";
+  if (
+    tier === "service" ||
+    tier === "basic" ||
+    tier === "premium" ||
+    tier === "enterprise"
+  ) {
+    return "service";
+  }
+  return "none";
+}
+
+export function hasActiveServiceAccess(
+  user:
+    | Pick<User, "membershipTier" | "membershipExpiresAt" | "role">
+    | null
+    | undefined
 ): boolean {
-  return MEMBERSHIP_RANK[tier ?? "none"] >= MEMBERSHIP_RANK[required];
+  if (!user) return false;
+  if (user.role === "admin" || user.role === "project_owner") return true;
+  const tier = normalizeMembershipTier(user.membershipTier);
+  if (tier !== "service") return false;
+  if (!user.membershipExpiresAt) return true;
+  return new Date(user.membershipExpiresAt).getTime() > Date.now();
 }
 
-/** Premium+ can access documents, team, messaging, offers */
-export function canAccessFullProject(tier: MembershipPlanId | "none" | undefined): boolean {
-  // Marketplace content is open to investors (no Premium/Enterprise gating).
-  return true;
+export function hasMembershipAccess(
+  tier: MembershipTier | undefined,
+  required: MembershipPlanId = "service"
+): boolean {
+  const normalized = normalizeMembershipTier(tier);
+  return MEMBERSHIP_RANK[normalized] >= MEMBERSHIP_RANK[required];
 }
 
-export function canSendOffers(tier: MembershipPlanId | "none" | undefined): boolean {
-  // Investors can submit proposals without subscription tiers.
-  return true;
+/** Full project materials require platform service fee (investors). */
+export function canAccessFullProject(
+  user:
+    | Pick<User, "membershipTier" | "membershipExpiresAt" | "role">
+    | null
+    | undefined
+): boolean {
+  return hasActiveServiceAccess(user);
 }
 
-export function canMessage(tier: MembershipPlanId | "none" | undefined, role?: UserRole): boolean {
-  // Communication stays within the platform and is not subscription gated.
+export function canSendOffers(
+  user:
+    | Pick<User, "membershipTier" | "membershipExpiresAt" | "role">
+    | null
+    | undefined
+): boolean {
+  return hasActiveServiceAccess(user) && (!user || user.role === "investor" || user.role === "admin");
+}
+
+export function canMessage(
+  user:
+    | Pick<User, "membershipTier" | "membershipExpiresAt" | "role">
+    | null
+    | undefined
+): boolean {
+  if (!user) return false;
+  if (user.role === "project_owner" || user.role === "admin") return true;
+  return hasActiveServiceAccess(user);
+}
+
+/** @deprecated use canMessage(user) */
+export function canMessageLegacy(
+  tier: MembershipTier | undefined,
+  role?: UserRole
+): boolean {
   if (role === "project_owner" || role === "admin") return true;
-  return true;
+  return hasMembershipAccess(tier, "service");
 }

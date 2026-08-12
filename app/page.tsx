@@ -14,7 +14,6 @@ import {
 import { MarketingHeader, MarketingFooter } from "@/components/layout/marketing-shell";
 import { MarketplaceProjectCard } from "@/features/projects";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Accordion,
   AccordionContent,
@@ -28,7 +27,7 @@ import { cn } from "@/lib/utils";
 
 export default function HomePage() {
   const { t, isHy } = useI18n();
-  const { data: projectsPage } = useProjects({ limit: 3, status: "published" });
+  const { data: projectsPage } = useProjects({ limit: 3 });
   const featured = projectsPage?.data?.slice(0, 3) ?? [];
 
   const howItWorks = [
@@ -99,17 +98,22 @@ export default function HomePage() {
   ];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-[hsl(var(--background))]">
       <MarketingHeader />
 
       <section className="hero-mesh relative overflow-hidden border-b border-border/60">
-        <div className="container-narrow section-pad py-20 md:py-28">
-          <div className="mx-auto max-w-3xl text-center animate-fade-in">
+        <div className="container-narrow section-pad relative py-16 md:py-24">
+          <div className="mx-auto max-w-3xl text-center">
+            <p className="font-display text-sm font-medium tracking-wide text-teal-800 md:text-base">
+              {t("common.platformName")}
+              <span className="mx-2 text-teal-700/40">·</span>
+              {t("landing.brandTagline")}
+            </p>
             <h1
               className={cn(
-                "mt-6 font-display text-3xl text-slate-700 sm:text-4xl md:text-[2.75rem]",
+                "mt-5 font-display text-3xl text-slate-900 sm:text-4xl md:text-[2.75rem]",
                 isHy
-                  ? "font-medium tracking-wide leading-[1.5] max-w-2xl mx-auto"
+                  ? "mx-auto max-w-2xl font-medium leading-[1.45] tracking-wide"
                   : "font-semibold leading-tight tracking-tight"
               )}
             >
@@ -117,13 +121,13 @@ export default function HomePage() {
             </h1>
             <p
               className={cn(
-                "mt-5 text-base text-slate-600 sm:text-lg",
-                isHy && "leading-relaxed tracking-wide max-w-2xl mx-auto"
+                "mx-auto mt-5 max-w-2xl text-base text-slate-600 sm:text-lg",
+                isHy && "leading-relaxed tracking-wide"
               )}
             >
               {t("landing.heroSubtitle")}
             </p>
-            <div className="mt-10 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center animate-slide-up">
+            <div className="mt-9 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
               <Button size="lg" asChild>
                 <Link href={ROUTES.PROJECTS}>
                   {t("landing.exploreProjects")}
@@ -136,25 +140,30 @@ export default function HomePage() {
                 </Link>
               </Button>
             </div>
+            <p className="mt-4 text-sm text-muted-foreground">
+              <Link href={`${ROUTES.REGISTER}?role=investor`} className="underline-offset-4 hover:underline">
+                {t("landing.joinAsInvestor")}
+              </Link>
+              {" · "}
+              <Link href={ROUTES.MEMBERSHIP} className="underline-offset-4 hover:underline">
+                {t("nav.serviceFee")}
+              </Link>
+            </p>
           </div>
         </div>
       </section>
 
-      <section id="how-it-works" className="container-narrow section-pad py-20">
+      <section id="how-it-works" className="container-narrow section-pad py-16 md:py-20">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="font-display text-3xl font-semibold text-slate-900">
             {t("landing.howItWorks")}
           </h2>
           <p className="mt-3 text-muted-foreground">{t("landing.howItWorksSub")}</p>
         </div>
-        <div className="mt-12 grid gap-8 md:grid-cols-3">
-          {howItWorks.map((item, i) => (
-            <div
-              key={item.title}
-              className={cn("animate-slide-up text-center md:text-left")}
-              style={{ animationDelay: `${i * 80}ms` }}
-            >
-              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 md:mx-0">
+        <div className="mt-12 grid gap-10 md:grid-cols-3">
+          {howItWorks.map((item) => (
+            <div key={item.title} className="text-center md:text-left">
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-teal-50 text-teal-800 md:mx-0">
                 <item.icon className="h-5 w-5" />
               </div>
               <h3 className="font-display text-lg font-semibold text-slate-900">{item.title}</h3>
@@ -164,10 +173,10 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="border-y border-border/60 bg-slate-50/80">
-        <div className="container-narrow section-pad grid gap-12 py-20 lg:grid-cols-2">
+      <section className="border-y border-border/60 bg-[hsl(var(--surface-warm))]/80">
+        <div className="container-narrow section-pad grid gap-12 py-16 lg:grid-cols-2">
           <div>
-            <div className="mb-3 inline-flex items-center gap-2 text-blue-600">
+            <div className="mb-3 inline-flex items-center gap-2 text-teal-800">
               <Users className="h-4 w-4" />
               <span className="text-sm font-medium">{t("landing.forInvestors")}</span>
             </div>
@@ -178,7 +187,7 @@ export default function HomePage() {
             <ul className="mt-6 space-y-3">
               {investorPoints.map((point) => (
                 <li key={point} className="flex gap-3 text-sm text-slate-700">
-                  <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
+                  <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-teal-700" />
                   {point}
                 </li>
               ))}
@@ -188,7 +197,7 @@ export default function HomePage() {
             </Button>
           </div>
           <div>
-            <div className="mb-3 inline-flex items-center gap-2 text-blue-600">
+            <div className="mb-3 inline-flex items-center gap-2 text-teal-800">
               <Building2 className="h-4 w-4" />
               <span className="text-sm font-medium">{t("landing.forOwners")}</span>
             </div>
@@ -199,7 +208,7 @@ export default function HomePage() {
             <ul className="mt-6 space-y-3">
               {ownerPoints.map((point) => (
                 <li key={point} className="flex gap-3 text-sm text-slate-700">
-                  <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
+                  <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-teal-700" />
                   {point}
                 </li>
               ))}
@@ -213,7 +222,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="container-narrow section-pad py-20">
+      <section className="container-narrow section-pad py-16 md:py-20">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="font-display text-3xl font-semibold text-slate-900">
             {t("landing.securityTitle")}
@@ -233,29 +242,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="border-y border-border/60 bg-white">
-        <div className="container-narrow section-pad py-20">
-          <div className="mx-auto max-w-2xl text-center">
-            <h2 className="font-display text-3xl font-semibold text-slate-900">
-              {t("landing.successStories")}
-            </h2>
-            <p className="mt-3 text-muted-foreground">{t("landing.successStoriesSub")}</p>
-          </div>
-          <div className="mt-12 grid gap-6 md:grid-cols-3">
-            {stories.map((story) => (
-              <blockquote key={story.name} className="premium-card p-6">
-                <p className="text-sm leading-relaxed text-slate-700">&ldquo;{story.quote}&rdquo;</p>
-                <footer className="mt-5 border-t border-border pt-4">
-                  <p className="text-sm font-semibold text-slate-900">{story.name}</p>
-                  <p className="text-xs text-muted-foreground">{story.role}</p>
-                </footer>
-              </blockquote>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="container-narrow section-pad py-20">
+      <section className="container-narrow section-pad py-16 md:py-20">
         <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
           <div>
             <h2 className="font-display text-3xl font-semibold text-slate-900">
@@ -282,49 +269,64 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="border-t border-border/60 bg-slate-50/80">
-        <div className="container-narrow section-pad py-16 md:py-20">
-          <div className="mx-auto max-w-3xl">
-            <p className="text-center text-sm font-medium uppercase tracking-wide text-blue-600">
-              {t("landing.faq")}
-            </p>
-            <h2 className="mt-2 text-center font-display text-2xl font-semibold text-slate-900 md:text-3xl">
-              {t("landing.faqSub")}
+      <section className="border-y border-border/60 bg-[hsl(var(--card))]">
+        <div className="container-narrow section-pad py-16">
+          <div className="mx-auto max-w-2xl text-center">
+            <h2 className="font-display text-3xl font-semibold text-slate-900">
+              {t("landing.successStories")}
             </h2>
-            <div className="premium-card mt-10 overflow-hidden rounded-2xl border border-border bg-white px-2 shadow-none sm:px-4">
-              <Accordion type="single" collapsible className="w-full">
-                {faqs.map((faq, i) => (
-                  <AccordionItem key={faq.q} value={`faq-${i}`} className="border-border/70 px-2">
-                    <AccordionTrigger className="text-left text-slate-900 hover:no-underline">
-                      {faq.q}
-                    </AccordionTrigger>
-                    <AccordionContent className="text-slate-600">{faq.a}</AccordionContent>
-                  </AccordionItem>
-                ))}
-              </Accordion>
-            </div>
+            <p className="mt-3 text-muted-foreground">{t("landing.successStoriesSub")}</p>
+          </div>
+          <div className="mt-12 grid gap-6 md:grid-cols-3">
+            {stories.map((story) => (
+              <blockquote key={story.name} className="premium-card p-6">
+                <p className="text-sm leading-relaxed text-slate-700">&ldquo;{story.quote}&rdquo;</p>
+                <footer className="mt-5 border-t border-border pt-4">
+                  <p className="text-sm font-semibold text-slate-900">{story.name}</p>
+                  <p className="text-xs text-muted-foreground">{story.role}</p>
+                </footer>
+              </blockquote>
+            ))}
           </div>
         </div>
       </section>
 
-      <section className="border-t border-border/60 bg-white">
-        <div className="container-narrow section-pad py-16 md:py-20">
-          <div className="premium-card mx-auto max-w-3xl rounded-2xl border border-border bg-slate-50/50 p-8 text-center shadow-none md:p-12">
-            <p className="text-sm font-medium uppercase tracking-wide text-blue-600">
+      <section className="container-narrow section-pad py-16 md:py-20">
+        <div className="mx-auto max-w-3xl">
+          <p className="text-center text-sm font-medium uppercase tracking-wide text-teal-800">
+            {t("landing.faq")}
+          </p>
+          <h2 className="mt-2 text-center font-display text-2xl font-semibold text-slate-900 md:text-3xl">
+            {t("landing.faqSub")}
+          </h2>
+          <div className="premium-card mt-10 overflow-hidden px-2 sm:px-4">
+            <Accordion type="single" collapsible className="w-full">
+              {faqs.map((faq, i) => (
+                <AccordionItem key={faq.q} value={`faq-${i}`} className="border-border/70 px-2">
+                  <AccordionTrigger className="text-left text-slate-900 hover:no-underline">
+                    {faq.q}
+                  </AccordionTrigger>
+                  <AccordionContent className="text-slate-600">{faq.a}</AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </div>
+        </div>
+      </section>
+
+      <section className="border-t border-border/60 bg-[hsl(var(--surface-warm))]/60">
+        <div className="container-narrow section-pad py-14 md:py-16">
+          <div className="mx-auto max-w-2xl text-center">
+            <h2 className="font-display text-2xl font-semibold text-slate-900 md:text-3xl">
               {t("landing.contactCta")}
-            </p>
-            <h2 className="mt-3 font-display text-2xl font-semibold text-slate-900 md:text-3xl">
-              {t("landing.contactCtaSub")}
             </h2>
-            <p className="mx-auto mt-4 max-w-lg text-base text-slate-600">
-              {t("landing.contactCtaHelp")}
-            </p>
-            <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row sm:items-center">
+            <p className="mt-3 text-muted-foreground">{t("landing.contactCtaSub")}</p>
+            <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
               <Button size="lg" asChild>
-                <Link href={ROUTES.CONTACT}>{t("landing.contactUs")}</Link>
+                <Link href={ROUTES.REGISTER}>{t("landing.createAccount")}</Link>
               </Button>
               <Button size="lg" variant="outline" asChild>
-                <Link href={ROUTES.REGISTER}>{t("landing.createAccount")}</Link>
+                <Link href={ROUTES.CONTACT}>{t("landing.contactUs")}</Link>
               </Button>
             </div>
           </div>

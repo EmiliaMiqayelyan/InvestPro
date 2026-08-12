@@ -5,6 +5,7 @@ import { QUERY_KEYS } from "@/constants";
 import {
   projectsApi,
   membershipApi,
+  milestonesApi,
   offersApi,
   chatApi,
   investorApi,
@@ -46,6 +47,21 @@ export function useMyMembership() {
   return useQuery({
     queryKey: [QUERY_KEYS.MEMBERSHIP, "me"],
     queryFn: async () => (await membershipApi.getMine()).data.data,
+  });
+}
+
+export function useMilestones(params?: { projectId?: string; status?: string }) {
+  return useQuery({
+    queryKey: [QUERY_KEYS.MILESTONES, params],
+    queryFn: async () => (await milestonesApi.list(params)).data.data,
+  });
+}
+
+export function useMilestone(id: string) {
+  return useQuery({
+    queryKey: [QUERY_KEYS.MILESTONES, id],
+    queryFn: async () => (await milestonesApi.getById(id)).data.data,
+    enabled: !!id,
   });
 }
 

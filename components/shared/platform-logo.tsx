@@ -20,7 +20,7 @@ export function PlatformLogo({
     <span className={cn("inline-flex items-center gap-2.5", className)}>
       <span
         className={cn(
-          "flex shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-emerald-600 font-bold text-white shadow-sm",
+          "flex shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-teal-800 to-teal-600 font-bold text-white shadow-sm",
           iconSize
         )}
         aria-hidden

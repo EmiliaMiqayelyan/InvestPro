@@ -1,5 +1,5 @@
 import type { Locale } from "@/i18n/config";
-import type { Project, TeamMember, ProjectUpdate } from "@/types";
+import type { Project, TeamMember, ProjectUpdate, ProjectPhase } from "@/types";
 
 type LocalizedProjectField =
   | "title"
@@ -40,6 +40,18 @@ export function projectText(
   }
   const value = project[field];
   return typeof value === "string" ? value : "";
+}
+
+export function phaseText(
+  phase: ProjectPhase,
+  field: "title" | "description",
+  locale: Locale
+): string {
+  if (locale === "hy") {
+    const hy = field === "title" ? phase.titleHy : phase.descriptionHy;
+    if (typeof hy === "string" && hy.trim()) return hy;
+  }
+  return phase[field] || "";
 }
 
 export function teamMemberText(

@@ -19,14 +19,11 @@ export function MarketingHeader() {
   const { isAuthenticated, user } = useAuthStore();
   const { t } = useI18n();
 
+  // Keep public nav short and readable (esp. Armenian)
   const NAV = [
     { href: ROUTES.PROJECTS || "/projects", label: t("nav.projects") },
     { href: "/#how-it-works", label: t("nav.howItWorks") },
-    { href: `${ROUTES.REGISTER || "/register"}?role=investor`, label: t("nav.forInvestors") },
-    {
-      href: `${ROUTES.REGISTER || "/register"}?role=project_owner`,
-      label: t("nav.forOwners"),
-    },
+    { href: ROUTES.MEMBERSHIP || "/membership", label: t("nav.serviceFee") },
     { href: ROUTES.ABOUT || "/about", label: t("nav.about") },
   ];
 
@@ -36,20 +33,20 @@ export function MarketingHeader() {
   const dashboardHref = getRoleHome(user?.role) || "/login";
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border/70 bg-white/95 backdrop-blur-xl">
+    <header className="sticky top-0 z-50 border-b border-border/80 bg-[hsl(var(--card))]/95 backdrop-blur-md">
       <div className="container-narrow section-pad flex h-16 items-center justify-between gap-4">
         <Link href={homeHref} className="shrink-0">
           <PlatformLogo />
         </Link>
 
-        <nav className="hidden items-center gap-5 xl:gap-6 lg:flex">
+        <nav className="hidden items-center gap-6 lg:flex">
           {NAV.map((item) => (
             <Link
               key={item.href}
               href={item.href}
               className={cn(
-                "whitespace-nowrap text-sm font-medium text-slate-600 transition hover:text-slate-900",
-                pathname === item.href && "text-slate-900"
+                "whitespace-nowrap text-sm font-medium text-slate-600 transition hover:text-teal-900",
+                pathname === item.href && "text-teal-900"
               )}
             >
               {item.label}
@@ -61,7 +58,7 @@ export function MarketingHeader() {
           <LanguageSwitcher compact />
           {isAuthenticated && user ? (
             <Link href={dashboardHref} className={cn(buttonVariants())}>
-              {t("common.goToDashboard")} <ArrowRight className="ml-1 h-4 w-4" />
+              {t("common.dashboard")} <ArrowRight className="ml-1 h-4 w-4" />
             </Link>
           ) : (
             <>
@@ -84,7 +81,7 @@ export function MarketingHeader() {
       </div>
 
       {open && (
-        <div className="border-t border-border bg-white px-4 py-4 lg:hidden">
+        <div className="border-t border-border bg-[hsl(var(--card))] px-4 py-4 lg:hidden">
           <div className="flex flex-col gap-3">
             {NAV.map((item) => (
               <Link
@@ -99,9 +96,19 @@ export function MarketingHeader() {
             <Link
               href={isAuthenticated ? dashboardHref : loginHref}
               onClick={() => setOpen(false)}
+              className="text-sm font-medium"
             >
               {isAuthenticated ? t("common.dashboard") : t("common.signIn")}
             </Link>
+            {!isAuthenticated && (
+              <Link
+                href={registerHref}
+                onClick={() => setOpen(false)}
+                className="text-sm font-medium text-teal-800"
+              >
+                {t("common.getStarted")}
+              </Link>
+            )}
           </div>
         </div>
       )}
@@ -115,22 +122,23 @@ export function MarketingFooter() {
   const homeRegisterOwner = `${ROUTES.REGISTER || "/register"}?role=project_owner`;
 
   return (
-    <footer className="border-t border-border bg-white">
+    <footer className="border-t border-border bg-[hsl(var(--card))]">
       <div className="container-narrow section-pad grid gap-8 py-12 md:grid-cols-4">
         <div className="md:col-span-2">
           <PlatformLogo />
-          <p className="mt-2 max-w-md text-sm text-muted-foreground">{t("footer.tagline")}</p>
+          <p className="mt-3 max-w-md text-sm text-muted-foreground">{t("footer.tagline")}</p>
         </div>
         <div>
-          <p className="text-sm font-semibold">{t("footer.platform")}</p>
+          <p className="text-sm font-semibold text-slate-900">{t("footer.platform")}</p>
           <div className="mt-3 flex flex-col gap-2 text-sm text-muted-foreground">
             <Link href={ROUTES.PROJECTS || "/projects"}>{t("nav.projects")}</Link>
+            <Link href={ROUTES.MEMBERSHIP || "/membership"}>{t("nav.serviceFee")}</Link>
             <Link href={ROUTES.ABOUT || "/about"}>{t("nav.about")}</Link>
             <Link href={ROUTES.CONTACT || "/contact"}>{t("nav.contact")}</Link>
           </div>
         </div>
         <div>
-          <p className="text-sm font-semibold">{t("footer.accounts")}</p>
+          <p className="text-sm font-semibold text-slate-900">{t("footer.accounts")}</p>
           <div className="mt-3 flex flex-col gap-2 text-sm text-muted-foreground">
             <Link href={homeRegisterInvestor}>{t("footer.investorSignup")}</Link>
             <Link href={homeRegisterOwner}>{t("footer.ownerSignup")}</Link>
