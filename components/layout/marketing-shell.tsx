@@ -117,34 +117,65 @@ export function MarketingHeader() {
 
 export function MarketingFooter() {
   const { t } = useI18n();
-  const homeRegisterInvestor = `${ROUTES.REGISTER || "/register"}?role=investor`;
-  const homeRegisterOwner = `${ROUTES.REGISTER || "/register"}?role=project_owner`;
 
   return (
-    <footer className="border-t border-border bg-[hsl(var(--card))]">
-      <div className="container-narrow section-pad grid gap-8 py-12 md:grid-cols-4">
-        <div className="md:col-span-2">
+    <footer className="border-t border-slate-200 bg-white">
+      <div className="container-narrow section-pad grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="sm:col-span-2 lg:col-span-1">
           <PlatformLogo />
-          <p className="mt-3 max-w-md text-sm text-muted-foreground">{t("footer.tagline")}</p>
+          <p className="mt-3 max-w-xs text-sm leading-relaxed text-slate-500">
+            {t("footer.tagline")}
+          </p>
         </div>
         <div>
           <p className="text-sm font-semibold text-slate-900">{t("footer.platform")}</p>
-          <div className="mt-3 flex flex-col gap-2 text-sm text-muted-foreground">
-            <Link href={ROUTES.PROJECTS || "/projects"}>{t("nav.projects")}</Link>
-            <Link href={ROUTES.ABOUT || "/about"}>{t("nav.about")}</Link>
-            <Link href={ROUTES.CONTACT || "/contact"}>{t("nav.contact")}</Link>
+          <div className="mt-3 flex flex-col gap-2 text-sm text-slate-500">
+            <Link href={ROUTES.PROJECTS} className="hover:text-slate-900">
+              {t("nav.projects")}
+            </Link>
+            <Link href="/#how-it-works" className="hover:text-slate-900">
+              {t("nav.howItWorks")}
+            </Link>
+            <Link href={ROUTES.ABOUT} className="hover:text-slate-900">
+              {t("nav.about")}
+            </Link>
           </div>
         </div>
         <div>
-          <p className="text-sm font-semibold text-slate-900">{t("footer.accounts")}</p>
-          <div className="mt-3 flex flex-col gap-2 text-sm text-muted-foreground">
-            <Link href={homeRegisterInvestor}>{t("footer.investorSignup")}</Link>
-            <Link href={homeRegisterOwner}>{t("footer.ownerSignup")}</Link>
-            <Link href={ROUTES.LOGIN || "/login"}>{t("common.signIn")}</Link>
+          <p className="text-sm font-semibold text-slate-900">{t("footer.projectOwners")}</p>
+          <div className="mt-3 flex flex-col gap-2 text-sm text-slate-500">
+            <Link href={`${ROUTES.REGISTER}?role=project_owner`} className="hover:text-slate-900">
+              {t("footer.publishProject")}
+            </Link>
+            <Link href={ROUTES.OWNER_DASHBOARD} className="hover:text-slate-900">
+              {t("footer.ownerDashboard")}
+            </Link>
+          </div>
+        </div>
+        <div>
+          <p className="text-sm font-semibold text-slate-900">{t("footer.investors")}</p>
+          <div className="mt-3 flex flex-col gap-2 text-sm text-slate-500">
+            <Link href={ROUTES.PROJECTS} className="hover:text-slate-900">
+              {t("footer.viewProjects")}
+            </Link>
+            <Link href={ROUTES.INVESTOR_DASHBOARD} className="hover:text-slate-900">
+              {t("footer.investorDashboard")}
+            </Link>
+          </div>
+        </div>
+        <div>
+          <p className="text-sm font-semibold text-slate-900">{t("footer.help")}</p>
+          <div className="mt-3 flex flex-col gap-2 text-sm text-slate-500">
+            <Link href="/#faq" className="hover:text-slate-900">
+              {t("landing.faq")}
+            </Link>
+            <Link href={ROUTES.CONTACT} className="hover:text-slate-900">
+              {t("nav.contact")}
+            </Link>
           </div>
         </div>
       </div>
-      <div className="border-t border-border py-4 text-center text-xs text-muted-foreground">
+      <div className="border-t border-slate-200 py-4 text-center text-xs text-slate-400">
         © {new Date().getFullYear()} {t("common.platformName")}. {t("footer.rights")}
       </div>
     </footer>

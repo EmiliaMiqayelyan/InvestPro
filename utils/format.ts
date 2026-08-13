@@ -13,6 +13,16 @@ export function formatCurrency(
   }).format(amount);
 }
 
+export function formatCompactCurrency(amount: number): string {
+  const abs = Math.abs(amount);
+  const trim = (value: number) =>
+    value.toFixed(value >= 10 || Number.isInteger(value) ? 0 : 1).replace(/\.0$/, "");
+
+  if (abs >= 1_000_000) return `$${trim(amount / 1_000_000)}M`;
+  if (abs >= 1_000) return `$${trim(amount / 1_000)}K`;
+  return `$${Math.round(amount)}`;
+}
+
 export function formatNumber(num: number, decimals = 2): string {
   return new Intl.NumberFormat("en-US", {
     minimumFractionDigits: decimals,

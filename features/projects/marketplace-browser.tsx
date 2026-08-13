@@ -2,9 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Search } from "lucide-react";
+import { Search, SlidersHorizontal } from "lucide-react";
 import { MarketplaceProjectCard } from "@/features/projects";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -64,6 +65,7 @@ export function MarketplaceBrowser({
 
   const { data, isLoading } = useProjects(params);
   const projects = data?.data ?? [];
+  const total = data?.total ?? projects.length;
 
   const { data: savedProjects } = useQuery({
     queryKey: [QUERY_KEYS.SAVED, "marketplace"],
@@ -72,6 +74,121 @@ export function MarketplaceBrowser({
   });
 
   const savedIdSet = new Set((savedProjects ?? []).map((p) => p.id));
+  const hasFilters =
+    category !== "all" ||
+    industry !== "all" ||
+    stage !== "all" ||
+    riskLevel !== "all" ||
+    fundingStatus !== "all" ||
+    location.trim() !== "" ||
+    investmentBudget.trim() !== "";
+
+  const clearFilters = () => {
+    setCategory("all");
+    setIndustry("all");
+    setStage("all");
+    setLocation("");
+    setRiskLevel("all");
+    setFundingStatus("all");
+    setInvestmentBudget("");
+  };
+
+  const filters = (
+    <div className="space-y-3">
+      <Select value={category} onValueChange={setCategory}>
+        <SelectTrigger className="w-full bg-white">
+          <SelectValue placeholder={t("projects.category")} />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">{t("projects.allCategories")}</SelectItem>
+          {PROJECT_CATEGORIES.map((cat) => (
+            <SelectItem key={cat} value={cat}>
+              {cat}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      <Select value={industry} onValueChange={setIndustry}>
+        <SelectTrigger className="w-full bg-white">
+          <SelectValue placeholder={t("projects.industry")} />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">{t("projects.allIndustries")}</SelectItem>
+          {PROJECT_INDUSTRIES.map((ind) => (
+            <SelectItem key={ind} value={ind}>
+              {ind}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      <Select value={stage} onValueChange={setStage}>
+        <SelectTrigger className="w-full bg-white">
+          <SelectValue placeholder={t("projects.stage")} />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">{t("projects.allStages")}</SelectItem>
+          {PROJECT_STAGES.map((s) => (
+            <SelectItem key={s.value} value={s.value}>
+              {t(`projects.stages.${s.value}`)}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      <Select value={riskLevel} onValueChange={setRiskLevel}>
+        <SelectTrigger className="w-full bg-white">
+          <SelectValue placeholder={t("projects.risk")} />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">{t("projects.allRisks")}</SelectItem>
+          {RISK_LEVELS.map((r) => (
+            <SelectItem key={r.value} value={r.value}>
+              {r.value === "low"
+                ? t("projects.lowRisk")
+                : r.value === "high"
+                  ? t("projects.highRisk")
+                  : t("projects.mediumRisk")}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      <Input
+        className="bg-white"
+        placeholder={t("projects.locationPlaceholder")}
+        value={location}
+        onChange={(e) => setLocation(e.target.value)}
+      />
+
+      <Input
+        className="bg-white"
+        type="number"
+        inputMode="numeric"
+        placeholder={t("projects.investmentBudget")}
+        value={investmentBudget}
+        onChange={(e) => setInvestmentBudget(e.target.value)}
+      />
+
+      <Select value={fundingStatus} onValueChange={setFundingStatus}>
+        <SelectTrigger className="w-full bg-white">
+          <SelectValue placeholder={t("projects.funding")} />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">{t("projects.allFunding")}</SelectItem>
+          <SelectItem value="open">{t("projects.openFunding")}</SelectItem>
+          <SelectItem value="funded">{t("projects.fundedStatus")}</SelectItem>
+        </SelectContent>
+      </Select>
+
+      {hasFilters ? (
+        <Button variant="ghost" className="w-full" onClick={clearFilters}>
+          {t("projects.clearFilters")}
+        </Button>
+      ) : null}
+    </div>
+  );
 
   return (
     <div className="space-y-8">
@@ -85,137 +202,72 @@ export function MarketplaceBrowser({
           {t("projects.exploreTitle")}
         </h2>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{t("projects.exploreSub")}</p>
-        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="relative lg:col-span-2">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              className="bg-white pl-9"
-              placeholder={t("projects.searchPlaceholder")}
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-            />
-          </div>
-
-          <Select value={category} onValueChange={setCategory}>
-            <SelectTrigger className="w-full bg-white">
-              <SelectValue placeholder={t("projects.category")} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t("projects.allCategories")}</SelectItem>
-              {PROJECT_CATEGORIES.map((cat) => (
-                <SelectItem key={cat} value={cat}>
-                  {cat}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select value={industry} onValueChange={setIndustry}>
-            <SelectTrigger className="w-full bg-white">
-              <SelectValue placeholder={t("projects.industry")} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t("projects.allIndustries")}</SelectItem>
-              {PROJECT_INDUSTRIES.map((ind) => (
-                <SelectItem key={ind} value={ind}>
-                  {ind}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select value={stage} onValueChange={setStage}>
-            <SelectTrigger className="w-full bg-white">
-              <SelectValue placeholder={t("projects.stage")} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t("projects.allStages")}</SelectItem>
-              {PROJECT_STAGES.map((s) => (
-                <SelectItem key={s.value} value={s.value}>
-                  {t(`projects.stages.${s.value}`)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select value={riskLevel} onValueChange={setRiskLevel}>
-            <SelectTrigger className="w-full bg-white">
-              <SelectValue placeholder={t("projects.risk")} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t("projects.allRisks")}</SelectItem>
-              {RISK_LEVELS.map((r) => (
-                <SelectItem key={r.value} value={r.value}>
-                  {r.value === "low"
-                    ? t("projects.lowRisk")
-                    : r.value === "high"
-                      ? t("projects.highRisk")
-                      : t("projects.mediumRisk")}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
+        <div className="relative mt-6">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            className="bg-white"
-            placeholder={t("projects.locationPlaceholder")}
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
+            className="h-12 bg-white pl-10"
+            placeholder={t("projects.searchPlaceholder")}
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
           />
-
-          <Input
-            className="bg-white"
-            type="number"
-            inputMode="numeric"
-            placeholder={t("projects.investmentBudget")}
-            value={investmentBudget}
-            onChange={(e) => setInvestmentBudget(e.target.value)}
-          />
-
-          <Select value={fundingStatus} onValueChange={setFundingStatus}>
-            <SelectTrigger className="w-full bg-white">
-              <SelectValue placeholder={t("projects.funding")} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t("projects.allFunding")}</SelectItem>
-              <SelectItem value="open">{t("projects.openFunding")}</SelectItem>
-              <SelectItem value="funded">{t("projects.fundedStatus")}</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-full bg-white">
-              <SelectValue placeholder={t("projects.sortLabel")} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="newest">{t("projects.sortNewest")}</SelectItem>
-              <SelectItem value="most_viewed">{t("projects.sortMostViewed")}</SelectItem>
-              <SelectItem value="funding_progress">{t("projects.sortFunding")}</SelectItem>
-            </SelectContent>
-          </Select>
         </div>
       </div>
 
-      {isLoading ? (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          <CardSkeleton />
-          <CardSkeleton />
-          <CardSkeleton />
+      <div className="grid gap-8 lg:grid-cols-[240px_minmax(0,1fr)]">
+        <aside className="lg:sticky lg:top-24 lg:self-start">
+          <div className="mb-3 hidden items-center gap-2 text-sm font-medium text-slate-900 lg:flex">
+            <SlidersHorizontal className="h-4 w-4" />
+            {t("projects.filters")}
+          </div>
+          <details className="rounded-xl border border-border/80 bg-white p-4 lg:hidden">
+            <summary className="flex cursor-pointer list-none items-center gap-2 text-sm font-medium text-slate-900">
+              <SlidersHorizontal className="h-4 w-4" />
+              {t("projects.filters")}
+            </summary>
+            <div className="mt-4">{filters}</div>
+          </details>
+          <div className="hidden lg:block">{filters}</div>
+        </aside>
+
+        <div>
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm text-muted-foreground">
+              {isLoading ? t("common.loading") : t("projects.resultsCount", { count: total })}
+            </p>
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="w-[200px] bg-white">
+                <SelectValue placeholder={t("projects.sortLabel")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="newest">{t("projects.sortNewest")}</SelectItem>
+                <SelectItem value="most_viewed">{t("projects.sortMostViewed")}</SelectItem>
+                <SelectItem value="funding_progress">{t("projects.sortFunding")}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {isLoading ? (
+            <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+              <CardSkeleton />
+              <CardSkeleton />
+              <CardSkeleton />
+            </div>
+          ) : projects.length === 0 ? (
+            <p className="py-12 text-center text-sm text-muted-foreground">{t("projects.noMatch")}</p>
+          ) : (
+            <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+              {projects.map((project) => (
+                <MarketplaceProjectCard
+                  key={project.id}
+                  project={project}
+                  savedByMe={savedIdSet.has(project.id)}
+                  basePath={projectBasePath}
+                />
+              ))}
+            </div>
+          )}
         </div>
-      ) : projects.length === 0 ? (
-        <p className="py-12 text-center text-sm text-muted-foreground">{t("projects.noMatch")}</p>
-      ) : (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {projects.map((project) => (
-            <MarketplaceProjectCard
-              key={project.id}
-              project={project}
-              savedByMe={savedIdSet.has(project.id)}
-              basePath={projectBasePath}
-            />
-          ))}
-        </div>
-      )}
+      </div>
     </div>
   );
 }

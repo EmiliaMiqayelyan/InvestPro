@@ -1,14 +1,24 @@
 "use client";
 
 import Link from "next/link";
+import type { LucideIcon } from "lucide-react";
 import {
+  AlertTriangle,
+  ArrowDown,
   ArrowRight,
   BadgeCheck,
+  BarChart3,
   Building2,
-  Lock,
+  ClipboardList,
+  FileText,
+  FolderPlus,
+  Handshake,
+  MessageSquare,
   MessageSquareLock,
+  Scale,
   Search,
   Shield,
+  ShieldCheck,
   Users,
 } from "lucide-react";
 import { MarketingHeader, MarketingFooter } from "@/components/layout/marketing-shell";
@@ -25,26 +35,90 @@ import { useProjects } from "@/hooks/use-marketplace";
 import { useI18n } from "@/hooks";
 import { cn } from "@/lib/utils";
 
+type HowStep = {
+  step: string;
+  icon: LucideIcon;
+  label: string;
+  title: string;
+  description: string;
+};
+
+function HowStepCard({ item }: { item: HowStep }) {
+  return (
+    <div className="relative z-10 flex flex-col items-center text-center">
+      <div className="flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-teal-800">
+        <item.icon className="h-4 w-4" />
+      </div>
+      <p className="mt-3 text-[11px] font-medium uppercase tracking-wider text-teal-800">
+        {item.step} · {item.label}
+      </p>
+      <h3 className="mt-1 font-display text-sm font-semibold leading-snug text-slate-900 md:text-base">
+        {item.title}
+      </h3>
+      <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground md:text-sm">
+        {item.description}
+      </p>
+    </div>
+  );
+}
+
 export default function HomePage() {
   const { t, isHy } = useI18n();
   const { data: projectsPage } = useProjects({ limit: 3 });
   const featured = projectsPage?.data?.slice(0, 3) ?? [];
 
   const howItWorks = [
-    { icon: Search, title: t("landing.discover"), description: t("landing.discoverDesc") },
-    { icon: BadgeCheck, title: t("landing.diligence"), description: t("landing.diligenceDesc") },
     {
-      icon: MessageSquareLock,
-      title: t("landing.connect"),
-      description: t("landing.connectDesc"),
+      step: "01",
+      icon: FolderPlus,
+      label: t("landing.howStep1Label"),
+      title: t("landing.howStep1Title"),
+      description: t("landing.howStep1Desc"),
+    },
+    {
+      step: "02",
+      icon: ShieldCheck,
+      label: t("landing.howStep2Label"),
+      title: t("landing.howStep2Title"),
+      description: t("landing.howStep2Desc"),
+    },
+    {
+      step: "03",
+      icon: Search,
+      label: t("landing.howStep3Label"),
+      title: t("landing.howStep3Title"),
+      description: t("landing.howStep3Desc"),
+    },
+    {
+      step: "04",
+      icon: ClipboardList,
+      label: t("landing.howStep4Label"),
+      title: t("landing.howStep4Title"),
+      description: t("landing.howStep4Desc"),
+    },
+    {
+      step: "05",
+      icon: MessageSquare,
+      label: t("landing.howStep5Label"),
+      title: t("landing.howStep5Title"),
+      description: t("landing.howStep5Desc"),
+    },
+    {
+      step: "06",
+      icon: Handshake,
+      label: t("landing.howStep6Label"),
+      title: t("landing.howStep6Title"),
+      description: t("landing.howStep6Desc"),
     },
   ];
 
   const investorPoints = [
-    t("landing.investorPoints.p1"),
-    t("landing.investorPoints.p2"),
-    t("landing.investorPoints.p3"),
-    t("landing.investorPoints.p4"),
+    { icon: BarChart3, text: t("landing.investorPoints.p1") },
+    { icon: Users, text: t("landing.investorPoints.p2") },
+    { icon: FileText, text: t("landing.investorPoints.p3") },
+    { icon: AlertTriangle, text: t("landing.investorPoints.p4") },
+    { icon: MessageSquare, text: t("landing.investorPoints.p5") },
+    { icon: Handshake, text: t("landing.investorPoints.p6") },
   ];
 
   const ownerPoints = [
@@ -52,6 +126,8 @@ export default function HomePage() {
     t("landing.ownerPoints.p2"),
     t("landing.ownerPoints.p3"),
     t("landing.ownerPoints.p4"),
+    t("landing.ownerPoints.p5"),
+    t("landing.ownerPoints.p6"),
   ];
 
   const securityPoints = [
@@ -61,7 +137,7 @@ export default function HomePage() {
       description: t("landing.verificationFirstDesc"),
     },
     {
-      icon: Lock,
+      icon: AlertTriangle,
       title: t("landing.accessControls"),
       description: t("landing.accessControlsDesc"),
     },
@@ -70,6 +146,11 @@ export default function HomePage() {
       title: t("landing.onPlatformOnly"),
       description: t("landing.onPlatformOnlyDesc"),
     },
+    {
+      icon: Scale,
+      title: t("landing.informedDecision"),
+      description: t("landing.informedDecisionDesc"),
+    },
   ];
 
   const faqs = [
@@ -77,6 +158,7 @@ export default function HomePage() {
     { q: t("landing.faqs.q2"), a: t("landing.faqs.a2") },
     { q: t("landing.faqs.q3"), a: t("landing.faqs.a3") },
     { q: t("landing.faqs.q4"), a: t("landing.faqs.a4") },
+    { q: t("landing.faqs.q5"), a: t("landing.faqs.a5") },
   ];
 
   return (
@@ -87,8 +169,6 @@ export default function HomePage() {
         <div className="container-narrow section-pad relative py-16 md:py-24">
           <div className="mx-auto max-w-3xl text-center">
             <p className="font-display text-sm font-medium tracking-wide text-teal-800 md:text-base">
-              {t("common.platformName")}
-              <span className="mx-2 text-teal-700/40">·</span>
               {t("landing.brandTagline")}
             </p>
             <h1
@@ -123,36 +203,119 @@ export default function HomePage() {
               </Button>
             </div>
             <p className="mt-4 text-sm text-muted-foreground">
-              <Link href={`${ROUTES.REGISTER}?role=investor`} className="underline-offset-4 hover:underline">
+              <Link
+                href={`${ROUTES.REGISTER}?role=investor`}
+                className="inline-flex items-center gap-1 underline-offset-4 hover:underline"
+              >
                 {t("landing.joinAsInvestor")}
+                <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </p>
           </div>
         </div>
       </section>
 
-      <section id="how-it-works" className="container-narrow section-pad py-16 md:py-20">
-        <div className="mx-auto max-w-2xl text-center">
-          <h2 className="font-display text-3xl font-semibold text-slate-900">
-            {t("landing.howItWorks")}
-          </h2>
-          <p className="mt-3 text-muted-foreground">{t("landing.howItWorksSub")}</p>
-        </div>
-        <div className="mt-12 grid gap-10 md:grid-cols-3">
-          {howItWorks.map((item) => (
-            <div key={item.title} className="text-center md:text-left">
-              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-teal-50 text-teal-800 md:mx-0">
-                <item.icon className="h-5 w-5" />
-              </div>
-              <h3 className="font-display text-lg font-semibold text-slate-900">{item.title}</h3>
-              <p className="mt-2 text-sm text-muted-foreground">{item.description}</p>
+      <section id="how-it-works" className="border-y border-border/60 bg-white">
+        <div className="container-narrow section-pad py-16 md:py-20">
+          <div className="mx-auto max-w-2xl text-center">
+            <h2 className="font-display text-3xl font-semibold text-slate-900">
+              {t("landing.howItWorks")}
+            </h2>
+            <p className="mt-3 text-muted-foreground">{t("landing.howItWorksSub")}</p>
+          </div>
+
+          <ol className="relative mx-auto mt-14 max-w-xl md:hidden">
+            <span className="absolute bottom-8 left-[1.375rem] top-8 w-px bg-slate-200" aria-hidden />
+            {howItWorks.map((item) => (
+              <li key={item.step} className="relative flex gap-4 pb-10 last:pb-0">
+                <div className="relative z-10 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-teal-800">
+                  <item.icon className="h-4 w-4" />
+                </div>
+                <div className="min-w-0 pt-0.5">
+                  <p className="text-[11px] font-medium uppercase tracking-wider text-teal-800">
+                    {item.step} · {item.label}
+                  </p>
+                  <h3 className="mt-1 font-display text-base font-semibold text-slate-900">
+                    {item.title}
+                  </h3>
+                  <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+                    {item.description}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ol>
+
+          <div className="mt-14 hidden md:block xl:hidden">
+            <ol className="grid grid-cols-3 gap-x-6 gap-y-4">
+              {howItWorks.slice(0, 3).map((item, index) => (
+                <li key={item.step} className="relative">
+                  {index < 2 ? (
+                    <span
+                      className="absolute left-[calc(50%+1.5rem)] right-[-0.75rem] top-5 h-px bg-slate-200"
+                      aria-hidden
+                    />
+                  ) : null}
+                  <HowStepCard item={item} />
+                </li>
+              ))}
+            </ol>
+            <div className="flex justify-center py-2 text-slate-300">
+              <ArrowDown className="h-5 w-5" />
             </div>
-          ))}
+            <ol className="grid grid-cols-3 gap-x-6">
+              {howItWorks.slice(3).map((item, index) => (
+                <li key={item.step} className="relative">
+                  {index < 2 ? (
+                    <span
+                      className="absolute left-[calc(50%+1.5rem)] right-[-0.75rem] top-5 h-px bg-slate-200"
+                      aria-hidden
+                    />
+                  ) : null}
+                  <HowStepCard item={item} />
+                </li>
+              ))}
+            </ol>
+          </div>
+
+          <ol className="mt-14 hidden grid-cols-6 gap-3 xl:grid">
+            {howItWorks.map((item, index) => (
+              <li key={item.step} className="relative">
+                {index < howItWorks.length - 1 ? (
+                  <span
+                    className="absolute left-[calc(50%+1.4rem)] right-[-0.4rem] top-5 h-px bg-slate-200"
+                    aria-hidden
+                  />
+                ) : null}
+                <HowStepCard item={item} />
+              </li>
+            ))}
+          </ol>
+
+          <div className="mx-auto mt-16 max-w-xl border-t border-slate-100 pt-10 text-center">
+            <h3 className="font-display text-xl font-semibold text-slate-900">
+              {t("landing.howCtaTitle")}
+            </h3>
+            <p className="mt-2 text-sm text-muted-foreground">{t("landing.howCtaSub")}</p>
+            <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
+              <Button asChild>
+                <Link href={ROUTES.PROJECTS}>
+                  {t("landing.exploreProjects")}
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button variant="outline" asChild>
+                <Link href={`${ROUTES.REGISTER}?role=project_owner`}>
+                  {t("landing.publishProject")}
+                </Link>
+              </Button>
+            </div>
+          </div>
         </div>
       </section>
 
       <section className="border-y border-border/60 bg-[hsl(var(--surface-warm))]/80">
-        <div className="container-narrow section-pad grid gap-12 py-16 lg:grid-cols-2">
+        <div className="container-narrow section-pad grid gap-16 py-16 lg:grid-cols-2">
           <div>
             <div className="mb-3 inline-flex items-center gap-2 text-teal-800">
               <Users className="h-4 w-4" />
@@ -164,14 +327,17 @@ export default function HomePage() {
             <p className="mt-3 text-muted-foreground">{t("landing.investorSub")}</p>
             <ul className="mt-6 space-y-3">
               {investorPoints.map((point) => (
-                <li key={point} className="flex gap-3 text-sm text-slate-700">
-                  <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-teal-700" />
-                  {point}
+                <li key={point.text} className="flex gap-3 text-sm text-slate-700">
+                  <point.icon className="mt-0.5 h-4 w-4 shrink-0 text-teal-700" />
+                  {point.text}
                 </li>
               ))}
             </ul>
             <Button className="mt-8" asChild>
-              <Link href={`${ROUTES.REGISTER}?role=investor`}>{t("landing.joinAsInvestor")}</Link>
+              <Link href={ROUTES.PROJECTS}>
+                {t("landing.browseProjects")}
+                <ArrowRight className="h-4 w-4" />
+              </Link>
             </Button>
           </div>
           <div>
@@ -193,7 +359,7 @@ export default function HomePage() {
             </ul>
             <Button className="mt-8" variant="outline" asChild>
               <Link href={`${ROUTES.REGISTER}?role=project_owner`}>
-                {t("landing.listYourProject")}
+                {t("landing.publishProject")}
               </Link>
             </Button>
           </div>
@@ -207,7 +373,7 @@ export default function HomePage() {
           </h2>
           <p className="mt-3 text-muted-foreground">{t("landing.securitySub")}</p>
         </div>
-        <div className="mt-12 grid gap-8 md:grid-cols-3">
+        <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {securityPoints.map((item) => (
             <div key={item.title}>
               <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-slate-100 text-slate-800">
@@ -247,7 +413,57 @@ export default function HomePage() {
         </div>
       </section>
 
+      <section className="border-y border-border/60 bg-[hsl(var(--card))]">
+        <div className="container-narrow section-pad py-16 md:py-20">
+          <h2 className="text-center font-display text-3xl font-semibold text-slate-900">
+            {t("landing.twoSidesTitle")}
+          </h2>
+          <div className="mt-10 grid gap-6 md:grid-cols-2">
+            <div className="premium-card p-6 md:p-8">
+              <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-teal-50 text-teal-800">
+                <Users className="h-5 w-5" />
+              </div>
+              <h3 className="font-display text-xl font-semibold text-slate-900">
+                {t("landing.twoSidesInvestorsTitle")}
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                {t("landing.twoSidesInvestorsBody")}
+              </p>
+            </div>
+            <div className="premium-card p-6 md:p-8">
+              <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-teal-50 text-teal-800">
+                <Building2 className="h-5 w-5" />
+              </div>
+              <h3 className="font-display text-xl font-semibold text-slate-900">
+                {t("landing.twoSidesOwnersTitle")}
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                {t("landing.twoSidesOwnersBody")}
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="container-narrow section-pad py-16 md:py-20">
+        <div className="mx-auto max-w-2xl text-center">
+          <h2 className="font-display text-3xl font-semibold text-slate-900">
+            {t("landing.connectTitle")}
+          </h2>
+          <p className="mt-4 text-lg text-slate-700">{t("landing.connectLead")}</p>
+          <p className="mt-4 text-muted-foreground leading-relaxed">{t("landing.connectBody")}</p>
+          <div className="mt-8">
+            <Button variant="outline" asChild>
+              <Link href={ROUTES.ABOUT}>
+                {t("nav.about")}
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      <section id="faq" className="container-narrow section-pad py-16 md:py-20">
         <div className="mx-auto max-w-3xl">
           <p className="text-center text-sm font-medium uppercase tracking-wide text-teal-800">
             {t("landing.faq")}
@@ -279,10 +495,15 @@ export default function HomePage() {
             <p className="mt-3 text-muted-foreground">{t("landing.contactCtaSub")}</p>
             <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
               <Button size="lg" asChild>
-                <Link href={ROUTES.REGISTER}>{t("landing.createAccount")}</Link>
+                <Link href={ROUTES.PROJECTS}>
+                  {t("landing.exploreProjects")}
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
               </Button>
               <Button size="lg" variant="outline" asChild>
-                <Link href={ROUTES.CONTACT}>{t("landing.contactUs")}</Link>
+                <Link href={`${ROUTES.REGISTER}?role=project_owner`}>
+                  {t("landing.publishProject")}
+                </Link>
               </Button>
             </div>
           </div>

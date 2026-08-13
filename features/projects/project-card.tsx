@@ -2,14 +2,13 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { MapPin, Bookmark as BookmarkIcon, BookmarkCheck } from "lucide-react";
+import { ArrowRight, Bookmark as BookmarkIcon, BookmarkCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Project } from "@/types";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { formatCurrency, formatNumber } from "@/utils/format";
+import { formatCompactCurrency } from "@/utils/format";
 import { useI18n } from "@/hooks/use-i18n";
 import { projectText } from "@/i18n/localize";
 import { useAuthStore } from "@/store";
@@ -19,34 +18,6 @@ import { getErrorMessage } from "@/services/api/client";
 import { ROUTES } from "@/constants";
 
 type MarketplaceProject = Project & { teamSize?: number };
-
-function statusMeta(
-  status: Project["status"],
-  t: (key: string) => string
-): { label: string; className: string } {
-  switch (status) {
-    case "published":
-      return {
-        label: t("projects.statusVerified"),
-        className: "border-emerald-200 bg-emerald-50 text-emerald-800",
-      };
-    case "funded":
-      return {
-        label: t("projects.statusFunded"),
-        className: "border-teal-200 bg-teal-50 text-teal-800",
-      };
-    case "pending_review":
-      return {
-        label: t("projects.statusUnderReview"),
-        className: "border-amber-200 bg-amber-50 text-amber-800",
-      };
-    default:
-      return {
-        label: t("projects.statusNeedsInfo"),
-        className: "border-slate-200 bg-slate-50 text-slate-700",
-      };
-  }
-}
 
 export function MarketplaceProjectCard({
   project,
@@ -74,7 +45,6 @@ export function MarketplaceProjectCard({
     setImgFailed(false);
   }, [project.image]);
 
-  const verification = statusMeta(project.status, t);
   const riskLabel =
     project.riskLevel === "low"
       ? t("projects.lowRisk")
@@ -82,8 +52,7 @@ export function MarketplaceProjectCard({
         ? t("projects.highRisk")
         : t("projects.mediumRisk");
 
-  const stageKey = `projects.stages.${project.stage ?? "idea"}`;
-  const stageLabel = t(stageKey);
+  const stageLabel = t(`projects.stages.${project.stage ?? "idea"}`);
   const progress = Math.min(
     100,
     Math.round((project.currentFunding / Math.max(project.requiredInvestment, 1)) * 100)
@@ -92,18 +61,15 @@ export function MarketplaceProjectCard({
   const title = projectText(project, "title", locale);
   const description = projectText(project, "description", locale);
   const category = projectText(project, "category", locale);
-  const industry = projectText(project, "industry", locale);
-  const location = projectText(project, "location", locale);
   const teamSize = project.teamSize ?? project.team?.length ?? 0;
-  const views = project.views ?? 0;
   const imageSrc = !imgFailed && project.image ? project.image : null;
 
-  const riskColor =
+  const riskChip =
     project.riskLevel === "low"
-      ? "text-emerald-700"
+      ? "border-emerald-200 bg-emerald-50 text-emerald-800"
       : project.riskLevel === "high"
-        ? "text-red-700"
-        : "text-amber-700";
+        ? "border-red-200 bg-red-50 text-red-800"
+        : "border-amber-200 bg-amber-50 text-amber-800";
 
   const toggleSaved = async () => {
     if (saving) return;
@@ -125,6 +91,13 @@ export function MarketplaceProjectCard({
       setSaving(false);
     }
   };
+
+  const facts = [
+    stageLabel,
+    category,
+    t("projects.teamHeadcount", { count: teamSize }),
+    riskLabel,
+  ].filter(Boolean);
 
   return (
     <article className="premium-card flex h-full flex-col overflow-hidden transition hover:-translate-y-0.5 hover:shadow-soft">
@@ -148,21 +121,7 @@ export function MarketplaceProjectCard({
       </Link>
 
       <div className="flex flex-1 flex-col p-5">
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="outline" className={cn("border", verification.className)}>
-            {verification.label}
-          </Badge>
-          <Badge variant="outline" className={cn("border-slate-200", riskColor)}>
-            {riskLabel}
-          </Badge>
-          {category ? (
-            <Badge variant="outline" className="border-slate-200 text-slate-700">
-              {category}
-            </Badge>
-          ) : null}
-        </div>
-
-        <h3 className="mt-3 line-clamp-2 min-h-[3.25rem] font-display text-lg font-semibold leading-snug text-slate-900">
+        <h3 className="line-clamp-2 min-h-[3.25rem] font-display text-lg font-semibold leading-snug text-slate-900">
           <Link href={detailHref} className="hover:text-teal-900">
             {title}
           </Link>
@@ -171,81 +130,53 @@ export function MarketplaceProjectCard({
           {description}
         </p>
 
-        <div className="mt-4 grid grid-cols-2 gap-3 border-t border-slate-100 pt-4">
-          <div className="min-w-0">
-            <p className="text-xs text-muted-foreground">{t("projects.industry")}</p>
-            <p className="mt-0.5 truncate text-sm font-medium text-slate-900">
-              {industry || "—"}
-            </p>
-          </div>
-          <div className="min-w-0">
-            <p className="text-xs text-muted-foreground">{t("projects.location")}</p>
-            <p className="mt-0.5 flex items-center gap-1 truncate text-sm font-medium text-slate-900">
-              <MapPin className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-              <span className="truncate">{location || "—"}</span>
-            </p>
-          </div>
-        </div>
+        <div className="mt-4 space-y-3">
+          <p className="font-display text-xl font-semibold text-slate-900">
+            {t("projects.neededAmount", {
+              amount: formatCompactCurrency(project.requiredInvestment),
+            })}
+          </p>
 
-        <div className="mt-4 space-y-2.5">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="min-w-0">
-              <p className="text-xs text-muted-foreground">{t("projects.required")}</p>
-              <p className="mt-0.5 truncate text-sm font-semibold text-slate-900">
-                {formatCurrency(project.requiredInvestment)}
-              </p>
-            </div>
-            <div className="min-w-0 text-right">
-              <p className="text-xs text-muted-foreground">{t("projects.raised")}</p>
-              <p className="mt-0.5 truncate text-sm font-semibold text-slate-900">
-                {formatCurrency(project.currentFunding)}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <div className="h-2 min-w-0 flex-1 overflow-hidden rounded-full bg-slate-100">
+          <div>
+            <p className="text-sm font-medium text-slate-800">
+              {t("projects.fundedPercent", { percent: progress })}
+            </p>
+            <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-slate-100">
               <div
                 className="h-full rounded-full bg-teal-700"
                 style={{ width: `${progress}%` }}
               />
             </div>
-            <span className="shrink-0 text-xs font-medium tabular-nums text-slate-800">
-              {progress}%
-            </span>
+          </div>
+
+          <div className="flex flex-wrap gap-1.5">
+            {facts.map((fact) => (
+              <span
+                key={fact}
+                className={cn(
+                  "rounded-full border px-2.5 py-1 text-xs font-medium",
+                  fact === riskLabel
+                    ? riskChip
+                    : "border-slate-200 bg-slate-50 text-slate-700"
+                )}
+              >
+                {fact}
+              </span>
+            ))}
           </div>
         </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-x-3 gap-y-3 rounded-xl bg-slate-50/80 px-3 py-3">
-          <div>
-            <p className="text-xs text-muted-foreground">{t("projects.projectStage")}</p>
-            <p className="mt-0.5 text-sm font-medium text-slate-900">{stageLabel}</p>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">{t("projects.risk")}</p>
-            <p className={cn("mt-0.5 text-sm font-medium", riskColor)}>{riskLabel}</p>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">{t("projects.team")}</p>
-            <p className="mt-0.5 text-sm font-medium text-slate-900">
-              {t("projects.teamMembers", { count: teamSize })}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">{t("projects.viewsLabel")}</p>
-            <p className="mt-0.5 text-sm font-medium text-slate-900">
-              {formatNumber(views, 0)}
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-auto flex gap-3 border-t border-slate-100 pt-5">
+        <div className="mt-auto flex gap-2 border-t border-slate-100 pt-5">
           <Button asChild className="flex-1">
-            <Link href={detailHref}>{t("projects.viewProject")}</Link>
+            <Link href={detailHref}>
+              {t("projects.viewProject")}
+              <ArrowRight className="h-4 w-4" />
+            </Link>
           </Button>
           <Button
             variant={saved ? "default" : "outline"}
-            className="gap-2"
+            size="icon"
+            aria-label={saved ? t("projects.saved") : t("projects.save")}
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
@@ -254,7 +185,6 @@ export function MarketplaceProjectCard({
             disabled={saving}
           >
             {saved ? <BookmarkCheck className="h-4 w-4" /> : <BookmarkIcon className="h-4 w-4" />}
-            {saving ? "…" : saved ? t("projects.saved") : t("projects.save")}
           </Button>
         </div>
       </div>
