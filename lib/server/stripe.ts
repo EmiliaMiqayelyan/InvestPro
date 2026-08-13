@@ -23,13 +23,13 @@ export async function createServiceFeeCheckoutSession(params: {
   if (!secret || !priceId) {
     return {
       sessionId: `mock_${params.userId}_${Date.now()}`,
-      checkoutUrl: "/membership?checkout=mock",
+      checkoutUrl: "/investor/membership?checkout=mock",
     };
   }
 
   return {
     sessionId: `pending_${params.userId}_${Date.now()}`,
-    checkoutUrl: params.successUrl || "/membership?checkout=mock",
+    checkoutUrl: params.successUrl || "/investor/membership?checkout=mock",
   };
 }
 

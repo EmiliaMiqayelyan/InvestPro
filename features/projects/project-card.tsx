@@ -127,8 +127,8 @@ export function MarketplaceProjectCard({
   };
 
   return (
-    <article className="premium-card overflow-hidden transition hover:-translate-y-0.5 hover:shadow-soft">
-      <Link href={detailHref} className="relative block aspect-[16/10] bg-slate-100">
+    <article className="premium-card flex h-full flex-col overflow-hidden transition hover:-translate-y-0.5 hover:shadow-soft">
+      <Link href={detailHref} className="relative block aspect-[16/10] shrink-0 bg-slate-100">
         {imageSrc ? (
           <Image
             src={imageSrc}
@@ -147,7 +147,7 @@ export function MarketplaceProjectCard({
         )}
       </Link>
 
-      <div className="p-5">
+      <div className="flex flex-1 flex-col p-5">
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant="outline" className={cn("border", verification.className)}>
             {verification.label}
@@ -162,76 +162,84 @@ export function MarketplaceProjectCard({
           ) : null}
         </div>
 
-        <h3 className="mt-3 font-display text-lg font-semibold text-slate-900">
+        <h3 className="mt-3 line-clamp-2 min-h-[3.25rem] font-display text-lg font-semibold leading-snug text-slate-900">
           <Link href={detailHref} className="hover:text-teal-900">
             {title}
           </Link>
         </h3>
-        <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{description}</p>
+        <p className="mt-2 line-clamp-2 min-h-[2.5rem] text-sm leading-relaxed text-muted-foreground">
+          {description}
+        </p>
 
-        <div className="mt-4 flex flex-col gap-2 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-          <span>
-            <span className="font-medium text-slate-800">{t("projects.industry")}:</span>{" "}
-            {industry || "—"}
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <MapPin className="h-4 w-4 text-slate-400" />
-            {location || "—"}
-          </span>
+        <div className="mt-4 grid grid-cols-2 gap-3 border-t border-slate-100 pt-4">
+          <div className="min-w-0">
+            <p className="text-xs text-muted-foreground">{t("projects.industry")}</p>
+            <p className="mt-0.5 truncate text-sm font-medium text-slate-900">
+              {industry || "—"}
+            </p>
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs text-muted-foreground">{t("projects.location")}</p>
+            <p className="mt-0.5 flex items-center gap-1 truncate text-sm font-medium text-slate-900">
+              <MapPin className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+              <span className="truncate">{location || "—"}</span>
+            </p>
+          </div>
         </div>
 
-        <div className="mt-5 space-y-3">
-          <div className="flex justify-between gap-4 text-sm">
-            <div>
+        <div className="mt-4 space-y-2.5">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="min-w-0">
               <p className="text-xs text-muted-foreground">{t("projects.required")}</p>
-              <p className="font-semibold text-slate-900">
+              <p className="mt-0.5 truncate text-sm font-semibold text-slate-900">
                 {formatCurrency(project.requiredInvestment)}
               </p>
             </div>
-            <div className="text-right">
+            <div className="min-w-0 text-right">
               <p className="text-xs text-muted-foreground">{t("projects.raised")}</p>
-              <p className="font-semibold text-slate-900">
+              <p className="mt-0.5 truncate text-sm font-semibold text-slate-900">
                 {formatCurrency(project.currentFunding)}
               </p>
             </div>
           </div>
 
-          <div>
-            <div className="mb-1 flex items-center justify-between text-xs">
-              <span className="text-muted-foreground">{t("projects.progress")}</span>
-              <span className="font-medium text-slate-800">{progress}%</span>
-            </div>
-            <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+          <div className="flex items-center gap-3">
+            <div className="h-2 min-w-0 flex-1 overflow-hidden rounded-full bg-slate-100">
               <div
                 className="h-full rounded-full bg-teal-700"
                 style={{ width: `${progress}%` }}
               />
             </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3 text-sm">
-            <div>
-              <p className="text-xs text-muted-foreground">{t("projects.projectStage")}</p>
-              <p className="font-medium text-slate-900">{stageLabel}</p>
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">{t("projects.risk")}</p>
-              <p className={cn("font-medium", riskColor)}>{riskLabel}</p>
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">{t("projects.team")}</p>
-              <p className="font-medium text-slate-900">
-                {t("projects.teamMembers", { count: teamSize })}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">{t("projects.viewsLabel")}</p>
-              <p className="font-medium text-slate-900">{formatNumber(views, 0)}</p>
-            </div>
+            <span className="shrink-0 text-xs font-medium tabular-nums text-slate-800">
+              {progress}%
+            </span>
           </div>
         </div>
 
-        <div className="mt-5 flex gap-3">
+        <div className="mt-4 grid grid-cols-2 gap-x-3 gap-y-3 rounded-xl bg-slate-50/80 px-3 py-3">
+          <div>
+            <p className="text-xs text-muted-foreground">{t("projects.projectStage")}</p>
+            <p className="mt-0.5 text-sm font-medium text-slate-900">{stageLabel}</p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">{t("projects.risk")}</p>
+            <p className={cn("mt-0.5 text-sm font-medium", riskColor)}>{riskLabel}</p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">{t("projects.team")}</p>
+            <p className="mt-0.5 text-sm font-medium text-slate-900">
+              {t("projects.teamMembers", { count: teamSize })}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">{t("projects.viewsLabel")}</p>
+            <p className="mt-0.5 text-sm font-medium text-slate-900">
+              {formatNumber(views, 0)}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-auto flex gap-3 border-t border-slate-100 pt-5">
           <Button asChild className="flex-1">
             <Link href={detailHref}>{t("projects.viewProject")}</Link>
           </Button>

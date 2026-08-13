@@ -72,24 +72,6 @@ export default function HomePage() {
     },
   ];
 
-  const stories = [
-    {
-      quote: t("landing.stories.s1Quote"),
-      name: t("landing.stories.s1Name"),
-      role: t("landing.stories.s1Role"),
-    },
-    {
-      quote: t("landing.stories.s2Quote"),
-      name: t("landing.stories.s2Name"),
-      role: t("landing.stories.s2Role"),
-    },
-    {
-      quote: t("landing.stories.s3Quote"),
-      name: t("landing.stories.s3Name"),
-      role: t("landing.stories.s3Role"),
-    },
-  ];
-
   const faqs = [
     { q: t("landing.faqs.q1"), a: t("landing.faqs.a1") },
     { q: t("landing.faqs.q2"), a: t("landing.faqs.a2") },
@@ -143,10 +125,6 @@ export default function HomePage() {
             <p className="mt-4 text-sm text-muted-foreground">
               <Link href={`${ROUTES.REGISTER}?role=investor`} className="underline-offset-4 hover:underline">
                 {t("landing.joinAsInvestor")}
-              </Link>
-              {" · "}
-              <Link href={ROUTES.MEMBERSHIP} className="underline-offset-4 hover:underline">
-                {t("nav.serviceFee")}
               </Link>
             </p>
           </div>
@@ -266,28 +244,6 @@ export default function HomePage() {
               {t("landing.featuredEmpty")}
             </p>
           )}
-        </div>
-      </section>
-
-      <section className="border-y border-border/60 bg-[hsl(var(--card))]">
-        <div className="container-narrow section-pad py-16">
-          <div className="mx-auto max-w-2xl text-center">
-            <h2 className="font-display text-3xl font-semibold text-slate-900">
-              {t("landing.successStories")}
-            </h2>
-            <p className="mt-3 text-muted-foreground">{t("landing.successStoriesSub")}</p>
-          </div>
-          <div className="mt-12 grid gap-6 md:grid-cols-3">
-            {stories.map((story) => (
-              <blockquote key={story.name} className="premium-card p-6">
-                <p className="text-sm leading-relaxed text-slate-700">&ldquo;{story.quote}&rdquo;</p>
-                <footer className="mt-5 border-t border-border pt-4">
-                  <p className="text-sm font-semibold text-slate-900">{story.name}</p>
-                  <p className="text-xs text-muted-foreground">{story.role}</p>
-                </footer>
-              </blockquote>
-            ))}
-          </div>
         </div>
       </section>
 

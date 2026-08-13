@@ -24,24 +24,6 @@ export default function AboutPage() {
     { label: t("about.stat4Label"), value: t("about.stat4Value") },
   ];
 
-  const team = [
-    {
-      name: t("about.member1Name"),
-      role: t("about.member1Role"),
-      bio: t("about.member1Bio"),
-    },
-    {
-      name: t("about.member2Name"),
-      role: t("about.member2Role"),
-      bio: t("about.member2Bio"),
-    },
-    {
-      name: t("about.member3Name"),
-      role: t("about.member3Role"),
-      bio: t("about.member3Bio"),
-    },
-  ];
-
   const securityItems = [
     {
       icon: Shield,
@@ -184,24 +166,7 @@ export default function AboutPage() {
       </section>
 
       <section className="container-narrow section-pad py-16">
-        <h2 className="font-display text-2xl font-semibold text-slate-900">{t("about.team")}</h2>
-        <p className="mt-2 max-w-xl text-muted-foreground">{t("about.teamSub")}</p>
-        <div className="mt-10 grid gap-6 md:grid-cols-3">
-          {team.map((member) => (
-            <div key={member.name} className="premium-card p-6">
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 font-display text-sm font-semibold text-slate-700">
-                {member.name
-                  .split(" ")
-                  .map((n) => n[0])
-                  .join("")}
-              </div>
-              <h3 className="font-display text-lg font-semibold">{member.name}</h3>
-              <p className="text-sm text-blue-600">{member.role}</p>
-              <p className="mt-3 text-sm text-muted-foreground">{member.bio}</p>
-            </div>
-          ))}
-        </div>
-        <div className="mt-12 flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-3">
           <Button asChild>
             <Link href={ROUTES.REGISTER}>{t("common.getStarted")}</Link>
           </Button>

@@ -131,7 +131,7 @@ export default function MembershipPage() {
               <div className="mt-8 space-y-3">
                 <p className="text-sm text-muted-foreground">{t("membership.loginRequired")}</p>
                 <Button asChild className="w-full">
-                  <Link href={`${ROUTES.LOGIN}?next=/membership`}>{t("common.signIn")}</Link>
+                  <Link href={`${ROUTES.LOGIN}?next=/investor/membership`}>{t("common.signIn")}</Link>
                 </Button>
                 <Button asChild variant="outline" className="w-full">
                   <Link href={`${ROUTES.REGISTER}?role=investor`}>{t("membership.createInvestor")}</Link>

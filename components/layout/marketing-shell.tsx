@@ -23,7 +23,6 @@ export function MarketingHeader() {
   const NAV = [
     { href: ROUTES.PROJECTS || "/projects", label: t("nav.projects") },
     { href: "/#how-it-works", label: t("nav.howItWorks") },
-    { href: ROUTES.MEMBERSHIP || "/membership", label: t("nav.serviceFee") },
     { href: ROUTES.ABOUT || "/about", label: t("nav.about") },
   ];
 
@@ -132,7 +131,6 @@ export function MarketingFooter() {
           <p className="text-sm font-semibold text-slate-900">{t("footer.platform")}</p>
           <div className="mt-3 flex flex-col gap-2 text-sm text-muted-foreground">
             <Link href={ROUTES.PROJECTS || "/projects"}>{t("nav.projects")}</Link>
-            <Link href={ROUTES.MEMBERSHIP || "/membership"}>{t("nav.serviceFee")}</Link>
             <Link href={ROUTES.ABOUT || "/about"}>{t("nav.about")}</Link>
             <Link href={ROUTES.CONTACT || "/contact"}>{t("nav.contact")}</Link>
           </div>

@@ -49,7 +49,7 @@ export default function ProjectDetailPage() {
   const isHy = locale === "hy";
   const inInvestorPanel = pathname.startsWith("/investor");
   const projectsBase = inInvestorPanel ? ROUTES.INVESTOR_PROJECTS : ROUTES.PROJECTS;
-  const membershipHref = inInvestorPanel ? ROUTES.INVESTOR_MEMBERSHIP : ROUTES.MEMBERSHIP;
+  const membershipHref = ROUTES.INVESTOR_MEMBERSHIP;
 
   const [offerOpen, setOfferOpen] = useState(false);
   const [amount, setAmount] = useState("");

@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/constants";
@@ -9,10 +8,7 @@ import { useI18n } from "@/hooks";
 
 export function ServicePaywall({ className }: { className?: string }) {
   const { t } = useI18n();
-  const pathname = usePathname();
-  const membershipHref = pathname.startsWith("/investor")
-    ? ROUTES.INVESTOR_MEMBERSHIP
-    : ROUTES.MEMBERSHIP;
+  const membershipHref = ROUTES.INVESTOR_MEMBERSHIP;
 
   return (
     <div className={className ?? "premium-card flex flex-col items-start gap-3 border-teal-100 bg-teal-50/50 p-5"}>

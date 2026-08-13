@@ -286,8 +286,8 @@ const handlers: Record<string, Handler> = {
     const session = await createServiceFeeCheckoutSession({
       userId: auth!.sub,
       email: user?.email || "",
-      successUrl: "/membership?checkout=mock",
-      cancelUrl: "/membership",
+      successUrl: "/investor/membership?checkout=mock",
+      cancelUrl: "/investor/membership",
     });
     return ok({
       checkoutUrl: session.checkoutUrl,

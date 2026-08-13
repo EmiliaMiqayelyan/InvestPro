@@ -34,7 +34,7 @@ export default function RiskAnalysisPage() {
   const projectHref = inInvestorPanel
     ? `${ROUTES.INVESTOR_PROJECTS}/${id}`
     : `${ROUTES.PROJECTS}/${id}`;
-  const membershipHref = inInvestorPanel ? ROUTES.INVESTOR_MEMBERSHIP : ROUTES.MEMBERSHIP;
+  const membershipHref = ROUTES.INVESTOR_MEMBERSHIP;
   const { data: report, isLoading, error } = useRiskAnalysis(id);
   const risk = RISK_LEVELS.find((r) => r.value === report?.level);
   const disclaimer = isHy ? DILIGENCE_DISCLAIMER_HY : DILIGENCE_DISCLAIMER_EN;
