@@ -171,6 +171,16 @@ export const contactApi = {
 
 export const notificationsApi = {
   list: () => apiClient.get<ApiResponse<Notification[]>>("/notifications"),
+  unreadCount: () =>
+    apiClient.get<ApiResponse<{ unreadCount: number }>>("/notifications/unread-count"),
+  markRead: (id: string) =>
+    apiClient.patch<ApiResponse<{ notification: Notification; unreadCount: number }>>(
+      `/notifications/${id}/read`
+    ),
+  markAllRead: () =>
+    apiClient.post<ApiResponse<{ updated: number; unreadCount: number }>>(
+      "/notifications/read-all"
+    ),
 };
 
 export const kycApi = {

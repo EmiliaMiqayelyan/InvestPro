@@ -56,7 +56,11 @@ export type NotificationType =
   | "project_update"
   | "security_alert"
   | "milestone_update"
+  | "complaint"
+  | "user_update"
   | "general";
+
+export type NotificationPriority = "normal" | "high";
 
 export type PhaseStatus = "planned" | "active" | "completed";
 
@@ -391,6 +395,8 @@ export interface Notification {
   title: string;
   message: string;
   isRead: boolean;
+  href?: string;
+  priority?: NotificationPriority;
   metadata?: Record<string, unknown>;
   createdAt: string;
 }

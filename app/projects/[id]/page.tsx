@@ -579,7 +579,7 @@ export default function ProjectDetailPage() {
             </Tabs>
           </div>
 
-          <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start animate-slide-up">
+          <aside className="relative z-10 space-y-4 lg:sticky lg:top-20 lg:self-start">
             <div className="premium-card p-6">
               <p className="text-xs text-muted-foreground">{t("projects.fundingProgress")}</p>
               <p className="mt-1 font-display text-2xl font-semibold">
@@ -598,24 +598,24 @@ export default function ProjectDetailPage() {
                 />
               </div>
               <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
-                <div>
-                  <p className="text-xs text-muted-foreground">Required amount</p>
-                  <p className="font-medium">{formatCurrency(project.requiredInvestment)}</p>
+                <div className="min-w-0">
+                  <p className="text-xs text-muted-foreground">{t("projects.required")}</p>
+                  <p className="truncate font-medium">{formatCurrency(project.requiredInvestment)}</p>
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Remaining</p>
-                  <p className="font-medium">{formatCurrency(remainingFunding)}</p>
+                <div className="min-w-0">
+                  <p className="text-xs text-muted-foreground">{t("projects.remaining")}</p>
+                  <p className="truncate font-medium">{formatCurrency(remainingFunding)}</p>
                 </div>
                 <div className="col-span-2">
                   <div className="mt-1 h-px bg-border/70" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <p className="text-xs text-muted-foreground">{t("projects.minInvestment")}</p>
-                  <p className="font-medium">{formatCurrency(project.minInvestment)}</p>
+                  <p className="truncate font-medium">{formatCurrency(project.minInvestment)}</p>
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Investors</p>
-                  <p className="font-medium">{project.investorCount}</p>
+                <div className="min-w-0">
+                  <p className="text-xs text-muted-foreground">{t("projects.investors")}</p>
+                  <p className="truncate font-medium">{project.investorCount}</p>
                 </div>
               </div>
 

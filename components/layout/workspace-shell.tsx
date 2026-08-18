@@ -27,6 +27,7 @@ import { useAuth, useI18n } from "@/hooks";
 import { Button } from "@/components/ui/button";
 import { LanguageSwitcher } from "@/components/shared/language-switcher";
 import { PlatformLogo } from "@/components/shared/platform-logo";
+import { NotificationCenter } from "@/components/workspace/notification-center";
 import { cn } from "@/lib/utils";
 import type { UserRole } from "@/types";
 import type { TranslationKey } from "@/i18n";
@@ -155,7 +156,7 @@ export function WorkspaceShell({
         </div>
       )}
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-16 items-center justify-between border-b border-border bg-[hsl(var(--card))]/95 px-4 backdrop-blur lg:px-8">
+        <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-border bg-[hsl(var(--card))] px-4 lg:px-8">
           <div className="flex items-center gap-3">
             <button className="lg:hidden" onClick={() => setOpen(true)} aria-label="Open menu">
               <Menu className="h-5 w-5" />
@@ -165,6 +166,7 @@ export function WorkspaceShell({
             </h1>
           </div>
           <div className="flex items-center gap-3">
+            <NotificationCenter />
             <LanguageSwitcher compact />
             <div className="hidden text-sm text-muted-foreground sm:block">{user?.email}</div>
           </div>

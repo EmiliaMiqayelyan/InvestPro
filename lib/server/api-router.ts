@@ -25,8 +25,14 @@ import {
   redactContactInfo,
   upgradeMembership,
   MEMBERSHIP_PLANS,
+  listNotifications,
+  getUnreadNotificationCount,
+  markNotificationRead,
+  markAllNotificationsRead,
   type StoredUser,
 } from "./store";
+import { dispatchNotificationEvent } from "./notifications";
+import { subscribeNotifications } from "./notification-hub";
 import {
   createTokenPair,
   verifyAccessToken,
@@ -75,8 +81,14 @@ async function parseBody<T>(req: NextRequest): Promise<T> {
 
 async function getAuth(req: NextRequest): Promise<TokenPayload | null> {
   const header = req.headers.get("authorization");
-  if (!header?.startsWith("Bearer ")) return null;
-  return verifyAccessToken(header.slice(7));
+  if (header?.startsWith("Bearer ")) {
+    return verifyAccessToken(header.slice(7));
+  }
+  const cookie = req.cookies.get("access_token")?.value;
+  if (cookie) return verifyAccessToken(cookie);
+  const token = new URL(req.url).searchParams.get("token");
+  if (token) return verifyAccessToken(token);
+  return null;
 }
 
 function findUserByEmail(email: string): StoredUser | undefined {
@@ -218,6 +230,13 @@ const handlers: Record<string, Handler> = {
     };
     store.users.set(user.id, user);
     logActivity(user.id, "register", "auth", undefined, { role });
+    dispatchNotificationEvent({
+      kind: "user_registered",
+      userId: user.id,
+      role,
+      name: `${user.firstName} ${user.lastName}`,
+      email: user.email,
+    });
     const tokens = await createTokenPair(sanitizeUser(user));
     return ok({ user: sanitizeUser(user), tokens }, "Account created", 201);
   },
@@ -272,6 +291,11 @@ const handlers: Record<string, Handler> = {
     } catch {
       /* non-blocking */
     }
+    dispatchNotificationEvent({
+      kind: "membership_activated",
+      userId: auth!.sub,
+      amount: result.subscription.amount,
+    });
     return ok({ ...result, tokens }, "Membership activated");
   },
 
@@ -476,17 +500,7 @@ const handlers: Record<string, Handler> = {
     };
     getStore().offers.set(offer.id, offer);
     logActivity(auth!.sub, "offer_created", "offer", offer.id);
-    const notes = getStore().notifications.get(project.ownerId) || [];
-    notes.unshift({
-      id: crypto.randomUUID(),
-      userId: project.ownerId,
-      type: "offer_received",
-      title: "New investment offer",
-      message: `${offer.investorName} offered $${offer.amount.toLocaleString()} on ${project.title}`,
-      isRead: false,
-      createdAt: new Date().toISOString(),
-    });
-    getStore().notifications.set(project.ownerId, notes);
+    dispatchNotificationEvent({ kind: "offer_created", offer });
     return ok(offer, "Offer submitted", 201);
   },
 
@@ -533,11 +547,20 @@ const handlers: Record<string, Handler> = {
       if (project) {
         project.currentFunding += offer.amount;
         project.investorCount += 1;
+        if (project.currentFunding >= project.requiredInvestment && project.status === "published") {
+          project.status = "funded";
+          dispatchNotificationEvent({
+            kind: "project_status_changed",
+            project,
+            status: "funded",
+          });
+        }
         getStore().projects.set(project.id, project);
       }
     }
 
     logActivity(auth!.sub, `offer_${body.status}`, "offer", offer.id);
+    dispatchNotificationEvent({ kind: "offer_updated", offer });
     return ok(offer);
   },
 
@@ -604,6 +627,7 @@ const handlers: Record<string, Handler> = {
     };
     getStore().projects.set(id, project);
     logActivity(auth!.sub, "project_created", "project", id);
+    dispatchNotificationEvent({ kind: "project_created", project });
     return ok(project, "Project submitted for review", 201);
   },
 
@@ -756,7 +780,24 @@ const handlers: Record<string, Handler> = {
     conversation.lastMessageAt = message.createdAt;
     conversation.unreadCount += 1;
     getStore().conversations.set(params.id, conversation);
-    if (blocked) logActivity(auth!.sub, "contact_info_blocked", "message", message.id);
+    if (blocked) {
+      logActivity(auth!.sub, "contact_info_blocked", "message", message.id);
+      dispatchNotificationEvent({
+        kind: "contact_blocked",
+        conversation,
+        senderId: auth!.sub,
+        senderName: message.senderName,
+      });
+    }
+    dispatchNotificationEvent({ kind: "message_sent", conversation, message });
+    const recipientId =
+      auth!.sub === conversation.investorId ? conversation.ownerId : conversation.investorId;
+    const recipient = getStore().users.get(recipientId);
+    if (recipient?.email) {
+      void import("./email").then(({ sendNewMessageNotice }) =>
+        sendNewMessageNotice(recipient.email, conversation.projectTitle)
+      );
+    }
     return ok(message, blocked ? "Message sent. External contact details were removed for security." : undefined, 201);
   },
 
@@ -786,7 +827,87 @@ const handlers: Record<string, Handler> = {
 
   "GET /notifications": async (_req, _p, auth) => {
     if (!auth) return fail("Unauthorized", 401);
-    return ok(getStore().notifications.get(auth.sub) || []);
+    return ok(listNotifications(auth.sub));
+  },
+
+  "GET /notifications/unread-count": async (_req, _p, auth) => {
+    if (!auth) return fail("Unauthorized", 401);
+    return ok({ unreadCount: getUnreadNotificationCount(auth.sub) });
+  },
+
+  "PATCH /notifications/:id/read": async (_req, params, auth) => {
+    if (!auth) return fail("Unauthorized", 401);
+    const item = markNotificationRead(auth.sub, params.id);
+    if (!item) return fail("Notification not found", 404);
+    return ok({
+      notification: item,
+      unreadCount: getUnreadNotificationCount(auth.sub),
+    });
+  },
+
+  "POST /notifications/read-all": async (_req, _p, auth) => {
+    if (!auth) return fail("Unauthorized", 401);
+    const updated = markAllNotificationsRead(auth.sub);
+    return ok({ updated, unreadCount: 0 });
+  },
+
+  "GET /notifications/stream": async (req, _p, auth) => {
+    if (!auth) return fail("Unauthorized", 401);
+    const userId = auth.sub;
+    const encoder = new TextEncoder();
+    let heartbeat: ReturnType<typeof setInterval> | undefined;
+    let unsubscribe: (() => void) | undefined;
+
+    const stream = new ReadableStream({
+      start(controller) {
+        const send = (event: string, data: unknown) => {
+          controller.enqueue(
+            encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`)
+          );
+        };
+        send("connected", {
+          ok: true,
+          unreadCount: getUnreadNotificationCount(userId),
+        });
+        unsubscribe = subscribeNotifications(userId, (event, data) => {
+          try {
+            send(event, data);
+          } catch {
+            unsubscribe?.();
+            if (heartbeat) clearInterval(heartbeat);
+          }
+        });
+        heartbeat = setInterval(() => {
+          try {
+            controller.enqueue(encoder.encode(`: ping\n\n`));
+          } catch {
+            if (heartbeat) clearInterval(heartbeat);
+          }
+        }, 25000);
+        req.signal.addEventListener("abort", () => {
+          if (heartbeat) clearInterval(heartbeat);
+          unsubscribe?.();
+          try {
+            controller.close();
+          } catch {
+            /* already closed */
+          }
+        });
+      },
+      cancel() {
+        if (heartbeat) clearInterval(heartbeat);
+        unsubscribe?.();
+      },
+    });
+
+    return new NextResponse(stream, {
+      headers: {
+        "Content-Type": "text/event-stream; charset=utf-8",
+        "Cache-Control": "no-cache, no-transform",
+        Connection: "keep-alive",
+        "X-Accel-Buffering": "no",
+      },
+    });
   },
 
   "GET /kyc": async (_req, _p, auth) => {
@@ -813,6 +934,11 @@ const handlers: Record<string, Handler> = {
       getStore().users.set(user.id, user);
     }
     logActivity(auth.sub, "kyc_submitted", "kyc", submission.id);
+    dispatchNotificationEvent({
+      kind: "kyc_submitted",
+      userId: auth.sub,
+      name: user ? `${user.firstName} ${user.lastName}` : "A user",
+    });
     return ok(submission, "KYC submitted", 201);
   },
 
@@ -851,6 +977,7 @@ const handlers: Record<string, Handler> = {
     user.role = role;
     user.updatedAt = new Date().toISOString();
     getStore().users.set(user.id, user);
+    dispatchNotificationEvent({ kind: "role_changed", userId: user.id, role });
     return ok(sanitizeUser(user));
   },
 
@@ -874,6 +1001,7 @@ const handlers: Record<string, Handler> = {
     project.updatedAt = new Date().toISOString();
     getStore().projects.set(project.id, project);
     logActivity(auth!.sub, "project_status_updated", "project", project.id, { status });
+    dispatchNotificationEvent({ kind: "project_status_changed", project, status });
     return ok(project);
   },
 
@@ -917,6 +1045,7 @@ const handlers: Record<string, Handler> = {
       createdAt: new Date().toISOString(),
     };
     getStore().complaints.push(complaint);
+    dispatchNotificationEvent({ kind: "complaint_filed", complaint });
     return ok(complaint, undefined, 201);
   },
 
@@ -1002,19 +1131,7 @@ const handlers: Record<string, Handler> = {
     };
     getStore().milestonePlans.set(plan.id, plan);
     logActivity(auth!.sub, "milestone_created", "milestone", plan.id);
-
-    const notes = getStore().notifications.get(project.ownerId) || [];
-    notes.unshift({
-      id: crypto.randomUUID(),
-      userId: project.ownerId,
-      type: "milestone_update",
-      title: "New milestone plan",
-      message: `${plan.investorName} proposed milestones for ${project.title}`,
-      isRead: false,
-      createdAt: now,
-    });
-    getStore().notifications.set(project.ownerId, notes);
-
+    dispatchNotificationEvent({ kind: "milestone_created", plan });
     return ok(plan, "Milestone plan created", 201);
   },
 
@@ -1043,20 +1160,7 @@ const handlers: Record<string, Handler> = {
     plan.updatedAt = new Date().toISOString();
     getStore().milestonePlans.set(plan.id, plan);
     logActivity(auth!.sub, "milestone_updated", "milestone", plan.id, { status: plan.status });
-
-    const notifyUserId = isOwner ? plan.investorId : plan.ownerId;
-    const notes = getStore().notifications.get(notifyUserId) || [];
-    notes.unshift({
-      id: crypto.randomUUID(),
-      userId: notifyUserId,
-      type: "milestone_update",
-      title: "Milestone plan updated",
-      message: `Milestone plan for ${plan.projectTitle} was updated`,
-      isRead: false,
-      createdAt: plan.updatedAt,
-    });
-    getStore().notifications.set(notifyUserId, notes);
-
+    dispatchNotificationEvent({ kind: "milestone_updated", plan, actorId: auth!.sub });
     return ok(plan);
   },
 
@@ -1079,6 +1183,11 @@ const handlers: Record<string, Handler> = {
   "POST /contact": async (req) => {
     const body = await parseBody<{ name: string; email: string; message: string }>(req);
     if (!body.email || !body.message) return fail("Email and message required", 400);
+    dispatchNotificationEvent({
+      kind: "contact_form",
+      name: body.name || "Visitor",
+      email: body.email,
+    });
     return ok(null, "Message received. Our team will respond shortly.");
   },
 };

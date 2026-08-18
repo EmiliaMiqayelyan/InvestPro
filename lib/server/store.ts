@@ -447,6 +447,49 @@ function initStore(): DevStore {
     amount: 99,
   });
 
+  const now = new Date().toISOString();
+  const notifications = new Map<string, Notification[]>();
+  notifications.set(investor.id, [
+    {
+      id: crypto.randomUUID(),
+      userId: investor.id,
+      type: "membership",
+      title: "Platform access is active",
+      message:
+        "Full data rooms, messaging, offers, and milestone planning are unlocked for this demo account.",
+      isRead: false,
+      href: "/investor/projects",
+      priority: "high",
+      createdAt: now,
+    },
+  ]);
+  notifications.set(owner.id, [
+    {
+      id: crypto.randomUUID(),
+      userId: owner.id,
+      type: "project_update",
+      title: "Your listings are live",
+      message:
+        "Horizon Labs projects are published. You will be notified when investors send offers or messages.",
+      isRead: false,
+      href: "/owner/offers",
+      createdAt: now,
+    },
+  ]);
+  notifications.set(admin.id, [
+    {
+      id: crypto.randomUUID(),
+      userId: admin.id,
+      type: "general",
+      title: "Moderation inbox is live",
+      message:
+        "You will get realtime alerts for new accounts, pending projects, KYC, complaints, and flagged chat.",
+      isRead: false,
+      href: "/admin/security",
+      createdAt: now,
+    },
+  ]);
+
   return {
     users,
     projects,
@@ -456,7 +499,7 @@ function initStore(): DevStore {
     subscriptions,
     investments: new Map(),
     savedProjects: new Map(),
-    notifications: new Map(),
+    notifications,
     kyc: new Map(),
     activityLogs: [],
     complaints: [],
@@ -466,14 +509,14 @@ function initStore(): DevStore {
 
 declare global {
   // eslint-disable-next-line no-var
-  var __investProStoreV4: DevStore | undefined;
+  var __investProStoreV5: DevStore | undefined;
 }
 
 export function getStore(): DevStore {
-  if (!globalThis.__investProStoreV4) {
-    globalThis.__investProStoreV4 = initStore();
+  if (!globalThis.__investProStoreV5) {
+    globalThis.__investProStoreV5 = initStore();
   }
-  return globalThis.__investProStoreV4;
+  return globalThis.__investProStoreV5;
 }
 
 export function hasServiceAccess(
@@ -519,6 +562,52 @@ export function logActivity(
     metadata,
     createdAt: new Date().toISOString(),
   });
+}
+
+const MAX_NOTIFICATIONS_PER_USER = 100;
+
+export function listUserIdsByRole(role: UserRole): string[] {
+  return Array.from(getStore().users.values())
+    .filter((user) => user.role === role)
+    .map((user) => user.id);
+}
+
+export function listNotifications(userId: string): Notification[] {
+  return getStore().notifications.get(userId) || [];
+}
+
+export function getUnreadNotificationCount(userId: string): number {
+  return listNotifications(userId).filter((n) => !n.isRead).length;
+}
+
+export function appendNotification(notification: Notification): Notification {
+  const store = getStore();
+  const list = store.notifications.get(notification.userId) || [];
+  list.unshift(notification);
+  store.notifications.set(notification.userId, list.slice(0, MAX_NOTIFICATIONS_PER_USER));
+  return notification;
+}
+
+export function markNotificationRead(userId: string, id: string): Notification | null {
+  const list = getStore().notifications.get(userId);
+  if (!list) return null;
+  const item = list.find((n) => n.id === id);
+  if (!item) return null;
+  item.isRead = true;
+  return item;
+}
+
+export function markAllNotificationsRead(userId: string): number {
+  const list = getStore().notifications.get(userId);
+  if (!list) return 0;
+  let changed = 0;
+  for (const item of list) {
+    if (!item.isRead) {
+      item.isRead = true;
+      changed += 1;
+    }
+  }
+  return changed;
 }
 
 export function analyzeProjectRisk(project: Project): RiskAnalysis {
