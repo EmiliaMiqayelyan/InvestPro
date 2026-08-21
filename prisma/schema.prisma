@@ -72,6 +72,13 @@ model Project {
   phasesJson         Json     @default("[]")
   documentsJson      Json     @default("[]")
   teamJson           Json     @default("[]")
+  submittedAt        DateTime?
+  approvedAt         DateTime?
+  approvedBy         String?
+  rejectedAt         DateTime?
+  rejectedBy         String?
+  rejectionReason    String?  @db.Text
+  reviewHistoryJson  Json     @default("[]")
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
   milestonePlans     MilestonePlan[]

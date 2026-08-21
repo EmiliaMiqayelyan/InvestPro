@@ -7,9 +7,11 @@ import { QUERY_KEYS, STATUS_COLORS } from "@/constants";
 import { formatDate } from "@/utils/format";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/hooks";
 import type { Complaint } from "@/types";
 
 export default function AdminComplaintsPage() {
+  const { t } = useI18n();
   const { data: complaints = [], isLoading } = useQuery({
     queryKey: [QUERY_KEYS.ADMIN_COMPLAINTS],
     queryFn: async () => {
@@ -21,8 +23,10 @@ export default function AdminComplaintsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="font-display text-2xl font-semibold text-slate-900">Complaints</h2>
-        <p className="text-sm text-muted-foreground">User-reported issues for review</p>
+        <h2 className="font-display text-2xl font-semibold text-slate-900">
+          {t("admin.complaintsTitle")}
+        </h2>
+        <p className="text-sm text-muted-foreground">{t("admin.complaintsSub")}</p>
       </div>
 
       {isLoading ? (
@@ -30,7 +34,7 @@ export default function AdminComplaintsPage() {
       ) : complaints.length === 0 ? (
         <div className="premium-card flex flex-col items-center gap-3 p-12 text-center">
           <AlertTriangle className="h-10 w-10 text-slate-300" />
-          <p className="font-medium text-slate-900">No complaints</p>
+          <p className="font-medium text-slate-900">{t("admin.noComplaints")}</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -40,9 +44,9 @@ export default function AdminComplaintsPage() {
                 <div>
                   <p className="font-semibold text-slate-900">{c.subject}</p>
                   <p className="text-xs text-muted-foreground">
-                    Reporter {c.reporterId}
-                    {c.againstUserId ? ` · against ${c.againstUserId}` : ""}
-                    {c.projectId ? ` · project ${c.projectId}` : ""}
+                    {c.reporterId}
+                    {c.againstUserId ? ` · ${c.againstUserId}` : ""}
+                    {c.projectId ? ` · ${c.projectId}` : ""}
                     {" · "}
                     {formatDate(c.createdAt)}
                   </p>

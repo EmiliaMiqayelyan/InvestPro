@@ -9,9 +9,11 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { PLATFORM_NAME } from "@/constants";
+import { useI18n } from "@/hooks";
 import { toast } from "sonner";
 
 export default function AdminSettingsPage() {
+  const { t } = useI18n();
   const [settings, setSettings] = useState({
     platformName: PLATFORM_NAME,
     supportEmail: "support@venturebridge.com",
@@ -24,43 +26,45 @@ export default function AdminSettingsPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
-        <h2 className="font-display text-2xl font-semibold text-slate-900">Settings</h2>
-        <p className="text-sm text-muted-foreground">Platform configuration (UI stub)</p>
+        <h2 className="font-display text-2xl font-semibold text-slate-900">
+          {t("admin.settingsTitle")}
+        </h2>
+        <p className="text-sm text-muted-foreground">{t("admin.settingsSub")}</p>
       </div>
 
       <Card className="premium-card border-border bg-white shadow-none backdrop-blur-none">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-slate-900">
-            <Settings className="h-5 w-5 text-blue-600" /> General
+            <Settings className="h-5 w-5 text-teal-800" /> {t("admin.settingsGeneral")}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-5">
           <div className="space-y-2">
-            <Label>Platform name</Label>
+            <Label>{t("admin.platformName")}</Label>
             <Input
               value={settings.platformName}
               onChange={(e) => setSettings({ ...settings, platformName: e.target.value })}
             />
           </div>
           <div className="space-y-2">
-            <Label>Support email</Label>
+            <Label>{t("admin.supportEmail")}</Label>
             <Input
               value={settings.supportEmail}
               onChange={(e) => setSettings({ ...settings, supportEmail: e.target.value })}
             />
           </div>
           <div className="space-y-2">
-            <Label>Announcement banner</Label>
+            <Label>{t("admin.announcementBanner")}</Label>
             <Textarea
               value={settings.announcement}
               onChange={(e) => setSettings({ ...settings, announcement: e.target.value })}
-              placeholder="Optional platform-wide notice"
+              placeholder={t("admin.announcementPlaceholder")}
             />
           </div>
           <div className="flex items-center justify-between rounded-xl border border-border px-4 py-3">
             <div>
-              <p className="font-medium text-slate-900">Maintenance mode</p>
-              <p className="text-sm text-muted-foreground">Temporarily disable user access</p>
+              <p className="font-medium text-slate-900">{t("admin.maintenanceMode")}</p>
+              <p className="text-sm text-muted-foreground">{t("admin.maintenanceModeDesc")}</p>
             </div>
             <Switch
               checked={settings.maintenanceMode}
@@ -71,8 +75,8 @@ export default function AdminSettingsPage() {
           </div>
           <div className="flex items-center justify-between rounded-xl border border-border px-4 py-3">
             <div>
-              <p className="font-medium text-slate-900">KYC required</p>
-              <p className="text-sm text-muted-foreground">Require verification for offers</p>
+              <p className="font-medium text-slate-900">{t("admin.kycRequired")}</p>
+              <p className="text-sm text-muted-foreground">{t("admin.kycRequiredDesc")}</p>
             </div>
             <Switch
               checked={settings.kycRequired}
@@ -83,10 +87,8 @@ export default function AdminSettingsPage() {
           </div>
           <div className="flex items-center justify-between rounded-xl border border-border px-4 py-3">
             <div>
-              <p className="font-medium text-slate-900">Contact blocking</p>
-              <p className="text-sm text-muted-foreground">
-                Block emails/phones in on-platform chat
-              </p>
+              <p className="font-medium text-slate-900">{t("admin.contactBlocking")}</p>
+              <p className="text-sm text-muted-foreground">{t("admin.contactBlockingDesc")}</p>
             </div>
             <Switch
               checked={settings.contactBlocking}
@@ -96,10 +98,10 @@ export default function AdminSettingsPage() {
             />
           </div>
           <Button
-            className="w-full bg-blue-600 hover:bg-blue-700"
-            onClick={() => toast.success("Settings saved locally")}
+            className="w-full"
+            onClick={() => toast.success(t("admin.settingsSaved"))}
           >
-            Save settings
+            {t("admin.saveSettings")}
           </Button>
         </CardContent>
       </Card>

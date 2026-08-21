@@ -66,10 +66,10 @@ export function MarketplaceProjectCard({
 
   const riskChip =
     project.riskLevel === "low"
-      ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+      ? "bg-emerald-600 text-white"
       : project.riskLevel === "high"
-        ? "border-red-200 bg-red-50 text-red-800"
-        : "border-amber-200 bg-amber-50 text-amber-800";
+        ? "bg-red-600 text-white"
+        : "bg-amber-600 text-white";
 
   const toggleSaved = async () => {
     if (saving) return;
@@ -92,23 +92,16 @@ export function MarketplaceProjectCard({
     }
   };
 
-  const facts = [
-    stageLabel,
-    category,
-    t("projects.teamHeadcount", { count: teamSize }),
-    riskLabel,
-  ].filter(Boolean);
-
   return (
-    <article className="premium-card flex h-full flex-col overflow-hidden transition hover:-translate-y-0.5 hover:shadow-soft">
-      <Link href={detailHref} className="relative block aspect-[16/10] shrink-0 bg-slate-100">
+    <article className="premium-card group flex h-full flex-col overflow-hidden transition duration-200 hover:-translate-y-0.5 hover:shadow-soft">
+      <Link href={detailHref} className="relative block aspect-[16/10] shrink-0 overflow-hidden bg-slate-100">
         {imageSrc ? (
           <Image
             src={imageSrc}
             alt={title}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            className="object-cover"
+            className="object-cover transition duration-300 group-hover:scale-[1.03]"
             onError={() => setImgFailed(true)}
           />
         ) : (
@@ -118,55 +111,70 @@ export function MarketplaceProjectCard({
             </span>
           </div>
         )}
+        <span
+          className={cn(
+            "absolute left-3 top-3 rounded-md px-2 py-1 text-[11px] font-medium shadow-sm",
+            riskChip
+          )}
+        >
+          {riskLabel}
+        </span>
       </Link>
 
-      <div className="flex flex-1 flex-col p-5">
-        <h3 className="line-clamp-2 min-h-[3.25rem] font-display text-lg font-semibold leading-snug text-slate-900">
-          <Link href={detailHref} className="hover:text-teal-900">
-            {title}
-          </Link>
-        </h3>
-        <p className="mt-2 line-clamp-2 min-h-[2.5rem] text-sm leading-relaxed text-muted-foreground">
-          {description}
-        </p>
-
-        <div className="mt-4 space-y-3">
-          <p className="font-display text-xl font-semibold text-slate-900">
-            {t("projects.neededAmount", {
-              amount: formatCompactCurrency(project.requiredInvestment),
-            })}
+      <div className="flex flex-1 flex-col gap-4 p-5">
+        <div>
+          <p className="text-xs font-medium text-teal-800">
+            {stageLabel}
+            {category ? (
+              <>
+                <span className="mx-1.5 text-teal-800/35">·</span>
+                {category}
+              </>
+            ) : null}
           </p>
-
-          <div>
-            <p className="text-sm font-medium text-slate-800">
-              {t("projects.fundedPercent", { percent: progress })}
-            </p>
-            <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-slate-100">
-              <div
-                className="h-full rounded-full bg-teal-700"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-          </div>
-
-          <div className="flex flex-wrap gap-1.5">
-            {facts.map((fact) => (
-              <span
-                key={fact}
-                className={cn(
-                  "rounded-full border px-2.5 py-1 text-xs font-medium",
-                  fact === riskLabel
-                    ? riskChip
-                    : "border-slate-200 bg-slate-50 text-slate-700"
-                )}
-              >
-                {fact}
-              </span>
-            ))}
-          </div>
+          <h3 className="mt-1.5 line-clamp-2 font-display text-lg font-semibold leading-snug text-slate-900">
+            <Link href={detailHref} className="hover:text-teal-900">
+              {title}
+            </Link>
+          </h3>
+          <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+            {description}
+          </p>
         </div>
 
-        <div className="mt-auto flex gap-2 border-t border-slate-100 pt-5">
+        <div className="mt-auto space-y-3">
+          <div className="flex items-end justify-between gap-3">
+            <div>
+              <p className="text-xs text-muted-foreground">{t("projects.required")}</p>
+              <p className="font-display text-xl font-semibold tabular-nums text-slate-900">
+                {formatCompactCurrency(project.requiredInvestment)}
+              </p>
+            </div>
+            <p className="pb-0.5 text-sm font-medium tabular-nums text-teal-800">
+              {progress}%
+            </p>
+          </div>
+
+          <div
+            className="h-2.5 overflow-hidden rounded-full bg-slate-100"
+            role="progressbar"
+            aria-valuenow={progress}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label={t("projects.fundedPercent", { percent: progress })}
+          >
+            <div
+              className="h-full rounded-full bg-teal-700 transition-[width] duration-500"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+
+          <p className="text-xs text-muted-foreground">
+            {t("projects.teamHeadcount", { count: teamSize })}
+          </p>
+        </div>
+
+        <div className="flex gap-2 border-t border-slate-100 pt-4">
           <Button asChild className="flex-1">
             <Link href={detailHref}>
               {t("projects.viewProject")}

@@ -368,8 +368,10 @@ const handlers: Record<string, Handler> = {
         const bp = b.currentFunding / Math.max(b.requiredInvestment, 1);
         return dir * (bp - ap);
       }
-      // newest
-      return dir * (new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      // newest: recently published/updated first (not only original create date)
+      const recency = (p: (typeof projects)[number]) =>
+        new Date(p.approvedAt || p.updatedAt || p.submittedAt || p.createdAt).getTime();
+      return dir * (recency(b) - recency(a));
     });
     const page = Number(searchParams.get("page") || 1);
     const limit = Number(searchParams.get("limit") || 12);
@@ -397,7 +399,7 @@ const handlers: Record<string, Handler> = {
     const project = getStore().projects.get(params.id);
     if (!project) return fail("Project not found", 404);
     const analysis = analyzeProjectRisk(project);
-    if (!hasActiveServiceAccess(authUserObj(auth))) {
+    if (auth!.role !== "admin" && !hasActiveServiceAccess(authUserObj(auth))) {
       return ok({
         projectId: analysis.projectId,
         score: analysis.score,
@@ -576,6 +578,27 @@ const handlers: Record<string, Handler> = {
     const projects = Array.from(getStore().projects.values()).filter(
       (p) => p.ownerId === auth!.sub || auth!.role === "admin"
     );
+    const statusRank = (status: string) => {
+      if (status === "pending_review") return 0;
+      if (status === "published" || status === "funded") return 1;
+      if (status === "draft") return 2;
+      if (status === "rejected") return 3;
+      return 4;
+    };
+    const activityTime = (p: (typeof projects)[number]) => {
+      if (p.status === "pending_review") {
+        return new Date(p.submittedAt || p.updatedAt || p.createdAt).getTime();
+      }
+      if (p.status === "published" || p.status === "funded") {
+        return new Date(p.approvedAt || p.updatedAt || p.createdAt).getTime();
+      }
+      return new Date(p.updatedAt || p.createdAt).getTime();
+    };
+    projects.sort((a, b) => {
+      const rank = statusRank(a.status) - statusRank(b.status);
+      if (rank !== 0) return rank;
+      return activityTime(b) - activityTime(a);
+    });
     return ok(projects);
   },
 
@@ -617,6 +640,8 @@ const handlers: Record<string, Handler> = {
       phases: body.phases || [],
       riskLevel: body.riskLevel || "medium",
       status: "pending_review",
+      submittedAt: now,
+      reviewHistory: [],
       investorCount: 0,
       savedCount: 0,
       team: body.team || [],
@@ -625,7 +650,8 @@ const handlers: Record<string, Handler> = {
       createdAt: now,
       updatedAt: now,
     };
-    getStore().projects.set(id, project);
+    const { markSubmitted } = await import("./project-review");
+    markSubmitted(project, auth!.sub, "submitted");
     logActivity(auth!.sub, "project_created", "project", id);
     dispatchNotificationEvent({ kind: "project_created", project });
     return ok(project, "Project submitted for review", 201);
@@ -638,7 +664,16 @@ const handlers: Record<string, Handler> = {
     if (!project) return fail("Project not found", 404);
     if (auth!.role === "project_owner" && project.ownerId !== auth!.sub) return fail("Forbidden", 403);
     const body = await parseBody<Partial<Project>>(req);
-    const updated = { ...project, ...body, id: project.id, ownerId: project.ownerId, updatedAt: new Date().toISOString() };
+    const { status: _status, approvedAt: _a, approvedBy: _b, rejectedAt: _c, rejectedBy: _d, rejectionReason: _e, reviewHistory: _f, ownerId: _o, id: _id, ...safe } = body;
+    const updated = {
+      ...project,
+      ...safe,
+      id: project.id,
+      ownerId: project.ownerId,
+      status: project.status,
+      reviewHistory: project.reviewHistory,
+      updatedAt: new Date().toISOString(),
+    };
     getStore().projects.set(params.id, updated);
     return ok(updated);
   },
@@ -680,7 +715,14 @@ const handlers: Record<string, Handler> = {
     if (err) return err;
     const docs = Array.from(getStore().projects.values())
       .filter((p) => p.ownerId === auth!.sub)
-      .flatMap((p) => p.documents.map((d) => ({ ...d, projectId: p.id, projectTitle: p.title })));
+      .flatMap((p) =>
+        p.documents.map((d, index) => ({
+          ...d,
+          id: `${p.id}:${d.id || index}`,
+          projectId: p.id,
+          projectTitle: p.title,
+        }))
+      );
     return ok(docs);
   },
 
@@ -749,10 +791,15 @@ const handlers: Record<string, Handler> = {
     if (err) return err;
     const conversation = getStore().conversations.get(params.id);
     if (!conversation) return fail("Conversation not found", 404);
+    const isAdminParticipant =
+      auth!.role === "admin" &&
+      (conversation.isAdminThread || conversation.investorId === auth!.sub);
     const allowed =
-      auth!.sub === conversation.investorId || auth!.sub === conversation.ownerId;
+      auth!.sub === conversation.investorId ||
+      auth!.sub === conversation.ownerId ||
+      isAdminParticipant;
     if (!allowed) return fail("Forbidden", 403);
-    if (!canMessage(authUserObj(auth))) {
+    if (!isAdminParticipant && !canMessage(authUserObj(auth))) {
       return fail("Platform service access required", 403);
     }
 
@@ -988,7 +1035,118 @@ const handlers: Record<string, Handler> = {
     let projects = Array.from(getStore().projects.values());
     const status = searchParams.get("status");
     if (status) projects = projects.filter((p) => p.status === status);
+    projects.sort((a, b) => {
+      const pendingRank = (s: string) => (s === "pending_review" ? 0 : 1);
+      const rank = pendingRank(a.status) - pendingRank(b.status);
+      if (rank !== 0) return rank;
+      const aTime = new Date(a.submittedAt || a.createdAt).getTime();
+      const bTime = new Date(b.submittedAt || b.createdAt).getTime();
+      return bTime - aTime;
+    });
     return ok(paginate(projects, Number(searchParams.get("page") || 1), Number(searchParams.get("limit") || 20)));
+  },
+
+  "GET /admin/projects/pending": async (_req, _p, auth) => {
+    const err = requireRole(auth, ["admin"]);
+    if (err) return err;
+    const projects = Array.from(getStore().projects.values())
+      .filter((p) => p.status === "pending_review")
+      .sort(
+        (a, b) =>
+          new Date(b.submittedAt || b.createdAt).getTime() -
+          new Date(a.submittedAt || a.createdAt).getTime()
+      );
+    return ok(projects);
+  },
+
+  "GET /admin/projects/:id": async (_req, params, auth) => {
+    const err = requireRole(auth, ["admin"]);
+    if (err) return err;
+    const project = getStore().projects.get(params.id);
+    if (!project) return fail("Project not found", 404);
+    const owner = getStore().users.get(project.ownerId);
+    const ownerProjects = Array.from(getStore().projects.values()).filter(
+      (p) => p.ownerId === project.ownerId
+    );
+    return ok({
+      project,
+      owner: owner
+        ? {
+            id: owner.id,
+            email: owner.email,
+            firstName: owner.firstName,
+            lastName: owner.lastName,
+            companyName: owner.companyName,
+            bio: owner.bio,
+            kycStatus: owner.kycStatus,
+            createdAt: owner.createdAt,
+            previousProjects: ownerProjects.length,
+          }
+        : null,
+      riskAnalysis: analyzeProjectRisk(project),
+      reviewHistory: project.reviewHistory || [],
+    });
+  },
+
+  "GET /admin/projects/:id/review-history": async (_req, params, auth) => {
+    const err = requireRole(auth, ["admin"]);
+    if (err) return err;
+    const project = getStore().projects.get(params.id);
+    if (!project) return fail("Project not found", 404);
+    return ok(project.reviewHistory || []);
+  },
+
+  "POST /admin/projects/:id/approve": async (_req, params, auth) => {
+    const err = requireRole(auth, ["admin"]);
+    if (err) return err;
+    const project = getStore().projects.get(params.id);
+    if (!project) return fail("Project not found", 404);
+    if (project.status !== "pending_review" && project.status !== "draft") {
+      return fail("Only projects awaiting review can be approved", 400);
+    }
+    const admin = getStore().users.get(auth!.sub);
+    if (!admin) return fail("Admin not found", 404);
+    const { approveProject } = await import("./project-review");
+    return ok(approveProject(project, admin), "Project approved and published");
+  },
+
+  "POST /admin/projects/:id/reject": async (req, params, auth) => {
+    const err = requireRole(auth, ["admin"]);
+    if (err) return err;
+    const project = getStore().projects.get(params.id);
+    if (!project) return fail("Project not found", 404);
+    if (project.status !== "pending_review" && project.status !== "draft") {
+      return fail("Only projects awaiting review can be rejected", 400);
+    }
+    const { reason } = await parseBody<{ reason?: string }>(req);
+    const trimmed = (reason || "").trim();
+    if (trimmed.length < 20) {
+      return fail("Rejection reason must be at least 20 characters", 400);
+    }
+    const admin = getStore().users.get(auth!.sub);
+    if (!admin) return fail("Admin not found", 404);
+    const { rejectProject } = await import("./project-review");
+    return ok(rejectProject(project, admin, trimmed), "Project rejected");
+  },
+
+  "POST /owner/projects/:id/resubmit": async (_req, params, auth) => {
+    const err = requireRole(auth, ["project_owner"]);
+    if (err) return err;
+    const project = getStore().projects.get(params.id);
+    if (!project) return fail("Project not found", 404);
+    if (project.ownerId !== auth!.sub) return fail("Forbidden", 403);
+    if (project.status !== "rejected" && project.status !== "draft") {
+      return fail("Only rejected or draft projects can be resubmitted", 400);
+    }
+    const { markSubmitted } = await import("./project-review");
+    const updated = markSubmitted(project, auth!.sub, "resubmitted");
+    logActivity(auth!.sub, "project_resubmitted", "project", project.id);
+    dispatchNotificationEvent({
+      kind: "project_status_changed",
+      project: updated,
+      status: "pending_review",
+    });
+    return ok(updated, "Project resubmitted for review");
   },
 
   "PATCH /admin/projects/:id/status": async (req, params, auth) => {
@@ -996,7 +1154,25 @@ const handlers: Record<string, Handler> = {
     if (err) return err;
     const project = getStore().projects.get(params.id);
     if (!project) return fail("Project not found", 404);
-    const { status } = await parseBody<{ status: Project["status"] }>(req);
+    const { status, reason } = await parseBody<{
+      status: Project["status"];
+      reason?: string;
+    }>(req);
+    const admin = getStore().users.get(auth!.sub);
+    if (!admin) return fail("Admin not found", 404);
+
+    if (status === "published" || status === "rejected") {
+      const { approveProject, rejectProject } = await import("./project-review");
+      if (status === "published") {
+        return ok(approveProject(project, admin));
+      }
+      const trimmed = (reason || "").trim();
+      if (trimmed.length < 20) {
+        return fail("Rejection reason must be at least 20 characters", 400);
+      }
+      return ok(rejectProject(project, admin, trimmed));
+    }
+
     project.status = status;
     project.updatedAt = new Date().toISOString();
     getStore().projects.set(project.id, project);

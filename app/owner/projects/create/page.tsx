@@ -130,7 +130,7 @@ export default function OwnerCreateProjectPage() {
         phases: phases
           .filter((p) => p.title.trim())
           .map((p, i) => ({
-            id: `phase-${i}`,
+            id: crypto.randomUUID(),
             title: p.title.trim(),
             titleHy: p.titleHy.trim() || undefined,
             description: p.description.trim(),
@@ -145,8 +145,8 @@ export default function OwnerCreateProjectPage() {
           })),
         documents: documents
           .filter((d) => d.name.trim())
-          .map((d, i) => ({
-            id: `doc-${i}`,
+          .map((d) => ({
+            id: crypto.randomUUID(),
             name: d.name,
             category: d.category,
             url: `#${d.name}`,
@@ -154,8 +154,8 @@ export default function OwnerCreateProjectPage() {
           })),
         team: team
           .filter((m) => m.name.trim())
-          .map((m, i) => ({
-            id: `team-${i}`,
+          .map((m) => ({
+            id: crypto.randomUUID(),
             ...m,
           })),
       }),

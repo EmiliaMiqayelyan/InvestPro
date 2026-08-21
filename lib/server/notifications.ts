@@ -49,7 +49,12 @@ export type NotificationEvent =
   | { kind: "membership_activated"; userId: string; amount: number }
   | { kind: "kyc_submitted"; userId: string; name: string }
   | { kind: "project_created"; project: Project }
-  | { kind: "project_status_changed"; project: Project; status: ProjectStatus }
+  | {
+      kind: "project_status_changed";
+      project: Project;
+      status: ProjectStatus;
+      rejectionReason?: string;
+    }
   | { kind: "milestone_created"; plan: MilestonePlan }
   | { kind: "milestone_updated"; plan: MilestonePlan; actorId: string }
   | {
@@ -162,7 +167,9 @@ export function hrefForRole(
 
   switch (type) {
     case "project_update":
-      return ROUTES.ADMIN_PROJECTS;
+      return projectId
+        ? `${ROUTES.ADMIN_PROJECTS}/${projectId}/review`
+        : ROUTES.ADMIN_PROJECTS;
     case "kyc_update":
     case "security_alert":
       return ROUTES.ADMIN_SECURITY;
@@ -327,8 +334,8 @@ function draftsForEvent(event: NotificationEvent): NotificationDraft[] {
       const adminDrafts: NotificationDraft[] = listUserIdsByRole("admin").map((userId) => ({
         userId,
         type: "project_update",
-        title: "Project pending review",
-        message: `${project.ownerName || "A project owner"} submitted “${project.title}”.`,
+        title: "Նոր նախագիծ է սպասում ստուգման",
+        message: `«${project.title}» նախագիծը ուղարկվել է հաստատման։`,
         href: hrefForRole("admin", "project_update", { projectId: project.id }),
         priority: "high",
         metadata: { projectId: project.id },
@@ -347,15 +354,15 @@ function draftsForEvent(event: NotificationEvent): NotificationDraft[] {
     }
 
     case "project_status_changed": {
-      const { project, status } = event;
+      const { project, status, rejectionReason } = event;
       const drafts: NotificationDraft[] = [];
 
       if (status === "published") {
         drafts.push({
           userId: project.ownerId,
           type: "project_update",
-          title: "Project published",
-          message: `“${project.title}” is live. Investors can now study it and send offers.`,
+          title: "Ձեր նախագիծը հաստատվել է",
+          message: `Ձեր «${project.title}» նախագիծը հաջողությամբ անցել է ստուգումը և այժմ հասանելի է հարթակում։`,
           href: hrefForRole("project_owner", "project_update", { projectId: project.id }),
           priority: "high",
           email: true,
@@ -372,15 +379,18 @@ function draftsForEvent(event: NotificationEvent): NotificationDraft[] {
           });
         }
       } else if (status === "rejected") {
+        const reasonText = rejectionReason || project.rejectionReason || "";
         drafts.push({
           userId: project.ownerId,
           type: "project_update",
-          title: "Project not published",
-          message: `“${project.title}” was not approved. Update the listing and resubmit if needed.`,
-          href: hrefForRole("project_owner", "project_update", { projectId: project.id }),
+          title: "Նախագիծը մերժվել է",
+          message: reasonText
+            ? `«${project.title}» նախագիծը մերժվել է։ Պատճառ՝ ${reasonText.slice(0, 160)}`
+            : `«${project.title}» նախագիծը այս պահին չի հաստատվել։ Ստուգեք հաղորդագրությունները և կրկին ուղարկեք։`,
+          href: ROUTES.OWNER_MESSAGES,
           priority: "high",
           email: true,
-          metadata: { projectId: project.id, status },
+          metadata: { projectId: project.id, status, rejectionReason: reasonText },
         });
       } else if (status === "funded") {
         drafts.push({
@@ -402,6 +412,17 @@ function draftsForEvent(event: NotificationEvent): NotificationDraft[] {
           href: hrefForRole("project_owner", "project_update", { projectId: project.id }),
           metadata: { projectId: project.id, status },
         });
+      } else if (status === "pending_review") {
+        const adminDrafts: NotificationDraft[] = listUserIdsByRole("admin").map((userId) => ({
+          userId,
+          type: "project_update" as const,
+          title: "Նոր նախագիծ է սպասում ստուգման",
+          message: `«${project.title}» նախագիծը ուղարկվել է հաստատման։`,
+          href: hrefForRole("admin", "project_update", { projectId: project.id }),
+          priority: "high" as const,
+          metadata: { projectId: project.id },
+        }));
+        drafts.push(...adminDrafts);
       }
 
       return drafts;

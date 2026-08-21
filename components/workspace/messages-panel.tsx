@@ -90,7 +90,11 @@ export function MessagesPanel() {
                     )}
                   </div>
                   <span className="truncate text-xs text-muted-foreground">
-                    {user?.role === "investor" ? c.ownerName : c.investorName}
+                    {c.isAdminThread
+                      ? t("roles.admin")
+                      : user?.role === "investor"
+                        ? c.ownerName
+                        : c.investorName}
                   </span>
                   {c.lastMessage && (
                     <span className="truncate text-xs text-slate-500">{c.lastMessage}</span>

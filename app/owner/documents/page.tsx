@@ -44,7 +44,7 @@ export default function OwnerDocumentsPage() {
               doc.category;
             return (
               <div
-                key={doc.id}
+                key={`${doc.projectId ?? "project"}-${doc.id}-${doc.name}`}
                 className="premium-card flex flex-wrap items-center justify-between gap-3 p-5"
               >
                 <div className="flex items-start gap-3">

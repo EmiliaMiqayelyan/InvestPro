@@ -4,7 +4,6 @@ import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 import {
   AlertTriangle,
-  ArrowDown,
   ArrowRight,
   BadgeCheck,
   BarChart3,
@@ -45,19 +44,23 @@ type HowStep = {
 
 function HowStepCard({ item }: { item: HowStep }) {
   return (
-    <div className="relative z-10 flex flex-col items-center text-center">
-      <div className="flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-teal-800">
-        <item.icon className="h-4 w-4" />
+    <div className="flex gap-4 rounded-2xl border border-border/70 bg-[hsl(var(--surface-warm))]/50 p-5 transition hover:border-teal-800/20 hover:bg-[hsl(var(--surface-warm))]/80">
+      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-teal-800 text-white shadow-sm">
+        <item.icon className="h-5 w-5" strokeWidth={1.75} />
       </div>
-      <p className="mt-3 text-[11px] font-medium uppercase tracking-wider text-teal-800">
-        {item.step} · {item.label}
-      </p>
-      <h3 className="mt-1 font-display text-sm font-semibold leading-snug text-slate-900 md:text-base">
-        {item.title}
-      </h3>
-      <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground md:text-sm">
-        {item.description}
-      </p>
+      <div className="min-w-0">
+        <p className="text-xs font-medium text-teal-800">
+          <span className="tabular-nums">{item.step}</span>
+          <span className="mx-1.5 text-teal-800/40">·</span>
+          {item.label}
+        </p>
+        <h3 className="mt-1 font-display text-base font-semibold leading-snug text-slate-900">
+          {item.title}
+        </h3>
+        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+          {item.description}
+        </p>
+      </div>
     </div>
   );
 }
@@ -224,75 +227,15 @@ export default function HomePage() {
             <p className="mt-3 text-muted-foreground">{t("landing.howItWorksSub")}</p>
           </div>
 
-          <ol className="relative mx-auto mt-14 max-w-xl md:hidden">
-            <span className="absolute bottom-8 left-[1.375rem] top-8 w-px bg-slate-200" aria-hidden />
+          <ol className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {howItWorks.map((item) => (
-              <li key={item.step} className="relative flex gap-4 pb-10 last:pb-0">
-                <div className="relative z-10 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-teal-800">
-                  <item.icon className="h-4 w-4" />
-                </div>
-                <div className="min-w-0 pt-0.5">
-                  <p className="text-[11px] font-medium uppercase tracking-wider text-teal-800">
-                    {item.step} · {item.label}
-                  </p>
-                  <h3 className="mt-1 font-display text-base font-semibold text-slate-900">
-                    {item.title}
-                  </h3>
-                  <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-                    {item.description}
-                  </p>
-                </div>
-              </li>
-            ))}
-          </ol>
-
-          <div className="mt-14 hidden md:block xl:hidden">
-            <ol className="grid grid-cols-3 gap-x-6 gap-y-4">
-              {howItWorks.slice(0, 3).map((item, index) => (
-                <li key={item.step} className="relative">
-                  {index < 2 ? (
-                    <span
-                      className="absolute left-[calc(50%+1.5rem)] right-[-0.75rem] top-5 h-px bg-slate-200"
-                      aria-hidden
-                    />
-                  ) : null}
-                  <HowStepCard item={item} />
-                </li>
-              ))}
-            </ol>
-            <div className="flex justify-center py-2 text-slate-300">
-              <ArrowDown className="h-5 w-5" />
-            </div>
-            <ol className="grid grid-cols-3 gap-x-6">
-              {howItWorks.slice(3).map((item, index) => (
-                <li key={item.step} className="relative">
-                  {index < 2 ? (
-                    <span
-                      className="absolute left-[calc(50%+1.5rem)] right-[-0.75rem] top-5 h-px bg-slate-200"
-                      aria-hidden
-                    />
-                  ) : null}
-                  <HowStepCard item={item} />
-                </li>
-              ))}
-            </ol>
-          </div>
-
-          <ol className="mt-14 hidden grid-cols-6 gap-3 xl:grid">
-            {howItWorks.map((item, index) => (
-              <li key={item.step} className="relative">
-                {index < howItWorks.length - 1 ? (
-                  <span
-                    className="absolute left-[calc(50%+1.4rem)] right-[-0.4rem] top-5 h-px bg-slate-200"
-                    aria-hidden
-                  />
-                ) : null}
+              <li key={item.step}>
                 <HowStepCard item={item} />
               </li>
             ))}
           </ol>
 
-          <div className="mx-auto mt-16 max-w-xl border-t border-slate-100 pt-10 text-center">
+          <div className="mx-auto mt-14 max-w-xl text-center">
             <h3 className="font-display text-xl font-semibold text-slate-900">
               {t("landing.howCtaTitle")}
             </h3>

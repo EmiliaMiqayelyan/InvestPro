@@ -7,6 +7,7 @@ import { QUERY_KEYS, STATUS_COLORS } from "@/constants";
 import { formatCurrency, formatDate } from "@/utils/format";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/hooks";
 import type { MembershipSubscription } from "@/types";
 
 type PaymentRow = MembershipSubscription & {
@@ -15,6 +16,7 @@ type PaymentRow = MembershipSubscription & {
 };
 
 export default function AdminPaymentsPage() {
+  const { t } = useI18n();
   const { data: payments = [], isLoading } = useQuery({
     queryKey: [QUERY_KEYS.ADMIN_PAYMENTS],
     queryFn: async () => {
@@ -26,8 +28,10 @@ export default function AdminPaymentsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="font-display text-2xl font-semibold text-slate-900">Payments</h2>
-        <p className="text-sm text-muted-foreground">Membership subscriptions</p>
+        <h2 className="font-display text-2xl font-semibold text-slate-900">
+          {t("admin.paymentsTitle")}
+        </h2>
+        <p className="text-sm text-muted-foreground">{t("admin.paymentsSub")}</p>
       </div>
 
       {isLoading ? (
@@ -35,7 +39,7 @@ export default function AdminPaymentsPage() {
       ) : payments.length === 0 ? (
         <div className="premium-card flex flex-col items-center gap-3 p-12 text-center">
           <CreditCard className="h-10 w-10 text-slate-300" />
-          <p className="font-medium text-slate-900">No subscriptions yet</p>
+          <p className="font-medium text-slate-900">{t("admin.noPayments")}</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -45,7 +49,9 @@ export default function AdminPaymentsPage() {
               className="premium-card flex flex-wrap items-center justify-between gap-4 p-5"
             >
               <div>
-                <p className="font-semibold capitalize text-slate-900">{sub.planId} plan</p>
+                <p className="font-semibold text-slate-900">
+                  {t("admin.planLabel", { plan: sub.planId })}
+                </p>
                 <p className="text-sm text-muted-foreground">
                   {sub.userName || sub.userEmail || sub.userId}
                 </p>

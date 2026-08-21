@@ -242,7 +242,6 @@ function seedProjects(
   ownerName: string,
   ownerKycStatus: KycStatus
 ): Project[] {
-  const now = new Date().toISOString();
   const base = [
     {
       title: "Aurora Grid Storage",
@@ -330,6 +329,8 @@ function seedProjects(
     const id = `project-seed-${i + 1}`;
     const includeLegal = i % 2 === 0;
     const phases = seedPhases(p.requiredInvestment);
+    const isPending = i === 2;
+    const stamp = new Date(Date.now() - (base.length - i) * 86400000).toISOString();
     return {
       id,
       ownerId,
@@ -372,7 +373,30 @@ function seedProjects(
       ],
       phases,
       riskLevel: p.riskLevel,
-      status: "published",
+      status: isPending ? ("pending_review" as const) : ("published" as const),
+      submittedAt: stamp,
+      approvedAt: isPending ? undefined : stamp,
+      reviewHistory: isPending
+        ? [
+            {
+              id: crypto.randomUUID(),
+              projectId: id,
+              decision: "submitted" as const,
+              reviewerId: ownerId,
+              reviewerName: ownerName,
+              createdAt: stamp,
+            },
+          ]
+        : [
+            {
+              id: crypto.randomUUID(),
+              projectId: id,
+              decision: "approved" as const,
+              reviewerId: SEED_USER_IDS.admin,
+              reviewerName: "Platform Admin",
+              createdAt: stamp,
+            },
+          ],
       investorCount: 8 + i * 3,
       savedCount: 20 + i * 5,
       team: seedTeam(),
@@ -384,11 +408,11 @@ function seedProjects(
           titleHy: "Ե2 առաջընթացի թարմացում",
           content: "Closed two pilot customers and completed SOC2 Type I readiness.",
           contentHy: "Փակվել են երկու փորձնական հաճախորդներ և ավարտվել է SOC2 Type I պատրաստությունը։",
-          createdAt: now,
+          createdAt: stamp,
         },
       ],
-      createdAt: now,
-      updatedAt: now,
+      createdAt: stamp,
+      updatedAt: stamp,
     };
   });
 }

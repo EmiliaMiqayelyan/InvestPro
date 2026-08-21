@@ -131,6 +131,7 @@ export function canAccessFullProject(
     | null
     | undefined
 ): boolean {
+  if (user?.role === "admin") return true;
   return hasActiveServiceAccess(user);
 }
 

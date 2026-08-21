@@ -16,8 +16,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/hooks";
 
 export default function AdminUsersPage() {
+  const { t } = useI18n();
   const [search, setSearch] = useState("");
   const [role, setRole] = useState<string>("all");
 
@@ -38,26 +40,28 @@ export default function AdminUsersPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="font-display text-2xl font-semibold text-slate-900">Users</h2>
-        <p className="text-sm text-muted-foreground">Filter and review platform accounts</p>
+        <h2 className="font-display text-2xl font-semibold text-slate-900">
+          {t("admin.usersTitle")}
+        </h2>
+        <p className="text-sm text-muted-foreground">{t("admin.usersSub")}</p>
       </div>
 
       <div className="flex flex-wrap gap-3">
         <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by name or email…"
+          placeholder={t("admin.searchUsers")}
           className="max-w-sm bg-white"
         />
         <Select value={role} onValueChange={setRole}>
           <SelectTrigger className="w-44 bg-white">
-            <SelectValue placeholder="Role" />
+            <SelectValue placeholder={t("admin.role")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All roles</SelectItem>
-            <SelectItem value="investor">Investor</SelectItem>
-            <SelectItem value="project_owner">Project owner</SelectItem>
-            <SelectItem value="admin">Admin</SelectItem>
+            <SelectItem value="all">{t("admin.allRoles")}</SelectItem>
+            <SelectItem value="investor">{t("roles.investor")}</SelectItem>
+            <SelectItem value="project_owner">{t("roles.project_owner")}</SelectItem>
+            <SelectItem value="admin">{t("roles.admin")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -67,19 +71,19 @@ export default function AdminUsersPage() {
       ) : users.length === 0 ? (
         <div className="premium-card flex flex-col items-center gap-3 p-12 text-center">
           <Users className="h-10 w-10 text-slate-300" />
-          <p className="font-medium text-slate-900">No users found</p>
+          <p className="font-medium text-slate-900">{t("admin.noUsers")}</p>
         </div>
       ) : (
         <div className="overflow-hidden rounded-2xl border border-border bg-white">
           <table className="w-full text-left text-sm">
             <thead className="border-b border-border bg-slate-50 text-xs uppercase tracking-wide text-muted-foreground">
               <tr>
-                <th className="px-4 py-3 font-medium">Name</th>
-                <th className="px-4 py-3 font-medium">Email</th>
-                <th className="px-4 py-3 font-medium">Role</th>
-                <th className="px-4 py-3 font-medium">Membership</th>
-                <th className="px-4 py-3 font-medium">KYC</th>
-                <th className="px-4 py-3 font-medium">Joined</th>
+                <th className="px-4 py-3 font-medium">{t("admin.colName")}</th>
+                <th className="px-4 py-3 font-medium">{t("admin.colEmail")}</th>
+                <th className="px-4 py-3 font-medium">{t("admin.colRole")}</th>
+                <th className="px-4 py-3 font-medium">{t("admin.colMembership")}</th>
+                <th className="px-4 py-3 font-medium">{t("admin.colKyc")}</th>
+                <th className="px-4 py-3 font-medium">{t("admin.colJoined")}</th>
               </tr>
             </thead>
             <tbody>
@@ -90,8 +94,8 @@ export default function AdminUsersPage() {
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">{u.email}</td>
                   <td className="px-4 py-3">
-                    <Badge variant="outline" className="capitalize">
-                      {u.role.replace("_", " ")}
+                    <Badge variant="outline">
+                      {t(`roles.${u.role}` as "roles.investor")}
                     </Badge>
                   </td>
                   <td className="px-4 py-3 capitalize text-slate-700">

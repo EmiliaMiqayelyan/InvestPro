@@ -223,10 +223,30 @@ export interface Project {
   updates: ProjectUpdate[];
   startDate?: string;
   endDate?: string;
+  /** When the owner submitted (or resubmitted) for admin review */
+  submittedAt?: string;
+  approvedAt?: string;
+  approvedBy?: string;
+  rejectedAt?: string;
+  rejectedBy?: string;
+  rejectionReason?: string;
+  reviewHistory?: ProjectReviewEntry[];
   createdAt: string;
   updatedAt: string;
   /** Present when API returns a teaser for non-subscribers */
   limited?: boolean;
+}
+
+export type ProjectReviewDecision = "submitted" | "approved" | "rejected" | "resubmitted";
+
+export interface ProjectReviewEntry {
+  id: string;
+  projectId: string;
+  reviewerId?: string;
+  reviewerName?: string;
+  decision: ProjectReviewDecision;
+  reason?: string;
+  createdAt: string;
 }
 
 export interface RiskIndicator {
@@ -345,6 +365,8 @@ export interface Conversation {
   investorName: string;
   ownerId: string;
   ownerName: string;
+  /** Admin ↔ owner review thread (investorId holds the admin user id) */
+  isAdminThread?: boolean;
   lastMessage?: string;
   lastMessageAt?: string;
   unreadCount: number;

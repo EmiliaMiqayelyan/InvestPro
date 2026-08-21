@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Search, SlidersHorizontal } from "lucide-react";
+import { Search, SlidersHorizontal, X } from "lucide-react";
 import { MarketplaceProjectCard } from "@/features/projects";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,26 @@ import { useI18n } from "@/hooks";
 import { CardSkeleton } from "@/components/shared/loading-skeleton";
 import { investorApi } from "@/services/api";
 import { useAuthStore } from "@/store";
+import { Label } from "@/components/ui/label";
+
+function FilterField({
+  label,
+  htmlFor,
+  children,
+}: {
+  label: string;
+  htmlFor?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <Label htmlFor={htmlFor} className="text-xs font-medium text-slate-600">
+        {label}
+      </Label>
+      {children}
+    </div>
+  );
+}
 
 export function MarketplaceBrowser({
   projectBasePath = "/projects",
@@ -94,99 +114,109 @@ export function MarketplaceBrowser({
   };
 
   const filters = (
-    <div className="space-y-3">
-      <Select value={category} onValueChange={setCategory}>
-        <SelectTrigger className="w-full bg-white">
-          <SelectValue placeholder={t("projects.category")} />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">{t("projects.allCategories")}</SelectItem>
-          {PROJECT_CATEGORIES.map((cat) => (
-            <SelectItem key={cat} value={cat}>
-              {cat}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+    <div className="space-y-4">
+      <FilterField label={t("projects.category")}>
+        <Select value={category} onValueChange={setCategory}>
+          <SelectTrigger className="w-full bg-white">
+            <SelectValue placeholder={t("projects.allCategories")} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t("projects.allCategories")}</SelectItem>
+            {PROJECT_CATEGORIES.map((cat) => (
+              <SelectItem key={cat} value={cat}>
+                {cat}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </FilterField>
 
-      <Select value={industry} onValueChange={setIndustry}>
-        <SelectTrigger className="w-full bg-white">
-          <SelectValue placeholder={t("projects.industry")} />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">{t("projects.allIndustries")}</SelectItem>
-          {PROJECT_INDUSTRIES.map((ind) => (
-            <SelectItem key={ind} value={ind}>
-              {ind}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <FilterField label={t("projects.industry")}>
+        <Select value={industry} onValueChange={setIndustry}>
+          <SelectTrigger className="w-full bg-white">
+            <SelectValue placeholder={t("projects.allIndustries")} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t("projects.allIndustries")}</SelectItem>
+            {PROJECT_INDUSTRIES.map((ind) => (
+              <SelectItem key={ind} value={ind}>
+                {ind}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </FilterField>
 
-      <Select value={stage} onValueChange={setStage}>
-        <SelectTrigger className="w-full bg-white">
-          <SelectValue placeholder={t("projects.stage")} />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">{t("projects.allStages")}</SelectItem>
-          {PROJECT_STAGES.map((s) => (
-            <SelectItem key={s.value} value={s.value}>
-              {t(`projects.stages.${s.value}`)}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <FilterField label={t("projects.stage")}>
+        <Select value={stage} onValueChange={setStage}>
+          <SelectTrigger className="w-full bg-white">
+            <SelectValue placeholder={t("projects.allStages")} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t("projects.allStages")}</SelectItem>
+            {PROJECT_STAGES.map((s) => (
+              <SelectItem key={s.value} value={s.value}>
+                {t(`projects.stages.${s.value}`)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </FilterField>
 
-      <Select value={riskLevel} onValueChange={setRiskLevel}>
-        <SelectTrigger className="w-full bg-white">
-          <SelectValue placeholder={t("projects.risk")} />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">{t("projects.allRisks")}</SelectItem>
-          {RISK_LEVELS.map((r) => (
-            <SelectItem key={r.value} value={r.value}>
-              {r.value === "low"
-                ? t("projects.lowRisk")
-                : r.value === "high"
-                  ? t("projects.highRisk")
-                  : t("projects.mediumRisk")}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <FilterField label={t("projects.risk")}>
+        <Select value={riskLevel} onValueChange={setRiskLevel}>
+          <SelectTrigger className="w-full bg-white">
+            <SelectValue placeholder={t("projects.allRisks")} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t("projects.allRisks")}</SelectItem>
+            {RISK_LEVELS.map((r) => (
+              <SelectItem key={r.value} value={r.value}>
+                {r.value === "low"
+                  ? t("projects.lowRisk")
+                  : r.value === "high"
+                    ? t("projects.highRisk")
+                    : t("projects.mediumRisk")}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </FilterField>
 
-      <Input
-        className="bg-white"
-        placeholder={t("projects.locationPlaceholder")}
-        value={location}
-        onChange={(e) => setLocation(e.target.value)}
-      />
+      <FilterField label={t("projects.location")} htmlFor="filter-location">
+        <Input
+          id="filter-location"
+          className="bg-white"
+          placeholder={t("projects.locationPlaceholder")}
+          value={location}
+          onChange={(e) => setLocation(e.target.value)}
+        />
+      </FilterField>
 
-      <Input
-        className="bg-white"
-        type="number"
-        inputMode="numeric"
-        placeholder={t("projects.investmentBudget")}
-        value={investmentBudget}
-        onChange={(e) => setInvestmentBudget(e.target.value)}
-      />
+      <FilterField label={t("projects.investmentBudget")} htmlFor="filter-budget">
+        <Input
+          id="filter-budget"
+          className="bg-white"
+          type="number"
+          inputMode="numeric"
+          placeholder="50,000"
+          value={investmentBudget}
+          onChange={(e) => setInvestmentBudget(e.target.value)}
+        />
+      </FilterField>
 
-      <Select value={fundingStatus} onValueChange={setFundingStatus}>
-        <SelectTrigger className="w-full bg-white">
-          <SelectValue placeholder={t("projects.funding")} />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">{t("projects.allFunding")}</SelectItem>
-          <SelectItem value="open">{t("projects.openFunding")}</SelectItem>
-          <SelectItem value="funded">{t("projects.fundedStatus")}</SelectItem>
-        </SelectContent>
-      </Select>
-
-      {hasFilters ? (
-        <Button variant="ghost" className="w-full" onClick={clearFilters}>
-          {t("projects.clearFilters")}
-        </Button>
-      ) : null}
+      <FilterField label={t("projects.funding")}>
+        <Select value={fundingStatus} onValueChange={setFundingStatus}>
+          <SelectTrigger className="w-full bg-white">
+            <SelectValue placeholder={t("projects.allFunding")} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t("projects.allFunding")}</SelectItem>
+            <SelectItem value="open">{t("projects.openFunding")}</SelectItem>
+            <SelectItem value="funded">{t("projects.fundedStatus")}</SelectItem>
+          </SelectContent>
+        </Select>
+      </FilterField>
     </div>
   );
 
@@ -202,10 +232,10 @@ export function MarketplaceBrowser({
           {t("projects.exploreTitle")}
         </h2>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{t("projects.exploreSub")}</p>
-        <div className="relative mt-6">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <div className="relative mt-6 max-w-xl">
+          <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            className="h-12 bg-white pl-10"
+            className="h-12 bg-white pl-10 shadow-sm"
             placeholder={t("projects.searchPlaceholder")}
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
@@ -213,20 +243,53 @@ export function MarketplaceBrowser({
         </div>
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-[240px_minmax(0,1fr)]">
+      <div className="grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)]">
         <aside className="lg:sticky lg:top-24 lg:self-start">
-          <div className="mb-3 hidden items-center gap-2 text-sm font-medium text-slate-900 lg:flex">
-            <SlidersHorizontal className="h-4 w-4" />
-            {t("projects.filters")}
-          </div>
-          <details className="rounded-xl border border-border/80 bg-white p-4 lg:hidden">
-            <summary className="flex cursor-pointer list-none items-center gap-2 text-sm font-medium text-slate-900">
-              <SlidersHorizontal className="h-4 w-4" />
-              {t("projects.filters")}
+          <details className="rounded-2xl border border-border/80 bg-white p-4 lg:hidden">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-2 text-sm font-medium text-slate-900">
+              <span className="inline-flex items-center gap-2">
+                <SlidersHorizontal className="h-4 w-4 text-teal-800" />
+                {t("projects.filters")}
+              </span>
+              {hasFilters ? (
+                <span className="rounded-full bg-teal-50 px-2 py-0.5 text-xs font-medium text-teal-800">
+                  {t("projects.filtersActive")}
+                </span>
+              ) : null}
             </summary>
-            <div className="mt-4">{filters}</div>
+            <div className="mt-4 border-t border-border/60 pt-4">
+              {filters}
+              {hasFilters ? (
+                <Button
+                  variant="ghost"
+                  className="mt-3 w-full justify-start gap-2 px-2 text-slate-600"
+                  onClick={clearFilters}
+                >
+                  <X className="h-3.5 w-3.5" />
+                  {t("projects.clearFilters")}
+                </Button>
+              ) : null}
+            </div>
           </details>
-          <div className="hidden lg:block">{filters}</div>
+
+          <div className="hidden rounded-2xl border border-border/80 bg-white p-5 lg:block">
+            <div className="mb-4 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+                <SlidersHorizontal className="h-4 w-4 text-teal-800" />
+                {t("projects.filters")}
+              </div>
+              {hasFilters ? (
+                <button
+                  type="button"
+                  onClick={clearFilters}
+                  className="text-xs font-medium text-teal-800 hover:underline"
+                >
+                  {t("projects.clearFilters")}
+                </button>
+              ) : null}
+            </div>
+            {filters}
+          </div>
         </aside>
 
         <div>
@@ -234,16 +297,19 @@ export function MarketplaceBrowser({
             <p className="text-sm text-muted-foreground">
               {isLoading ? t("common.loading") : t("projects.resultsCount", { count: total })}
             </p>
-            <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-[200px] bg-white">
-                <SelectValue placeholder={t("projects.sortLabel")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="newest">{t("projects.sortNewest")}</SelectItem>
-                <SelectItem value="most_viewed">{t("projects.sortMostViewed")}</SelectItem>
-                <SelectItem value="funding_progress">{t("projects.sortFunding")}</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex items-center gap-2">
+              <span className="hidden text-xs text-muted-foreground sm:inline">{t("projects.sortLabel")}</span>
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-[180px] bg-white">
+                  <SelectValue placeholder={t("projects.sortLabel")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="newest">{t("projects.sortNewest")}</SelectItem>
+                  <SelectItem value="most_viewed">{t("projects.sortMostViewed")}</SelectItem>
+                  <SelectItem value="funding_progress">{t("projects.sortFunding")}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {isLoading ? (
@@ -253,7 +319,14 @@ export function MarketplaceBrowser({
               <CardSkeleton />
             </div>
           ) : projects.length === 0 ? (
-            <p className="py-12 text-center text-sm text-muted-foreground">{t("projects.noMatch")}</p>
+            <div className="rounded-2xl border border-dashed border-border bg-white/60 py-16 text-center">
+              <p className="text-sm text-muted-foreground">{t("projects.noMatch")}</p>
+              {hasFilters ? (
+                <Button variant="outline" className="mt-4" onClick={clearFilters}>
+                  {t("projects.clearFilters")}
+                </Button>
+              ) : null}
+            </div>
           ) : (
             <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
               {projects.map((project) => (

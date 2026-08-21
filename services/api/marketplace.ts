@@ -23,6 +23,7 @@ import type {
   MilestonePlan,
   MilestoneItem,
   MilestonePlanStatus,
+  ProjectReviewEntry,
 } from "@/types";
 
 export const projectsApi = {
@@ -133,6 +134,8 @@ export const ownerApi = {
     apiClient.post<ApiResponse<Project>>("/owner/projects", data),
   updateProject: (id: string, data: Partial<Project>) =>
     apiClient.patch<ApiResponse<Project>>(`/owner/projects/${id}`, data),
+  resubmitProject: (id: string) =>
+    apiClient.post<ApiResponse<Project>>(`/owner/projects/${id}/resubmit`),
   addDocument: (
     id: string,
     data: { name: string; category: string; url?: string }
@@ -150,8 +153,35 @@ export const adminMarketplaceApi = {
     apiClient.patch(`/admin/users/${id}/role`, { role }),
   projects: (params?: FilterParams) =>
     apiClient.get<ApiResponse<PaginatedResponse<Project>>>("/admin/projects", { params }),
-  updateProjectStatus: (id: string, status: string) =>
-    apiClient.patch(`/admin/projects/${id}/status`, { status }),
+  pendingProjects: () =>
+    apiClient.get<ApiResponse<Project[]>>("/admin/projects/pending"),
+  getProject: (id: string) =>
+    apiClient.get<
+      ApiResponse<{
+        project: Project;
+        owner: {
+          id: string;
+          email: string;
+          firstName: string;
+          lastName: string;
+          companyName?: string;
+          bio?: string;
+          kycStatus: string;
+          createdAt: string;
+          previousProjects: number;
+        } | null;
+        riskAnalysis: RiskAnalysis;
+        reviewHistory: ProjectReviewEntry[];
+      }>
+    >(`/admin/projects/${id}`),
+  reviewHistory: (id: string) =>
+    apiClient.get<ApiResponse<ProjectReviewEntry[]>>(`/admin/projects/${id}/review-history`),
+  approveProject: (id: string) =>
+    apiClient.post<ApiResponse<Project>>(`/admin/projects/${id}/approve`),
+  rejectProject: (id: string, reason: string) =>
+    apiClient.post<ApiResponse<Project>>(`/admin/projects/${id}/reject`, { reason }),
+  updateProjectStatus: (id: string, status: string, reason?: string) =>
+    apiClient.patch(`/admin/projects/${id}/status`, { status, reason }),
   payments: () => apiClient.get("/admin/payments"),
   security: () =>
     apiClient.get<
