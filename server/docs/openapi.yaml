@@ -1,0 +1,28 @@
+openapi: 3.0.3
+info:
+  title: InvestPro API
+  version: 1.0.0
+  description: Standalone Express API preserving /api/v1 contract
+servers:
+  - url: http://127.0.0.1:4000/api/v1
+paths:
+  /health:
+    get:
+      summary: Health check (root)
+  /auth/login:
+    post:
+      summary: Login
+  /auth/register:
+    post:
+      summary: Register
+  /projects:
+    get:
+      summary: List published projects
+  /offers:
+    get:
+      summary: List offers
+    post:
+      summary: Create offer
+  /notifications/stream:
+    get:
+      summary: SSE notification stream
