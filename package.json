@@ -6,7 +6,11 @@
     "dev": "npx next dev --turbopack",
     "build": "npx next build",
     "start": "npx next start",
-    "lint": "npx next lint"
+    "lint": "npx next lint",
+    "server:dev": "npm run dev --prefix server",
+    "server:build": "npm run build --prefix server",
+    "server:start": "npm run start --prefix server",
+    "dev:all": "npx concurrently -k -n web,api -c cyan,magenta \"npm run dev\" \"npm run server:dev\""
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
