@@ -45,6 +45,11 @@ export class UserModel extends Model<
   declare companyName: string | null;
   declare bio: string | null;
   declare isActive: boolean;
+  declare status: string;
+  declare emailVerifiedAt: Date | null;
+  declare lastLoginAt: Date | null;
+  declare isSuperAdmin: boolean;
+  declare totpSecret: string | null;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
 }
@@ -79,6 +84,11 @@ UserModel.init(
     companyName: { type: DataTypes.STRING(255), allowNull: true },
     bio: { type: DataTypes.TEXT, allowNull: true },
     isActive: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true },
+    status: { type: DataTypes.STRING(32), allowNull: false, defaultValue: "registered" },
+    emailVerifiedAt: { type: DataTypes.DATE, allowNull: true },
+    lastLoginAt: { type: DataTypes.DATE, allowNull: true },
+    isSuperAdmin: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
+    totpSecret: { type: DataTypes.STRING(255), allowNull: true },
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,
   },
@@ -145,6 +155,10 @@ export class ProjectModel extends Model<
   declare rejectedBy: string | null;
   declare rejectionReason: string | null;
   declare reviewHistory: ProjectReviewEntry[] | null;
+  declare country: string | null;
+  declare maximumInvestment: number | null;
+  declare investmentTerm: string | null;
+  declare publishedAt: Date | null;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
 }
@@ -203,6 +217,10 @@ ProjectModel.init(
     rejectedBy: { type: DataTypes.STRING(36), allowNull: true },
     rejectionReason: { type: DataTypes.TEXT, allowNull: true },
     reviewHistory: { type: JsonColumn, allowNull: true, defaultValue: [] },
+    country: { type: DataTypes.STRING(100), allowNull: true },
+    maximumInvestment: { type: DataTypes.DOUBLE, allowNull: true },
+    investmentTerm: { type: DataTypes.STRING(100), allowNull: true },
+    publishedAt: { type: DataTypes.DATE, allowNull: true },
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,
   },
@@ -271,6 +289,8 @@ export class OfferModel extends Model<
   declare notes: string;
   declare status: OfferStatus;
   declare ownerResponse: string | null;
+  declare expiresAt: Date | null;
+  declare proposedTerms: Record<string, unknown> | null;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
 }
@@ -289,6 +309,8 @@ OfferModel.init(
     notes: { type: DataTypes.TEXT, allowNull: false, defaultValue: "" },
     status: { type: DataTypes.STRING(32), allowNull: false, defaultValue: "pending" },
     ownerResponse: { type: DataTypes.TEXT, allowNull: true },
+    expiresAt: { type: DataTypes.DATE, allowNull: true },
+    proposedTerms: { type: JsonColumn, allowNull: true },
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,
   },
@@ -313,8 +335,14 @@ export class InvestmentModel extends Model<
   declare projectId: string;
   declare investorId: string;
   declare amount: number;
-  declare status: "active" | "completed" | "cancelled";
+  declare status: "active" | "completed" | "cancelled" | string;
   declare expectedReturn: number;
+  declare platformFee: number;
+  declare totalAmount: number | null;
+  declare investmentTerm: string | null;
+  declare agreementId: string | null;
+  declare fundedAt: Date | null;
+  declare completedAt: Date | null;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
 }
@@ -328,6 +356,12 @@ InvestmentModel.init(
     amount: { type: DataTypes.DOUBLE, allowNull: false },
     status: { type: DataTypes.STRING(32), allowNull: false, defaultValue: "active" },
     expectedReturn: { type: DataTypes.DOUBLE, allowNull: false },
+    platformFee: { type: DataTypes.DOUBLE, allowNull: false, defaultValue: 0 },
+    totalAmount: { type: DataTypes.DOUBLE, allowNull: true },
+    investmentTerm: { type: DataTypes.STRING(100), allowNull: true },
+    agreementId: { type: DataTypes.STRING(36), allowNull: true },
+    fundedAt: { type: DataTypes.DATE, allowNull: true },
+    completedAt: { type: DataTypes.DATE, allowNull: true },
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,
   },

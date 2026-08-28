@@ -8,6 +8,7 @@ export type ProjectStatus =
   | "draft"
   | "pending_review"
   | "published"
+  | "funding"
   | "funded"
   | "closed"
   | "rejected";
@@ -384,7 +385,7 @@ export interface InvestorInvestment {
   projectId: string;
   project?: Project;
   amount: number;
-  status: "active" | "completed" | "cancelled";
+  status: string;
   expectedReturn: number;
   createdAt: string;
 }

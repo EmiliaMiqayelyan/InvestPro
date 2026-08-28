@@ -13,6 +13,13 @@ import adminRoutes from "../../modules/admin/routes";
 import milestonesRoutes from "../../modules/milestones/routes";
 import uploadsRoutes from "../../modules/uploads/routes";
 import contactRoutes from "../../modules/contact/routes";
+import walletRoutes from "../../modules/wallet/routes";
+import investmentsRoutes from "../../modules/investments/routes";
+import meRoutes from "../../modules/me/routes";
+import returnsRoutes from "../../modules/returns/routes";
+import reviewsRoutes from "../../modules/reviews/routes";
+import disputesRoutes from "../../modules/disputes/routes";
+import kybRoutes from "../../modules/kyb/routes";
 
 export function createApiRouter(): Router {
   const api = Router();
@@ -31,6 +38,15 @@ export function createApiRouter(): Router {
   api.use("/milestones", milestonesRoutes);
   api.use("/uploads", uploadsRoutes);
   api.use("/contact", contactRoutes);
+
+  // Spec-aligned routes
+  api.use("/me", meRoutes);
+  api.use("/wallet", walletRoutes);
+  api.use("/investments", investmentsRoutes);
+  api.use("/returns", returnsRoutes);
+  api.use("/reviews", reviewsRoutes);
+  api.use("/disputes", disputesRoutes);
+  api.use("/kyb", kybRoutes);
 
   api.use((_req, res) => {
     res.status(404).json({ success: false, message: "Endpoint not found" });

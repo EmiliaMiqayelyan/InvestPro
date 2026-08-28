@@ -7,6 +7,8 @@ import { logger } from "./shared/logger";
 async function bootstrap() {
   await connectDatabase();
   await seedIfEmpty();
+  const { startJobWorker } = await import("./shared/jobs/queue");
+  startJobWorker();
   const app = createApp();
   app.listen(env.PORT, () => {
     logger.info(`InvestPro API listening on http://127.0.0.1:${env.PORT}`);

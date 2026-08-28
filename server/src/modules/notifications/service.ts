@@ -59,7 +59,16 @@ export type NotificationEvent =
     }
   | { kind: "complaint_filed"; complaint: Complaint }
   | { kind: "contact_form"; name: string; email: string }
-  | { kind: "role_changed"; userId: string; role: UserRole };
+  | { kind: "role_changed"; userId: string; role: UserRole }
+  | { kind: "email_verified"; userId: string }
+  | { kind: "wallet_deposit"; userId: string; amount: number }
+  | { kind: "withdrawal_created"; userId: string; amount: number; withdrawalId: string }
+  | { kind: "investment_funded"; userId: string; investmentId: string; amount: number; projectId: string }
+  | { kind: "return_available"; userId: string; amount: number; investmentId: string }
+  | { kind: "dispute_created"; disputeId: string; reporterId: string; subject: string }
+  | { kind: "kyb_submitted"; userId: string; name: string }
+  | { kind: "kyb_approved"; userId: string }
+  | { kind: "kyb_rejected"; userId: string; rejectionReason?: string };
 
 const MAX_NOTIFICATIONS_PER_USER = 100;
 const MAX_EMAIL_BODY = 280;
@@ -537,6 +546,92 @@ async function draftsForEvent(event: NotificationEvent): Promise<NotificationDra
         },
       ];
     }
+    case "email_verified":
+      return [{
+        userId: event.userId,
+        type: "general",
+        title: "Email verified",
+        message: "Your email address has been verified successfully.",
+        href: ROUTES.INVESTOR_DASHBOARD,
+      }];
+    case "wallet_deposit":
+      return [{
+        userId: event.userId,
+        type: "general",
+        title: "Deposit received",
+        message: `Your wallet was credited with ${money(event.amount)}.`,
+        href: ROUTES.INVESTOR_DASHBOARD,
+        email: true,
+      }];
+    case "withdrawal_created":
+      return [{
+        userId: event.userId,
+        type: "general",
+        title: "Withdrawal requested",
+        message: `Your withdrawal of ${money(event.amount)} is pending approval.`,
+        href: ROUTES.INVESTOR_DASHBOARD,
+      }];
+    case "investment_funded":
+      return [{
+        userId: event.userId,
+        type: "offer_updated",
+        title: "Investment funded",
+        message: `Your investment of ${money(event.amount)} has been funded successfully.`,
+        href: ROUTES.INVESTOR_INVESTMENTS,
+        priority: "high",
+        email: true,
+        metadata: { investmentId: event.investmentId, projectId: event.projectId },
+      }];
+    case "return_available":
+      return [{
+        userId: event.userId,
+        type: "general",
+        title: "Return available",
+        message: `A return of ${money(event.amount)} is available for your investment.`,
+        href: ROUTES.INVESTOR_INVESTMENTS,
+        email: true,
+      }];
+    case "dispute_created": {
+      const admins = await listUserIdsByRole("admin");
+      return admins.map((userId) => ({
+        userId,
+        type: "complaint" as const,
+        title: "New dispute filed",
+        message: event.subject,
+        href: ROUTES.ADMIN_COMPLAINTS,
+        priority: "high" as const,
+        metadata: { disputeId: event.disputeId },
+      }));
+    }
+    case "kyb_submitted": {
+      const admins = await listUserIdsByRole("admin");
+      return admins.map((userId) => ({
+        userId,
+        type: "kyc_update" as const,
+        title: "KYB submission pending",
+        message: `${event.name} submitted KYB documents for review.`,
+        href: ROUTES.ADMIN_SECURITY,
+        metadata: { userId: event.userId },
+      }));
+    }
+    case "kyb_approved":
+      return [{
+        userId: event.userId,
+        type: "kyc_update",
+        title: "KYB approved",
+        message: "Your company verification (KYB) has been approved.",
+        href: ROUTES.OWNER_DASHBOARD,
+        email: true,
+      }];
+    case "kyb_rejected":
+      return [{
+        userId: event.userId,
+        type: "kyc_update",
+        title: "KYB rejected",
+        message: event.rejectionReason || "Your KYB submission was rejected. Please resubmit.",
+        href: ROUTES.OWNER_DASHBOARD,
+        priority: "high",
+      }];
   }
 }
 

@@ -351,6 +351,11 @@ export async function seedDatabase(): Promise<void> {
       avatar: null,
       phone: null,
       isActive: true,
+      status: "active",
+      isSuperAdmin: true,
+      emailVerifiedAt: new Date(),
+      lastLoginAt: null,
+      totpSecret: null,
     },
     {
       id: SEED_USER_IDS.investor,
@@ -369,6 +374,11 @@ export async function seedDatabase(): Promise<void> {
       avatar: null,
       phone: null,
       isActive: true,
+      status: "active",
+      isSuperAdmin: false,
+      emailVerifiedAt: new Date(),
+      lastLoginAt: null,
+      totpSecret: null,
     },
     {
       id: SEED_USER_IDS.owner,
@@ -387,6 +397,11 @@ export async function seedDatabase(): Promise<void> {
       avatar: null,
       phone: null,
       isActive: true,
+      status: "active",
+      isSuperAdmin: false,
+      emailVerifiedAt: new Date(),
+      lastLoginAt: null,
+      totpSecret: null,
     },
   ]);
 

@@ -197,3 +197,30 @@ export async function unsaveProject(userId: string, projectId: string) {
   await SavedProjectModel.destroy({ where: { userId, projectId } });
   return { saved: false };
 }
+
+export async function submitProject(projectId: string, ownerId: string) {
+  const row = await ProjectModel.findByPk(projectId);
+  if (!row) throw AppError.notFound("Project not found");
+  if (row.ownerId !== ownerId) throw AppError.forbidden();
+  if (!["draft", "rejected"].includes(row.status)) {
+    throw AppError.badRequest("Project cannot be submitted in current status");
+  }
+  row.status = "pending_review";
+  row.submittedAt = new Date();
+  await row.save();
+  return toProject(row);
+}
+
+export async function publishProject(projectId: string, ownerId: string) {
+  const row = await ProjectModel.findByPk(projectId);
+  if (!row) throw AppError.notFound("Project not found");
+  if (row.ownerId !== ownerId && ownerId !== "admin") throw AppError.forbidden();
+  if (!["pending_review", "published"].includes(row.status)) {
+    throw AppError.badRequest("Project must be approved before publishing");
+  }
+  row.status = "published";
+  row.publishedAt = new Date();
+  if (!row.approvedAt) row.approvedAt = new Date();
+  await row.save();
+  return toProject(row);
+}

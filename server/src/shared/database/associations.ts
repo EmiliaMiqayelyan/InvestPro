@@ -14,6 +14,26 @@ import {
   MilestonePlanModel,
   UploadedFileModel,
 } from "./models";
+import {
+  InvestorProfileModel,
+  CompanyProfileModel,
+  InvestmentDealModel,
+  WalletModel,
+  LedgerTransactionModel,
+  PaymentModel,
+  WithdrawalModel,
+  ReturnModel,
+  DocumentModel,
+  ReviewModel,
+  DisputeModel,
+  AuditLogModel,
+  IdempotencyKeyModel,
+  RefreshTokenModel,
+  AuthTokenModel,
+  KybSubmissionModel,
+  SystemSettingModel,
+  JobQueueModel,
+} from "./spec-models";
 
 let associated = false;
 
@@ -55,6 +75,45 @@ export function registerAssociations(): void {
 
   ProjectModel.hasMany(MilestonePlanModel, { foreignKey: "projectId", as: "milestonePlans" });
   MilestonePlanModel.belongsTo(ProjectModel, { foreignKey: "projectId", as: "project" });
+
+  // Spec entities
+  UserModel.hasOne(InvestorProfileModel, { foreignKey: "userId", as: "investorProfile" });
+  InvestorProfileModel.belongsTo(UserModel, { foreignKey: "userId", as: "user" });
+
+  UserModel.hasOne(CompanyProfileModel, { foreignKey: "userId", as: "companyProfile" });
+  CompanyProfileModel.belongsTo(UserModel, { foreignKey: "userId", as: "user" });
+
+  UserModel.hasMany(WalletModel, { foreignKey: "userId", as: "wallets" });
+  WalletModel.belongsTo(UserModel, { foreignKey: "userId", as: "user" });
+  WalletModel.hasMany(LedgerTransactionModel, { foreignKey: "walletId", as: "transactions" });
+  LedgerTransactionModel.belongsTo(WalletModel, { foreignKey: "walletId", as: "wallet" });
+
+  UserModel.hasMany(PaymentModel, { foreignKey: "userId", as: "payments" });
+  PaymentModel.belongsTo(WalletModel, { foreignKey: "walletId", as: "wallet" });
+
+  UserModel.hasMany(WithdrawalModel, { foreignKey: "userId", as: "withdrawals" });
+  WithdrawalModel.belongsTo(WalletModel, { foreignKey: "walletId", as: "wallet" });
+
+  UserModel.hasMany(ReturnModel, { foreignKey: "investorId", as: "returns" });
+  ReturnModel.belongsTo(InvestmentModel, { foreignKey: "investmentId", as: "investment" });
+  ReturnModel.belongsTo(ProjectModel, { foreignKey: "projectId", as: "project" });
+
+  UserModel.hasMany(InvestmentDealModel, { foreignKey: "investorId", as: "deals" });
+  InvestmentDealModel.belongsTo(ProjectModel, { foreignKey: "projectId", as: "project" });
+  InvestmentDealModel.belongsTo(OfferModel, { foreignKey: "offerId", as: "offer" });
+
+  UserModel.hasMany(ReviewModel, { foreignKey: "investorId", as: "reviews" });
+  ReviewModel.belongsTo(ProjectModel, { foreignKey: "projectId", as: "project" });
+
+  UserModel.hasMany(DisputeModel, { foreignKey: "reporterId", as: "disputes" });
+  UserModel.hasMany(KybSubmissionModel, { foreignKey: "userId", as: "kybSubmissions" });
+  KybSubmissionModel.belongsTo(CompanyProfileModel, {
+    foreignKey: "companyProfileId",
+    as: "companyProfile",
+  });
+
+  UserModel.hasMany(RefreshTokenModel, { foreignKey: "userId", as: "refreshTokens" });
+  UserModel.hasMany(AuthTokenModel, { foreignKey: "userId", as: "authTokens" });
 }
 
 export {
@@ -72,4 +131,22 @@ export {
   ComplaintModel,
   MilestonePlanModel,
   UploadedFileModel,
+  InvestorProfileModel,
+  CompanyProfileModel,
+  InvestmentDealModel,
+  WalletModel,
+  LedgerTransactionModel,
+  PaymentModel,
+  WithdrawalModel,
+  ReturnModel,
+  DocumentModel,
+  ReviewModel,
+  DisputeModel,
+  AuditLogModel,
+  IdempotencyKeyModel,
+  RefreshTokenModel,
+  AuthTokenModel,
+  KybSubmissionModel,
+  SystemSettingModel,
+  JobQueueModel,
 };

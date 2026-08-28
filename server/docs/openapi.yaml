@@ -2,27 +2,179 @@ openapi: 3.0.3
 info:
   title: InvestPro API
   version: 1.0.0
-  description: Standalone Express API preserving /api/v1 contract
+  description: Investment Marketplace API — /api/v1 contract per technical specification v1.0
 servers:
   - url: http://127.0.0.1:4000/api/v1
+tags:
+  - name: Auth
+  - name: Me
+  - name: Projects
+  - name: Investments
+  - name: Wallet
+  - name: Returns
+  - name: Admin
 paths:
   /health:
     get:
-      summary: Health check (root)
+      tags: [Auth]
+      summary: Health check (root /health)
   /auth/login:
     post:
-      summary: Login
+      tags: [Auth]
+      summary: Login with email/password (optional 2FA)
   /auth/register:
     post:
-      summary: Register
+      tags: [Auth]
+      summary: Register investor or company account
+  /auth/refresh:
+    post:
+      tags: [Auth]
+      summary: Refresh access token (rotation)
+  /auth/verify-email:
+    post:
+      tags: [Auth]
+      summary: Verify email with token
+  /auth/forgot-password:
+    post:
+      tags: [Auth]
+      summary: Request password reset
+  /auth/reset-password:
+    post:
+      tags: [Auth]
+      summary: Reset password with token
+  /auth/2fa/enable:
+    post:
+      tags: [Auth]
+      summary: Start 2FA setup
+  /me:
+    get:
+      tags: [Me]
+      summary: Current user
+    patch:
+      tags: [Me]
+      summary: Update user fields
+  /me/profile:
+    get:
+      tags: [Me]
+      summary: Investor or company profile
+    patch:
+      tags: [Me]
+      summary: Create/update profile
+  /me/documents:
+    post:
+      tags: [Me]
+      summary: Upload document metadata
+  /me/offers:
+    get:
+      tags: [Me]
+      summary: List investor offers
+  /me/investments:
+    get:
+      tags: [Me]
+      summary: List investor investments
+  /me/returns:
+    get:
+      tags: [Me]
+      summary: List investor returns
+  /me/portfolio:
+    get:
+      tags: [Me]
+      summary: Portfolio summary (ROI, invested, returns)
   /projects:
     get:
-      summary: List published projects
-  /offers:
-    get:
-      summary: List offers
+      tags: [Projects]
+      summary: Search/filter marketplace projects
     post:
-      summary: Create offer
+      tags: [Projects]
+      summary: Create project (company)
+  /projects/{projectId}:
+    get:
+      tags: [Projects]
+      summary: Project detail
+    patch:
+      tags: [Projects]
+      summary: Update project
+  /projects/{projectId}/submit:
+    post:
+      tags: [Projects]
+      summary: Submit for moderation
+  /projects/{projectId}/publish:
+    post:
+      tags: [Projects]
+      summary: Publish approved project
+  /projects/{projectId}/offers:
+    post:
+      tags: [Projects]
+      summary: Create investment offer
+  /investments/{investmentId}:
+    get:
+      tags: [Investments]
+      summary: Investment detail
+  /investments/{investmentId}/confirm:
+    post:
+      tags: [Investments]
+      summary: Confirm investment terms
+  /investments/{investmentId}/fund:
+    post:
+      tags: [Investments]
+      summary: Fund investment (requires Idempotency-Key)
+  /wallet:
+    get:
+      tags: [Wallet]
+      summary: Wallet balances
+  /wallet/transactions:
+    get:
+      tags: [Wallet]
+      summary: Ledger transaction history
+  /wallet/deposit:
+    post:
+      tags: [Wallet]
+      summary: Deposit funds (requires Idempotency-Key)
+  /wallet/withdraw:
+    post:
+      tags: [Wallet]
+      summary: Request withdrawal (requires Idempotency-Key)
+  /wallet/withdrawals:
+    get:
+      tags: [Wallet]
+      summary: List withdrawals
+  /returns/{investmentId}/returns:
+    get:
+      tags: [Returns]
+      summary: Returns for an investment
+  /admin/users:
+    get:
+      tags: [Admin]
+      summary: List users
+  /admin/projects/pending:
+    get:
+      tags: [Admin]
+      summary: Pending project reviews
+  /admin/projects/{id}/approve:
+    post:
+      tags: [Admin]
+      summary: Approve project
+  /admin/projects/{id}/reject:
+    post:
+      tags: [Admin]
+      summary: Reject project
+  /admin/users/{id}/suspend:
+    post:
+      tags: [Admin]
+      summary: Suspend user
+  /admin/withdrawals/{id}/approve:
+    post:
+      tags: [Admin]
+      summary: Approve withdrawal
+  /admin/audit:
+    get:
+      tags: [Admin]
+      summary: Audit log
+  /admin/disputes:
+    get:
+      tags: [Admin]
+      summary: List disputes
   /notifications/stream:
     get:
+      tags: [Me]
       summary: SSE notification stream

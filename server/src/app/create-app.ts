@@ -4,6 +4,7 @@ import helmet from "helmet";
 import morgan from "morgan";
 import path from "path";
 import fs from "fs";
+import rateLimit from "express-rate-limit";
 import swaggerUi from "swagger-ui-express";
 import YAML from "yaml";
 import { env } from "./config/env";
@@ -33,6 +34,16 @@ export function createApp() {
   app.use(morgan(env.NODE_ENV === "production" ? "combined" : "dev"));
   app.use(express.json({ limit: "2mb" }));
   app.use(express.urlencoded({ extended: true }));
+
+  const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: env.NODE_ENV === "test" ? 10000 : 300,
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+  app.use("/api/v1/auth", rateLimit({ windowMs: 15 * 60 * 1000, max: 50 }));
+  app.use("/api/v1", limiter);
+
   app.use(authMiddleware);
 
   app.get("/health", (_req, res) => {

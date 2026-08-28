@@ -111,8 +111,14 @@ export async function patchOffer(
           projectId: offer.projectId,
           investorId: offer.investorId,
           amount: offer.amount,
-          status: "active",
+          status: "payment_pending",
           expectedReturn: Math.round(offer.amount * 1.15 * 100) / 100,
+          platformFee: 0,
+          totalAmount: null,
+          investmentTerm: null,
+          agreementId: null,
+          fundedAt: null,
+          completedAt: null,
         },
         { transaction: t }
       );
