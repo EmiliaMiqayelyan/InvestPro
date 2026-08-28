@@ -13,6 +13,9 @@ import { QUERY_KEYS } from "@/constants";
 import { usersApi } from "@/services/api";
 import { useAuthStore } from "@/store";
 import { getErrorMessage } from "@/services/api/client";
+import { useI18n } from "@/hooks";
+import { useSetPageTitle } from "@/components/providers/page-title-provider";
+import { PageHeader } from "@/components/shared/page-header";
 import { toast } from "sonner";
 
 const schema = z.object({
@@ -25,9 +28,12 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
-export function ProfileForm({ title = "Profile" }: { title?: string }) {
+export function ProfileForm() {
+  const { t } = useI18n();
   const { user, setUser } = useAuthStore();
   const queryClient = useQueryClient();
+
+  useSetPageTitle(t("nav.profile"));
 
   const {
     register,
@@ -49,21 +55,18 @@ export function ProfileForm({ title = "Profile" }: { title?: string }) {
     onSuccess: (response) => {
       setUser(response.data.data);
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.USER] });
-      toast.success("Profile updated");
+      toast.success(t("ownerReview.savedToast"));
     },
     onError: (error) => toast.error(getErrorMessage(error)),
   });
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <div>
-        <h2 className="font-display text-2xl font-semibold text-slate-900">{title}</h2>
-        <p className="text-sm text-muted-foreground">Update your personal details</p>
-      </div>
+      <PageHeader variant="minimal" title={t("nav.profile")} />
 
       <Card className="premium-card border-border bg-white shadow-none backdrop-blur-none">
         <CardHeader>
-          <CardTitle className="text-slate-900">Personal information</CardTitle>
+          <CardTitle className="text-slate-900">{t("nav.profile")}</CardTitle>
         </CardHeader>
         <CardContent>
           <form
@@ -72,14 +75,14 @@ export function ProfileForm({ title = "Profile" }: { title?: string }) {
           >
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label>First name</Label>
+                <Label>{t("auth.firstName")}</Label>
                 <Input {...register("firstName")} />
                 {errors.firstName && (
                   <p className="text-sm text-destructive">{errors.firstName.message}</p>
                 )}
               </div>
               <div className="space-y-2">
-                <Label>Last name</Label>
+                <Label>{t("auth.lastName")}</Label>
                 <Input {...register("lastName")} />
                 {errors.lastName && (
                   <p className="text-sm text-destructive">{errors.lastName.message}</p>
@@ -87,24 +90,24 @@ export function ProfileForm({ title = "Profile" }: { title?: string }) {
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Email</Label>
+              <Label>{t("auth.email")}</Label>
               <Input value={user?.email || ""} disabled />
             </div>
             <div className="space-y-2">
-              <Label>Phone</Label>
+              <Label>{t("auth.phone")}</Label>
               <Input {...register("phone")} />
             </div>
             <div className="space-y-2">
-              <Label>Company</Label>
+              <Label>{t("auth.companyName")}</Label>
               <Input {...register("companyName")} />
             </div>
             <div className="space-y-2">
-              <Label>Bio</Label>
+              <Label>{t("admin.ownerBio")}</Label>
               <Textarea {...register("bio")} rows={4} />
             </div>
             {user?.membershipTier && user.role === "investor" && (
               <p className="text-sm text-muted-foreground">
-                Membership:{" "}
+                {t("admin.colMembership")}:{" "}
                 <span className="font-medium capitalize text-slate-800">
                   {user.membershipTier}
                 </span>
@@ -112,10 +115,10 @@ export function ProfileForm({ title = "Profile" }: { title?: string }) {
             )}
             <Button
               type="submit"
-              className="bg-blue-600 hover:bg-blue-700"
+              variant="gradient"
               disabled={updateMutation.isPending}
             >
-              {updateMutation.isPending ? "Saving…" : "Save changes"}
+              {updateMutation.isPending ? t("common.saving") : t("common.save")}
             </Button>
           </form>
         </CardContent>

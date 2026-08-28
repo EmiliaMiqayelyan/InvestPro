@@ -18,6 +18,8 @@ import { QUERY_KEYS, ROUTES, STATUS_COLORS } from "@/constants";
 import { getErrorMessage } from "@/services/api/client";
 import { formatCurrency, formatDate, formatPercent } from "@/utils/format";
 import { useI18n } from "@/hooks";
+import { useSetPageTitle } from "@/components/providers/page-title-provider";
+import { PageHeader } from "@/components/shared/page-header";
 import { projectText, teamMemberText } from "@/i18n/localize";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -105,6 +107,11 @@ export default function AdminProjectReviewPage() {
   const projections = projectText(project, "financialProjections", locale);
   const investmentPlan = projectText(project, "investmentPlan", locale);
 
+  useSetPageTitle(title || t("admin.reviewTitle"), [
+    { label: t("admin.projectsTitle"), href: ROUTES.ADMIN_PROJECTS },
+    { label: title || t("admin.reviewTitle") },
+  ]);
+
   const mediaDocs = useMemo(
     () =>
       (project?.documents || []).filter(
@@ -186,20 +193,11 @@ export default function AdminProjectReviewPage() {
         </Button>
       </div>
 
-      <div className="premium-card space-y-3 border-teal-800/15 p-5 md:p-6">
-        <p className="text-sm font-medium uppercase tracking-wide text-teal-800">
-          {t("admin.reviewTitle")}
-        </p>
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h2 className="font-display text-2xl font-semibold text-slate-900">{title}</h2>
-            <p className="mt-2 text-sm text-muted-foreground">
-              {t("admin.submissionDate")}:{" "}
-              {formatDate(project.submittedAt || project.createdAt)}
-              <span className="mx-2 text-slate-300">·</span>
-              {t("admin.submittedBy")}: {owner ? `${owner.firstName} ${owner.lastName}` : project.ownerName}
-            </p>
-          </div>
+      <PageHeader
+        variant="minimal"
+        title={title}
+        description={`${t("admin.submissionDate")}: ${formatDate(project.submittedAt || project.createdAt)} · ${t("admin.submittedBy")}: ${owner ? `${owner.firstName} ${owner.lastName}` : project.ownerName}`}
+        actions={
           <Badge
             className={cn(
               "border",
@@ -212,8 +210,8 @@ export default function AdminProjectReviewPage() {
               ? t("admin.reviewStatus")
               : project.status.replace(/_/g, " ")}
           </Badge>
-        </div>
-      </div>
+        }
+      />
 
       <Section title={t("admin.overview")}>
         <div className="grid gap-4 sm:grid-cols-2">

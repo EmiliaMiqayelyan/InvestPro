@@ -14,6 +14,9 @@ import {
   TEAM_ROLES,
 } from "@/constants";
 import { getErrorMessage } from "@/services/api/client";
+import { useI18n } from "@/hooks";
+import { useSetPageTitle } from "@/components/providers/page-title-provider";
+import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -74,6 +77,8 @@ const tabTriggerClass =
   "data-[state=active]:bg-teal-50 data-[state=active]:text-teal-900 data-[state=active]:shadow-none";
 
 export default function OwnerCreateProjectPage() {
+  const { t } = useI18n();
+  useSetPageTitle(t("owner.createProject"));
   const router = useRouter();
   const [tab, setTab] = useState<TabId>("basic");
   const [basic, setBasic] = useState({
@@ -184,12 +189,11 @@ export default function OwnerCreateProjectPage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <div>
-        <h2 className="font-display text-2xl font-semibold text-slate-900">Create project</h2>
-        <p className="text-sm text-muted-foreground">
-          Walk through basic info, team, documents, finance with phases, then review
-        </p>
-      </div>
+      <PageHeader
+        variant="minimal"
+        title={t("owner.createProject")}
+        description={t("owner.basicInfo")}
+      />
 
       <Tabs value={tab} onValueChange={(v) => setTab(v as TabId)}>
         <TabsList className="grid h-auto w-full grid-cols-2 gap-1 bg-slate-100 p-1 sm:grid-cols-5">

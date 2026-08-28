@@ -2,6 +2,9 @@
 
 import { Users } from "lucide-react";
 import { useOwnerProjects } from "@/hooks/use-marketplace";
+import { useI18n } from "@/hooks";
+import { useSetPageTitle } from "@/components/providers/page-title-provider";
+import { PageHeader } from "@/components/shared/page-header";
 import { TEAM_ROLES } from "@/constants";
 import { Badge } from "@/components/ui/badge";
 import type { TeamMember } from "@/types";
@@ -9,6 +12,8 @@ import type { TeamMember } from "@/types";
 type TeamRow = TeamMember & { projectTitle: string; projectId: string };
 
 export default function OwnerTeamPage() {
+  const { t } = useI18n();
+  useSetPageTitle(t("nav.team"));
   const { data: projects = [], isLoading } = useOwnerProjects();
 
   const team: TeamRow[] = projects.flatMap((p) =>
@@ -21,12 +26,7 @@ export default function OwnerTeamPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="font-display text-2xl font-semibold text-slate-900">Team</h2>
-        <p className="text-sm text-muted-foreground">
-          Members aggregated from all your projects
-        </p>
-      </div>
+      <PageHeader variant="minimal" title={t("nav.team")} />
 
       {isLoading ? (
         <div className="premium-card h-40 animate-pulse bg-slate-100" />
@@ -47,7 +47,7 @@ export default function OwnerTeamPage() {
                     <p className="font-semibold text-slate-900">{member.name}</p>
                     <p className="text-sm text-muted-foreground">{member.position}</p>
                   </div>
-                  <Badge className="border border-blue-200 bg-blue-50 text-blue-700">
+                  <Badge className="border border-teal-200 bg-teal-50 text-teal-800">
                     {roleLabel}
                   </Badge>
                 </div>

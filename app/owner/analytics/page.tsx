@@ -2,19 +2,21 @@
 
 import { BarChart3 } from "lucide-react";
 import { useOwnerProjects } from "@/hooks/use-marketplace";
+import { useI18n } from "@/hooks";
+import { useSetPageTitle } from "@/components/providers/page-title-provider";
+import { PageHeader } from "@/components/shared/page-header";
 import { formatCurrency } from "@/utils/format";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function OwnerAnalyticsPage() {
+  const { t } = useI18n();
+  useSetPageTitle(t("nav.analytics"));
   const { data: projects = [], isLoading } = useOwnerProjects();
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="font-display text-2xl font-semibold text-slate-900">Analytics</h2>
-        <p className="text-sm text-muted-foreground">Funding progress per project</p>
-      </div>
+      <PageHeader variant="minimal" title={t("nav.analytics")} />
 
       {isLoading ? (
         <div className="premium-card h-40 animate-pulse bg-slate-100" />

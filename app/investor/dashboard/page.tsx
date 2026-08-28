@@ -6,97 +6,104 @@ import {
   Handshake,
   MessageSquare,
   Bookmark,
+  Shield,
   ArrowRight,
+  TrendingUp,
 } from "lucide-react";
 import { useInvestorDashboard } from "@/hooks/use-marketplace";
+import { useSetPageTitle } from "@/components/providers/page-title-provider";
+import { useAuth } from "@/hooks";
 import { useI18n } from "@/hooks";
 import { ROUTES } from "@/constants";
 import { formatCurrency } from "@/utils/format";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { hasActiveServiceAccess } from "@/lib/rbac";
 
 export default function InvestorDashboardPage() {
   const { t } = useI18n();
+  const { user } = useAuth();
   const { data: stats, isLoading } = useInvestorDashboard();
+  useSetPageTitle(t("investor.dashboard"));
 
-  const links = [
-    { href: ROUTES.INVESTOR_PROJECTS, label: t("investor.browseProjects"), icon: Briefcase },
-    { href: ROUTES.INVESTOR_INVESTMENTS, label: t("investor.myInvestments"), icon: Handshake },
-    { href: ROUTES.INVESTOR_MESSAGES, label: t("nav.messages"), icon: MessageSquare },
-  ];
-
-  const cards = [
-    { label: t("investor.availableProjects"), value: stats?.availableProjects ?? 0 },
-    { label: t("investor.myInvestments"), value: stats?.myInvestments ?? 0 },
-    { label: t("investor.savedProjects"), value: stats?.savedProjects ?? 0 },
-    { label: t("investor.unreadMessages"), value: stats?.unreadMessages ?? 0 },
-    {
-      label: t("investor.portfolioValue"),
-      value: formatCurrency(stats?.portfolioValue ?? 0),
-    },
-    { label: t("investor.activeOffers"), value: stats?.activeOffers ?? 0 },
-  ];
+  const hasAccess = hasActiveServiceAccess(user);
+  const firstName = user?.firstName;
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-wrap items-end justify-between gap-4">
+      {/* Welcome strip */}
+      <div className="surface-card flex flex-wrap items-center justify-between gap-4 p-6 lg:p-8">
         <div>
-          <h2 className="font-display text-2xl font-semibold text-slate-900">
-            {t("investor.dashboard")}
-          </h2>
-          <p className="text-sm text-muted-foreground">{t("investor.overview")}</p>
+          <p className="text-sm text-muted-foreground">
+            {firstName ? `${t("common.dashboard")}, ${firstName}` : t("investor.dashboard")}
+          </p>
+          <h2 className="mt-1 font-display text-2xl font-semibold">{t("investor.overview")}</h2>
+          {!hasAccess && (
+            <p className="mt-2 text-sm text-amber-700">
+              {t("membership.paywallTitle")} —{" "}
+              <Link href={ROUTES.INVESTOR_MEMBERSHIP} className="font-medium underline">
+                {t("membership.paywallCta")}
+              </Link>
+            </p>
+          )}
         </div>
+        <Button asChild>
+          <Link href={ROUTES.INVESTOR_PROJECTS}>
+            {t("investor.browseProjects")} <ArrowRight className="h-4 w-4" />
+          </Link>
+        </Button>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        {cards.map((card) => (
-          <Card
-            key={card.label}
-            className="premium-card border-border bg-white shadow-none backdrop-blur-none"
-          >
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {card.label}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="font-display text-2xl font-semibold text-slate-900">
-                {isLoading ? "…" : card.value}
-              </p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      {/* Bento grid */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:grid-rows-2">
+        {/* Portfolio — large card */}
+        <div className="surface-card flex flex-col justify-between p-6 sm:col-span-2 lg:row-span-2">
+          <div>
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+              <TrendingUp className="h-5 w-5 text-primary" />
+            </div>
+            <p className="mt-4 text-sm text-muted-foreground">{t("investor.portfolioValue")}</p>
+            <p className="mt-1 font-display text-4xl font-semibold tabular-nums">
+              {isLoading ? "—" : formatCurrency(stats?.portfolioValue ?? 0)}
+            </p>
+          </div>
+          <div className="mt-6 grid grid-cols-2 gap-4 border-t border-border pt-6">
+            <div>
+              <p className="text-xs text-muted-foreground">{t("investor.myInvestments")}</p>
+              <p className="mt-1 text-xl font-semibold">{isLoading ? "—" : stats?.myInvestments ?? 0}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">{t("investor.activeOffers")}</p>
+              <p className="mt-1 text-xl font-semibold">{isLoading ? "—" : stats?.activeOffers ?? 0}</p>
+            </div>
+          </div>
+        </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {links.map((link) => {
-          const Icon = link.icon;
+        {[
+          { label: t("investor.availableProjects"), value: stats?.availableProjects ?? 0, icon: Briefcase, href: ROUTES.INVESTOR_PROJECTS },
+          { label: t("investor.savedProjects"), value: stats?.savedProjects ?? 0, icon: Bookmark, href: ROUTES.INVESTOR_SAVED },
+          { label: t("investor.unreadMessages"), value: stats?.unreadMessages ?? 0, icon: MessageSquare, href: ROUTES.INVESTOR_MESSAGES },
+          { label: t("investor.myInvestments"), value: stats?.myInvestments ?? 0, icon: Handshake, href: ROUTES.INVESTOR_INVESTMENTS },
+        ].map((item) => {
+          const Icon = item.icon;
           return (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="premium-card group p-5 transition hover:-translate-y-0.5"
-            >
-              <Icon className="mb-3 h-5 w-5 text-blue-600" />
-              <p className="font-medium text-slate-900">{link.label}</p>
-              <span className="mt-2 inline-flex items-center gap-1 text-xs text-blue-600">
-                {t("common.open")}{" "}
-                <ArrowRight className="h-3 w-3 transition group-hover:translate-x-0.5" />
-              </span>
+            <Link key={item.label} href={item.href} className="surface-card-hover flex flex-col justify-between p-5">
+              <Icon className="h-5 w-5 text-muted-foreground" />
+              <div className="mt-4">
+                <p className="text-2xl font-semibold tabular-nums">{isLoading ? "—" : item.value}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{item.label}</p>
+              </div>
             </Link>
           );
         })}
       </div>
 
+      {/* Quick actions */}
       <div className="flex flex-wrap gap-3">
-        <Button asChild className="bg-blue-600 hover:bg-blue-700">
-          <Link href={ROUTES.INVESTOR_SAVED}>
-            <Bookmark className="h-4 w-4" /> {t("investor.savedProjects")}
-          </Link>
+        <Button variant="outline" asChild>
+          <Link href={ROUTES.INVESTOR_KYC}><Shield className="h-4 w-4" /> {t("investor.completeVerification")}</Link>
         </Button>
-        <Button asChild variant="outline">
-          <Link href={ROUTES.INVESTOR_KYC}>{t("investor.completeVerification")}</Link>
+        <Button variant="outline" asChild>
+          <Link href={ROUTES.INVESTOR_MILESTONES}>{t("nav.milestones")}</Link>
         </Button>
       </div>
     </div>

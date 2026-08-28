@@ -8,9 +8,12 @@ import { formatDate, formatRelativeTime } from "@/utils/format";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useI18n } from "@/hooks";
+import { useSetPageTitle } from "@/components/providers/page-title-provider";
+import { PageHeader } from "@/components/shared/page-header";
 
 export default function AdminSecurityPage() {
   const { t } = useI18n();
+  useSetPageTitle(t("admin.securityTitle"));
   const { data, isLoading } = useQuery({
     queryKey: [QUERY_KEYS.ADMIN_SECURITY],
     queryFn: async () => (await adminMarketplaceApi.security()).data.data,
@@ -22,12 +25,11 @@ export default function AdminSecurityPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="font-display text-2xl font-semibold text-slate-900">
-          {t("admin.securityTitle")}
-        </h2>
-        <p className="text-sm text-muted-foreground">{t("admin.securitySub")}</p>
-      </div>
+      <PageHeader
+        variant="minimal"
+        title={t("admin.securityTitle")}
+        description={t("admin.securitySub")}
+      />
 
       {isLoading ? (
         <div className="premium-card h-40 animate-pulse bg-slate-100" />

@@ -68,6 +68,14 @@ export const hy: EnMessages = {
     complaints: "Բողոքներ",
     settings: "Կարգավորումներ",
     admin: "Ադմին",
+    groupOverview: "Ամփոփ",
+    groupDiscover: "Բացահայտել",
+    groupEngage: "Համագործակցություն",
+    groupAccount: "Հաշիվ",
+    groupProjects: "Նախագծեր",
+    groupManage: "Կառավարում",
+    groupSystem: "Համակարգ",
+    browseMarketplace: "Դիտել շուկան",
   },
   footer: {
     tagline:
@@ -192,6 +200,10 @@ export const hy: EnMessages = {
       "Անկախ նրանից՝ դուք փնտրում եք ներդրումային հնարավորություն, թե ցանկանում եք ձեր նախագիծը ներկայացնել ներդրողներին, սկսեք այստեղից։",
     contactCtaHelp:
       "Հարցեր ունե՞ք նախագծերի կամ ստուգման մասին։ Մեր թիմը պատրաստ է օգնել։",
+    statsProjects: "Ակտիվ նախագծեր",
+    statsFunding: "Հետևվող ֆինանսավորում",
+    statsKyc: "KYC ստուգված սեփականատերեր",
+    statsMessaging: "Հարթակային հաղորդակցություն",
     contactUs: "Կապ մեզ հետ",
     createAccount: "Ստեղծել հաշիվ",
     investorPoints: {

@@ -1,25 +1,37 @@
 "use client";
 
 import Link from "next/link";
-import { Lock } from "lucide-react";
+import { Check, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ROUTES } from "@/constants";
+import { ROUTES, MEMBERSHIP_FEATURES } from "@/constants";
 import { useI18n } from "@/hooks";
 
 export function ServicePaywall({ className }: { className?: string }) {
   const { t } = useI18n();
-  const membershipHref = ROUTES.INVESTOR_MEMBERSHIP;
+  const features = MEMBERSHIP_FEATURES.service.slice(0, 4);
 
   return (
-    <div className={className ?? "premium-card flex flex-col items-start gap-3 border-teal-100 bg-teal-50/50 p-5"}>
-      <div className="flex items-center gap-2 text-teal-900">
-        <Lock className="h-4 w-4" />
-        <p className="font-display text-sm font-semibold">{t("membership.paywallTitle")}</p>
+    <div className={className ?? "surface-card border-primary/20 bg-primary/5 p-6"}>
+      <div className="flex items-start gap-4">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-white">
+          <Lock className="h-4 w-4" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="font-display font-semibold">{t("membership.paywallTitle")}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{t("membership.paywallBody")}</p>
+          <ul className="mt-4 space-y-2">
+            {features.map((f) => (
+              <li key={f} className="flex items-center gap-2 text-sm">
+                <Check className="h-3.5 w-3.5 text-primary" />
+                {f}
+              </li>
+            ))}
+          </ul>
+          <Button size="sm" className="mt-4" asChild>
+            <Link href={ROUTES.INVESTOR_MEMBERSHIP}>{t("membership.paywallCta")}</Link>
+          </Button>
+        </div>
       </div>
-      <p className="text-sm text-muted-foreground">{t("membership.paywallBody")}</p>
-      <Button size="sm" asChild>
-        <Link href={membershipHref}>{t("membership.paywallCta")}</Link>
-      </Button>
     </div>
   );
 }

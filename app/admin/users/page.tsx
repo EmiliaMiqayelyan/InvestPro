@@ -17,9 +17,12 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/hooks";
+import { useSetPageTitle } from "@/components/providers/page-title-provider";
+import { PageHeader } from "@/components/shared/page-header";
 
 export default function AdminUsersPage() {
   const { t } = useI18n();
+  useSetPageTitle(t("admin.usersTitle"));
   const [search, setSearch] = useState("");
   const [role, setRole] = useState<string>("all");
 
@@ -39,12 +42,11 @@ export default function AdminUsersPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="font-display text-2xl font-semibold text-slate-900">
-          {t("admin.usersTitle")}
-        </h2>
-        <p className="text-sm text-muted-foreground">{t("admin.usersSub")}</p>
-      </div>
+      <PageHeader
+        variant="minimal"
+        title={t("admin.usersTitle")}
+        description={t("admin.usersSub")}
+      />
 
       <div className="flex flex-wrap gap-3">
         <Input

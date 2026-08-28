@@ -232,7 +232,7 @@ export default function ProjectDetailPage() {
       >
         <div className="grid gap-8 lg:grid-cols-[1.6fr_1fr]">
           <div>
-            <div className="relative aspect-[16/9] overflow-hidden rounded-2xl bg-slate-100">
+            <div className="relative aspect-[16/9] overflow-hidden rounded-2xl bg-slate-100 shadow-glow">
               <Image
                 src={project.image}
                 alt={title}
@@ -241,6 +241,7 @@ export default function ProjectDetailPage() {
                 sizes="(max-width:1024px) 100vw, 60vw"
                 priority
               />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-900/50 via-transparent to-transparent" />
             </div>
             <div className="mt-6 flex flex-wrap items-center gap-2">
               <Badge variant="outline" className={cn(verification.className)}>
@@ -580,7 +581,7 @@ export default function ProjectDetailPage() {
           </div>
 
           <aside className="relative z-10 space-y-4 lg:sticky lg:top-20 lg:self-start">
-            <div className="premium-card p-6">
+            <div className="gradient-border premium-card p-6 card-glow">
               <p className="text-xs text-muted-foreground">{t("projects.fundingProgress")}</p>
               <p className="mt-1 font-display text-2xl font-semibold">
                 {formatCurrency(project.currentFunding)}
@@ -591,9 +592,9 @@ export default function ProjectDetailPage() {
                   progress,
                 })}
               </p>
-              <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
+              <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-slate-100">
                 <div
-                  className="h-full rounded-full bg-teal-600"
+                  className="h-full rounded-full bg-gradient-to-r from-teal-900 via-teal-700 to-emerald-500"
                   style={{ width: `${progress}%` }}
                 />
               </div>
@@ -621,7 +622,7 @@ export default function ProjectDetailPage() {
 
               <div className="mt-6 flex flex-col gap-2">
                 <Button
-                  className="bg-teal-700 hover:bg-teal-800"
+                  variant="gradient"
                   onClick={() => {
                     if (!isAuthenticated || user?.role !== "investor") {
                       toast.error(t("projects.toastOfferSignIn"));

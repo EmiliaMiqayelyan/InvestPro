@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ROUTES } from "@/constants";
 import { useAuth, useI18n } from "@/hooks";
+import { AuthShell } from "@/components/layout/auth-shell";
 import { PlatformLogo } from "@/components/shared/platform-logo";
 import { cn } from "@/lib/utils";
 
@@ -103,11 +104,13 @@ function RegisterForm() {
   };
 
   return (
-    <Card className="relative w-full max-w-md border-border/80 bg-white shadow-soft animate-slide-up">
-      <CardHeader className="text-center">
+    <Card className="relative w-full max-w-md shadow-soft animate-slide-up">
+      <CardHeader className="text-center lg:hidden">
         <Link href={ROUTES.HOME} className="mb-2 inline-flex justify-center">
           <PlatformLogo />
         </Link>
+      </CardHeader>
+      <CardHeader className="hidden text-center lg:block">
         <CardTitle className="text-2xl font-display">{t("auth.createAccountShort")}</CardTitle>
         <CardDescription>{t("auth.joinAs")}</CardDescription>
       </CardHeader>
@@ -133,7 +136,9 @@ function RegisterForm() {
                       className={cn(
                         "rounded-lg border px-3 py-2.5 text-sm font-medium transition",
                         field.value === option.value
-                          ? "border-blue-600 bg-blue-50 text-blue-700"
+                          ? option.value === "investor"
+                            ? "border-teal-700 bg-teal-50 text-teal-900"
+                            : "border-brand-gold bg-amber-50 text-amber-900"
                           : "border-border bg-white text-slate-600 hover:bg-slate-50"
                       )}
                     >
@@ -216,7 +221,7 @@ function RegisterForm() {
         </form>
         <p className="mt-6 text-center text-sm text-muted-foreground">
           {t("auth.hasAccount")}{" "}
-          <Link href={ROUTES.LOGIN} className="text-primary hover:underline">
+          <Link href={ROUTES.LOGIN} className="font-medium text-teal-800 hover:underline">
             {t("common.signIn")}
           </Link>
         </p>
@@ -229,17 +234,19 @@ export default function RegisterPage() {
   const { t } = useI18n();
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center bg-slate-50 p-4 py-10">
-      <div className="pointer-events-none absolute inset-0 hero-mesh opacity-80" />
+    <AuthShell
+      title={t("auth.createAccountShort")}
+      subtitle={t("auth.joinAs")}
+    >
       <Suspense
         fallback={
-          <Card className="w-full max-w-md border-border/80 bg-white p-8 shadow-soft">
+          <Card className="w-full max-w-md p-8 shadow-soft">
             <p className="text-center text-sm text-muted-foreground">{t("common.loading")}</p>
           </Card>
         }
       >
         <RegisterForm />
       </Suspense>
-    </div>
+    </AuthShell>
   );
 }

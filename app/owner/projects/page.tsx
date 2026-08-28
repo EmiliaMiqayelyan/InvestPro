@@ -7,6 +7,8 @@ import { FolderKanban, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useOwnerProjects } from "@/hooks/use-marketplace";
 import { useI18n } from "@/hooks";
+import { useSetPageTitle } from "@/components/providers/page-title-provider";
+import { PageHeader } from "@/components/shared/page-header";
 import { ownerApi } from "@/services/api";
 import { getErrorMessage } from "@/services/api/client";
 import { ROUTES, STATUS_COLORS, QUERY_KEYS } from "@/constants";
@@ -37,6 +39,7 @@ function ownerProjectActivityTime(project: Project) {
 
 export default function OwnerProjectsPage() {
   const { t } = useI18n();
+  useSetPageTitle(t("owner.myProjects"));
   const queryClient = useQueryClient();
   const { data: projects = [], isLoading } = useOwnerProjects();
 
@@ -61,19 +64,18 @@ export default function OwnerProjectsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h2 className="font-display text-2xl font-semibold text-slate-900">
-            {t("owner.myProjects")}
-          </h2>
-          <p className="text-sm text-muted-foreground">{t("owner.projectsSub")}</p>
-        </div>
-        <Button asChild>
-          <Link href={ROUTES.OWNER_PROJECT_CREATE}>
-            <Plus className="h-4 w-4" /> {t("owner.newProject")}
-          </Link>
-        </Button>
-      </div>
+      <PageHeader
+        variant="minimal"
+        title={t("owner.myProjects")}
+        description={t("owner.projectsSub")}
+        actions={
+          <Button asChild>
+            <Link href={ROUTES.OWNER_PROJECT_CREATE}>
+              <Plus className="h-4 w-4" /> {t("owner.newProject")}
+            </Link>
+          </Button>
+        }
+      />
 
       {isLoading ? (
         <div className="premium-card h-40 animate-pulse bg-slate-100" />

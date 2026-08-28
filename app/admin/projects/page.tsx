@@ -11,6 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/hooks";
+import { useSetPageTitle } from "@/components/providers/page-title-provider";
+import { PageHeader } from "@/components/shared/page-header";
 import type { Project, ProjectStatus } from "@/types";
 
 type FilterId = "all" | ProjectStatus | "approved";
@@ -51,6 +53,7 @@ function filterLabel(t: (key: string) => string, id: FilterId) {
 
 export default function AdminProjectsPage() {
   const { t } = useI18n();
+  useSetPageTitle(t("admin.projectsTitle"));
   const [filter, setFilter] = useState<FilterId>("all");
 
   const { data, isLoading } = useQuery({
@@ -88,12 +91,11 @@ export default function AdminProjectsPage() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h2 className="font-display text-2xl font-semibold text-slate-900">
-          {t("admin.projectsTitle")}
-        </h2>
-        <p className="text-sm text-muted-foreground">{t("admin.projectsSub")}</p>
-      </div>
+      <PageHeader
+        variant="minimal"
+        title={t("admin.projectsTitle")}
+        description={t("admin.projectsSub")}
+      />
 
       <section className="rounded-2xl border border-amber-200/80 bg-amber-50/70 p-5 md:p-6">
         <div className="flex flex-wrap items-start justify-between gap-3">

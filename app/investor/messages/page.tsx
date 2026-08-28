@@ -1,16 +1,21 @@
 "use client";
 
 import { MessagesPanel } from "@/components/workspace/messages-panel";
+import { useSetPageTitle } from "@/components/providers/page-title-provider";
+import { PageHeader } from "@/components/shared/page-header";
+import { useI18n } from "@/hooks";
 
 export default function InvestorMessagesPage() {
+  const { t } = useI18n();
+  useSetPageTitle(t("messages.title"));
+
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="font-display text-2xl font-semibold text-slate-900">Messages</h2>
-        <p className="text-sm text-muted-foreground">
-          Secure conversations with project owners
-        </p>
-      </div>
+      <PageHeader
+        variant="minimal"
+        title={t("messages.title")}
+        description={t("messages.securityNoteShort")}
+      />
       <MessagesPanel />
     </div>
   );

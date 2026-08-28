@@ -4,6 +4,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useMilestones, useI18n } from "@/hooks";
+import { useSetPageTitle } from "@/components/providers/page-title-provider";
+import { PageHeader } from "@/components/shared/page-header";
 import { milestonesApi } from "@/services/api";
 import { getErrorMessage } from "@/services/api/client";
 import { QUERY_KEYS, STATUS_COLORS, ROUTES } from "@/constants";
@@ -17,6 +19,8 @@ export default function OwnerMilestonesPage() {
   const queryClient = useQueryClient();
   const { data: plans = [], isLoading } = useMilestones();
 
+  useSetPageTitle(t("milestones.title"));
+
   const respondMutation = useMutation({
     mutationFn: ({ id, status }: { id: string; status: MilestonePlanStatus }) =>
       milestonesApi.update(id, { status }),
@@ -29,13 +33,12 @@ export default function OwnerMilestonesPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="font-display text-2xl font-semibold text-slate-900">
-          {t("milestones.title")}
-        </h2>
-        <p className="mt-1 text-sm text-muted-foreground">{t("milestones.subtitle")}</p>
-        <p className="mt-2 text-xs text-amber-800">{t("milestones.offPlatformNote")}</p>
-      </div>
+      <PageHeader
+        variant="minimal"
+        title={t("milestones.title")}
+        description={t("milestones.subtitle")}
+      />
+      <p className="text-xs text-amber-800">{t("milestones.offPlatformNote")}</p>
 
       {isLoading ? (
         <p className="text-sm text-muted-foreground">{t("common.loading")}</p>

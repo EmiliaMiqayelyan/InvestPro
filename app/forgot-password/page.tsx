@@ -5,23 +5,29 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation } from "@tanstack/react-query";
-import { ArrowLeft, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { AuthShell } from "@/components/layout/auth-shell";
+import { PlatformLogo } from "@/components/shared/platform-logo";
 import { ROUTES } from "@/constants";
 import { authApi } from "@/services/api";
 import { getErrorMessage } from "@/services/api/client";
+import { useI18n } from "@/hooks";
 import { toast } from "sonner";
 
-const schema = z.object({
-  email: z.string().email("Invalid email address"),
-});
-
-type FormData = z.infer<typeof schema>;
+type FormData = {
+  email: string;
+};
 
 export default function ForgotPasswordPage() {
+  const { t } = useI18n();
+
+  const schema = z.object({
+    email: z.string().email(t("auth.invalidEmail")),
+  });
+
   const {
     register,
     handleSubmit,
@@ -30,42 +36,40 @@ export default function ForgotPasswordPage() {
 
   const mutation = useMutation({
     mutationFn: (data: FormData) => authApi.forgotPassword(data.email),
-    onSuccess: () => toast.success("Password reset link sent to your email"),
+    onSuccess: () => toast.success(t("common.success")),
     onError: (error) => toast.error(getErrorMessage(error)),
   });
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
-      <Card className="w-full max-w-md border-border/80 bg-white shadow-soft animate-slide-up">
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-4 rounded-full bg-primary/10 p-3 w-fit">
-            <Mail className="h-6 w-6 text-primary" />
-          </div>
-          <CardTitle className="text-2xl">Forgot password?</CardTitle>
-          <CardDescription>
-            Enter your email and we&apos;ll send you a reset link
-          </CardDescription>
+    <AuthShell title={t("auth.forgotPassword")} subtitle={t("auth.signInToAccount")}>
+      <Card className="border-border shadow-soft">
+        <CardHeader className="text-center lg:hidden">
+          <Link href={ROUTES.HOME} className="mb-2 inline-flex justify-center">
+            <PlatformLogo />
+          </Link>
+        </CardHeader>
+        <CardHeader className="hidden text-center lg:block">
+          <CardTitle className="text-2xl font-display">{t("auth.forgotPassword")}</CardTitle>
+          <CardDescription>{t("auth.signInToAccount")}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit((d) => mutation.mutate(d))} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t("auth.email")}</Label>
               <Input id="email" type="email" placeholder="you@example.com" {...register("email")} />
               {errors.email && (
                 <p className="text-sm text-destructive">{errors.email.message}</p>
               )}
             </div>
-            <Button type="submit" variant="gradient" className="w-full" disabled={mutation.isPending}>
-              {mutation.isPending ? "Sending..." : "Send Reset Link"}
+            <Button type="submit" className="w-full" disabled={mutation.isPending}>
+              {mutation.isPending ? t("common.sending") : t("common.continue")}
             </Button>
           </form>
-          <Button variant="ghost" className="w-full mt-4" asChild>
-            <Link href={ROUTES.LOGIN}>
-              <ArrowLeft className="mr-2 h-4 w-4" /> Back to login
-            </Link>
+          <Button variant="ghost" className="mt-4 w-full" asChild>
+            <Link href={ROUTES.LOGIN}>{t("common.back")}</Link>
           </Button>
         </CardContent>
       </Card>
-    </div>
+    </AuthShell>
   );
 }

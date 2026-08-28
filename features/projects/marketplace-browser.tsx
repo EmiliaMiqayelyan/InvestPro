@@ -32,7 +32,7 @@ function FilterField({
 }) {
   return (
     <div className="space-y-1.5">
-      <Label htmlFor={htmlFor} className="text-xs font-medium text-slate-600">
+      <Label htmlFor={htmlFor} className="text-xs font-medium text-muted-foreground">
         {label}
       </Label>
       {children}
@@ -117,7 +117,7 @@ export function MarketplaceBrowser({
     <div className="space-y-4">
       <FilterField label={t("projects.category")}>
         <Select value={category} onValueChange={setCategory}>
-          <SelectTrigger className="w-full bg-white">
+          <SelectTrigger className="w-full">
             <SelectValue placeholder={t("projects.allCategories")} />
           </SelectTrigger>
           <SelectContent>
@@ -133,7 +133,7 @@ export function MarketplaceBrowser({
 
       <FilterField label={t("projects.industry")}>
         <Select value={industry} onValueChange={setIndustry}>
-          <SelectTrigger className="w-full bg-white">
+          <SelectTrigger className="w-full">
             <SelectValue placeholder={t("projects.allIndustries")} />
           </SelectTrigger>
           <SelectContent>
@@ -149,7 +149,7 @@ export function MarketplaceBrowser({
 
       <FilterField label={t("projects.stage")}>
         <Select value={stage} onValueChange={setStage}>
-          <SelectTrigger className="w-full bg-white">
+          <SelectTrigger className="w-full">
             <SelectValue placeholder={t("projects.allStages")} />
           </SelectTrigger>
           <SelectContent>
@@ -165,7 +165,7 @@ export function MarketplaceBrowser({
 
       <FilterField label={t("projects.risk")}>
         <Select value={riskLevel} onValueChange={setRiskLevel}>
-          <SelectTrigger className="w-full bg-white">
+          <SelectTrigger className="w-full">
             <SelectValue placeholder={t("projects.allRisks")} />
           </SelectTrigger>
           <SelectContent>
@@ -186,7 +186,7 @@ export function MarketplaceBrowser({
       <FilterField label={t("projects.location")} htmlFor="filter-location">
         <Input
           id="filter-location"
-          className="bg-white"
+          className=""
           placeholder={t("projects.locationPlaceholder")}
           value={location}
           onChange={(e) => setLocation(e.target.value)}
@@ -196,7 +196,7 @@ export function MarketplaceBrowser({
       <FilterField label={t("projects.investmentBudget")} htmlFor="filter-budget">
         <Input
           id="filter-budget"
-          className="bg-white"
+          className=""
           type="number"
           inputMode="numeric"
           placeholder="50,000"
@@ -207,7 +207,7 @@ export function MarketplaceBrowser({
 
       <FilterField label={t("projects.funding")}>
         <Select value={fundingStatus} onValueChange={setFundingStatus}>
-          <SelectTrigger className="w-full bg-white">
+          <SelectTrigger className="w-full">
             <SelectValue placeholder={t("projects.allFunding")} />
           </SelectTrigger>
           <SelectContent>
@@ -221,48 +221,37 @@ export function MarketplaceBrowser({
   );
 
   return (
-    <div className="space-y-8">
-      <div>
-        {!compact && (
-          <p className="text-sm font-medium uppercase tracking-wide text-teal-800">
-            {t("nav.marketplace")}
-          </p>
-        )}
-        <h2 className="mt-1 font-display text-2xl font-semibold text-slate-900 md:text-3xl">
-          {t("projects.exploreTitle")}
-        </h2>
-        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{t("projects.exploreSub")}</p>
-        <div className="relative mt-6 max-w-xl">
-          <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            className="h-12 bg-white pl-10 shadow-sm"
-            placeholder={t("projects.searchPlaceholder")}
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-          />
-        </div>
+    <div className="space-y-6">
+      <div className="relative max-w-xl">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          className="h-11 pl-10"
+          placeholder={t("projects.searchPlaceholder")}
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+        />
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)]">
+      <div className="grid gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-8">
         <aside className="lg:sticky lg:top-24 lg:self-start">
-          <details className="rounded-2xl border border-border/80 bg-white p-4 lg:hidden">
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-2 text-sm font-medium text-slate-900">
+          <details className="surface-card p-4 lg:hidden">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-2 text-sm font-medium text-foreground">
               <span className="inline-flex items-center gap-2">
-                <SlidersHorizontal className="h-4 w-4 text-teal-800" />
+                <SlidersHorizontal className="h-4 w-4 text-primary" />
                 {t("projects.filters")}
               </span>
               {hasFilters ? (
-                <span className="rounded-full bg-teal-50 px-2 py-0.5 text-xs font-medium text-teal-800">
+                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
                   {t("projects.filtersActive")}
                 </span>
               ) : null}
             </summary>
-            <div className="mt-4 border-t border-border/60 pt-4">
+            <div className="mt-4 border-t border-border pt-4">
               {filters}
               {hasFilters ? (
                 <Button
                   variant="ghost"
-                  className="mt-3 w-full justify-start gap-2 px-2 text-slate-600"
+                  className="mt-3 w-full justify-start gap-2 px-2 text-muted-foreground"
                   onClick={clearFilters}
                 >
                   <X className="h-3.5 w-3.5" />
@@ -272,17 +261,17 @@ export function MarketplaceBrowser({
             </div>
           </details>
 
-          <div className="hidden rounded-2xl border border-border/80 bg-white p-5 lg:block">
+          <div className="hidden surface-card p-5 lg:block">
             <div className="mb-4 flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
-                <SlidersHorizontal className="h-4 w-4 text-teal-800" />
+              <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                <SlidersHorizontal className="h-4 w-4 text-primary" />
                 {t("projects.filters")}
               </div>
               {hasFilters ? (
                 <button
                   type="button"
                   onClick={clearFilters}
-                  className="text-xs font-medium text-teal-800 hover:underline"
+                  className="text-xs font-medium text-primary hover:underline"
                 >
                   {t("projects.clearFilters")}
                 </button>
@@ -319,7 +308,7 @@ export function MarketplaceBrowser({
               <CardSkeleton />
             </div>
           ) : projects.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-border bg-white/60 py-16 text-center">
+            <div className="rounded-xl border border-dashed border-border bg-secondary/30 py-16 text-center">
               <p className="text-sm text-muted-foreground">{t("projects.noMatch")}</p>
               {hasFilters ? (
                 <Button variant="outline" className="mt-4" onClick={clearFilters}>

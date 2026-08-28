@@ -5,13 +5,18 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
+import { Mail } from "lucide-react";
 import { MarketingHeader, MarketingFooter } from "@/components/layout/marketing-shell";
+import { PageHeroBanner } from "@/components/shared/page-hero-banner";
+import { ThematicImage } from "@/components/shared/thematic-image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
 import { contactApi } from "@/services/api";
 import { getErrorMessage } from "@/services/api/client";
+import { THEMATIC_IMAGES } from "@/constants/thematic-images";
 import { useI18n } from "@/hooks";
 
 type FormValues = {
@@ -57,72 +62,77 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       <MarketingHeader />
 
-      <section className="hero-mesh border-b border-border/60">
-        <div className="container-narrow section-pad py-16 md:py-20 animate-fade-in">
-          <p className="text-sm font-medium uppercase tracking-wide text-blue-600">
-            {t("contact.eyebrow")}
-          </p>
-          <h1 className="mt-3 font-display text-4xl font-semibold text-slate-900">
-            {t("contact.heroTitle")}
-          </h1>
-          <p className="mt-4 max-w-xl text-muted-foreground">{t("contact.heroSub")}</p>
-        </div>
-      </section>
+      <PageHeroBanner
+        imageSrc={THEMATIC_IMAGES.sections.contact}
+        imageAlt="Get in touch with our team"
+        eyebrow={t("contact.eyebrow")}
+        title={t("contact.heroTitle")}
+        height="md"
+      />
 
-      <section className="container-narrow section-pad py-16">
-        <div className="mx-auto max-w-xl animate-slide-up">
-          <Card className="border-border/80 shadow-soft">
-            <CardHeader>
-              <CardTitle className="font-display text-xl">{t("contact.formTitle")}</CardTitle>
-              <CardDescription>{t("contact.formDesc")}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">{t("contact.name")}</Label>
-                  <Input
-                    id="name"
-                    placeholder={t("contact.namePlaceholder")}
-                    {...register("name")}
-                  />
-                  {errors.name && (
-                    <p className="text-sm text-destructive">{errors.name.message}</p>
-                  )}
+      <section className="py-16 lg:py-24">
+        <div className="container-wide section-pad">
+          <div className="grid items-start gap-10 lg:grid-cols-2 lg:gap-16">
+            <div className="space-y-8">
+              <ThematicImage
+                src={THEMATIC_IMAGES.sections.team}
+                alt="Support team collaboration"
+                aspect="auto"
+                overlay="bottom"
+                className="aspect-[3/2] max-h-[200px] shadow-soft"
+                sizes="(max-width:1024px) 100vw, 40vw"
+              />
+              <p className="text-sm leading-relaxed text-muted-foreground">{t("contact.heroSub")}</p>
+              <div className="surface-card px-5 py-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
+                    <Mail className="h-4 w-4 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">{t("contact.email")}</p>
+                    <p className="text-sm font-medium">hello@investpro.am</p>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">{t("contact.email")}</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder={t("contact.emailPlaceholder")}
-                    {...register("email")}
-                  />
-                  {errors.email && (
-                    <p className="text-sm text-destructive">{errors.email.message}</p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="message">{t("contact.message")}</Label>
-                  <textarea
-                    id="message"
-                    rows={5}
-                    placeholder={t("contact.messagePlaceholder")}
-                    className="flex w-full rounded-lg border border-border bg-white px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                    {...register("message")}
-                  />
-                  {errors.message && (
-                    <p className="text-sm text-destructive">{errors.message.message}</p>
-                  )}
-                </div>
-                <Button type="submit" className="w-full" disabled={sending}>
-                  {sending ? t("common.sending") : t("contact.send")}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
+              </div>
+            </div>
+
+            <Card className="surface-card border-none shadow-soft">
+              <CardHeader>
+                <CardTitle className="font-display text-xl">{t("contact.formTitle")}</CardTitle>
+                <CardDescription>{t("contact.formDesc")}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">{t("contact.name")}</Label>
+                    <Input id="name" placeholder={t("contact.namePlaceholder")} {...register("name")} />
+                    {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email">{t("contact.email")}</Label>
+                    <Input id="email" type="email" placeholder={t("contact.emailPlaceholder")} {...register("email")} />
+                    {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="message">{t("contact.message")}</Label>
+                    <Textarea
+                      id="message"
+                      rows={5}
+                      placeholder={t("contact.messagePlaceholder")}
+                      {...register("message")}
+                    />
+                    {errors.message && <p className="text-sm text-destructive">{errors.message.message}</p>}
+                  </div>
+                  <Button type="submit" className="w-full" disabled={sending}>
+                    {sending ? t("common.sending") : t("contact.send")}
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </section>
 

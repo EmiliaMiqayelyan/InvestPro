@@ -8,8 +8,10 @@ import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { ownerApi } from "@/services/api";
 import { getErrorMessage } from "@/services/api/client";
-import { QUERY_KEYS, ROUTES, PROJECT_CATEGORIES, PROJECT_INDUSTRIES, PROJECT_STAGES } from "@/constants";
 import { useI18n } from "@/hooks";
+import { useSetPageTitle } from "@/components/providers/page-title-provider";
+import { PageHeader } from "@/components/shared/page-header";
+import { QUERY_KEYS, ROUTES, PROJECT_CATEGORIES, PROJECT_INDUSTRIES, PROJECT_STAGES } from "@/constants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,6 +30,7 @@ export default function OwnerEditProjectPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { t } = useI18n();
+  useSetPageTitle(t("ownerReview.editTitle"));
 
   const { data: projects = [], isLoading } = useQuery({
     queryKey: [QUERY_KEYS.OWNER_PROJECTS],
@@ -146,18 +149,17 @@ export default function OwnerEditProjectPage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <div>
-        <Button asChild variant="ghost" size="sm" className="mb-3">
-          <Link href={ROUTES.OWNER_PROJECTS}>
-            <ArrowLeft className="h-4 w-4" />
-            {t("common.back")}
-          </Link>
-        </Button>
-        <h2 className="font-display text-2xl font-semibold text-slate-900">
-          {t("ownerReview.editTitle")}
-        </h2>
-        <p className="text-sm text-muted-foreground">{t("ownerReview.editSub")}</p>
-      </div>
+      <Button asChild variant="ghost" size="sm">
+        <Link href={ROUTES.OWNER_PROJECTS}>
+          <ArrowLeft className="h-4 w-4" />
+          {t("common.back")}
+        </Link>
+      </Button>
+      <PageHeader
+        variant="minimal"
+        title={t("ownerReview.editTitle")}
+        description={t("ownerReview.editSub")}
+      />
 
       {project.rejectionReason ? (
         <div className="rounded-xl border border-red-200 bg-red-50/50 px-4 py-3">

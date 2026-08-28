@@ -18,11 +18,11 @@ export function DataTableSkeleton({
     <div className={cn("space-y-3", className)}>
       <div className="flex gap-4">
         {Array.from({ length: columns }).map((_, i) => (
-          <Skeleton key={i} className="h-10 flex-1" />
+          <Skeleton key={i} className="h-10 flex-1 shimmer rounded-lg" />
         ))}
       </div>
       {Array.from({ length: rows }).map((_, i) => (
-        <Skeleton key={i} className="h-14 w-full" />
+        <Skeleton key={i} className="h-14 w-full shimmer rounded-lg" />
       ))}
     </div>
   );
@@ -30,10 +30,10 @@ export function DataTableSkeleton({
 
 export function CardSkeleton({ className }: { className?: string }) {
   return (
-    <div className={cn("rounded-xl border border-border/50 p-6 space-y-4", className)}>
-      <Skeleton className="h-4 w-1/3" />
-      <Skeleton className="h-8 w-1/2" />
-      <Skeleton className="h-32 w-full" />
+    <div className={cn("rounded-2xl border border-border/50 p-6 space-y-4 overflow-hidden", className)}>
+      <Skeleton className="h-4 w-1/3 shimmer rounded" />
+      <Skeleton className="h-8 w-1/2 shimmer rounded" />
+      <Skeleton className="h-32 w-full shimmer rounded-xl" />
     </div>
   );
 }

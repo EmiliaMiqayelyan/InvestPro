@@ -70,7 +70,7 @@ const TYPE_META: Record<
   },
   milestone_update: {
     icon: Milestone,
-    className: "bg-blue-50 text-blue-700",
+    className: "bg-teal-50 text-teal-800",
     labelKey: "notifications.types.milestone_update",
   },
   complaint: {

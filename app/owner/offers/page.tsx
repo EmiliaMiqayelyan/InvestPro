@@ -4,6 +4,9 @@ import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Handshake } from "lucide-react";
 import { useOffers } from "@/hooks/use-marketplace";
+import { useI18n } from "@/hooks";
+import { useSetPageTitle } from "@/components/providers/page-title-provider";
+import { PageHeader } from "@/components/shared/page-header";
 import { offersApi } from "@/services/api";
 import { QUERY_KEYS, STATUS_COLORS } from "@/constants";
 import { getErrorMessage } from "@/services/api/client";
@@ -22,6 +25,8 @@ import type { InvestmentOffer, OfferStatus } from "@/types";
 import { toast } from "sonner";
 
 export default function OwnerOffersPage() {
+  const { t } = useI18n();
+  useSetPageTitle(t("nav.investorRequests"));
   const queryClient = useQueryClient();
   const { data: offersPage, isLoading } = useOffers();
   const offers = offersPage?.data ?? [];
@@ -49,12 +54,7 @@ export default function OwnerOffersPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="font-display text-2xl font-semibold text-slate-900">
-          Investor requests
-        </h2>
-        <p className="text-sm text-muted-foreground">Accept, reject, or negotiate offers</p>
-      </div>
+      <PageHeader variant="minimal" title={t("nav.investorRequests")} />
 
       {isLoading ? (
         <div className="premium-card h-40 animate-pulse bg-slate-100" />
@@ -141,7 +141,7 @@ export default function OwnerOffersPage() {
             rows={4}
           />
           <Button
-            className="bg-blue-600 hover:bg-blue-700"
+            className="bg-gradient-to-r from-teal-900 to-teal-700 hover:opacity-95"
             disabled={!response.trim() || respondMutation.isPending}
             onClick={() =>
               negotiateOffer &&

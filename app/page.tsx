@@ -1,27 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import type { LucideIcon } from "lucide-react";
+import Image from "next/image";
 import {
-  AlertTriangle,
   ArrowRight,
-  BadgeCheck,
-  BarChart3,
-  Building2,
-  ClipboardList,
   FileText,
-  FolderPlus,
   Handshake,
   MessageSquare,
-  MessageSquareLock,
-  Scale,
-  Search,
   Shield,
-  ShieldCheck,
-  Users,
 } from "lucide-react";
 import { MarketingHeader, MarketingFooter } from "@/components/layout/marketing-shell";
 import { MarketplaceProjectCard } from "@/features/projects";
+import { ImageCard } from "@/components/shared/image-card";
+import { ImageSplitSection } from "@/components/shared/image-split-section";
 import { Button } from "@/components/ui/button";
 import {
   Accordion,
@@ -30,130 +21,28 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { ROUTES } from "@/constants";
+import { THEMATIC_IMAGES } from "@/constants/thematic-images";
 import { useProjects } from "@/hooks/use-marketplace";
 import { useI18n } from "@/hooks";
 import { cn } from "@/lib/utils";
-
-type HowStep = {
-  step: string;
-  icon: LucideIcon;
-  label: string;
-  title: string;
-  description: string;
-};
-
-function HowStepCard({ item }: { item: HowStep }) {
-  return (
-    <div className="flex gap-4 rounded-2xl border border-border/70 bg-[hsl(var(--surface-warm))]/50 p-5 transition hover:border-teal-800/20 hover:bg-[hsl(var(--surface-warm))]/80">
-      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-teal-800 text-white shadow-sm">
-        <item.icon className="h-5 w-5" strokeWidth={1.75} />
-      </div>
-      <div className="min-w-0">
-        <p className="text-xs font-medium text-teal-800">
-          <span className="tabular-nums">{item.step}</span>
-          <span className="mx-1.5 text-teal-800/40">·</span>
-          {item.label}
-        </p>
-        <h3 className="mt-1 font-display text-base font-semibold leading-snug text-slate-900">
-          {item.title}
-        </h3>
-        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-          {item.description}
-        </p>
-      </div>
-    </div>
-  );
-}
 
 export default function HomePage() {
   const { t, isHy } = useI18n();
   const { data: projectsPage } = useProjects({ limit: 3 });
   const featured = projectsPage?.data?.slice(0, 3) ?? [];
 
-  const howItWorks = [
-    {
-      step: "01",
-      icon: FolderPlus,
-      label: t("landing.howStep1Label"),
-      title: t("landing.howStep1Title"),
-      description: t("landing.howStep1Desc"),
-    },
-    {
-      step: "02",
-      icon: ShieldCheck,
-      label: t("landing.howStep2Label"),
-      title: t("landing.howStep2Title"),
-      description: t("landing.howStep2Desc"),
-    },
-    {
-      step: "03",
-      icon: Search,
-      label: t("landing.howStep3Label"),
-      title: t("landing.howStep3Title"),
-      description: t("landing.howStep3Desc"),
-    },
-    {
-      step: "04",
-      icon: ClipboardList,
-      label: t("landing.howStep4Label"),
-      title: t("landing.howStep4Title"),
-      description: t("landing.howStep4Desc"),
-    },
-    {
-      step: "05",
-      icon: MessageSquare,
-      label: t("landing.howStep5Label"),
-      title: t("landing.howStep5Title"),
-      description: t("landing.howStep5Desc"),
-    },
-    {
-      step: "06",
-      icon: Handshake,
-      label: t("landing.howStep6Label"),
-      title: t("landing.howStep6Title"),
-      description: t("landing.howStep6Desc"),
-    },
+  const stats = [
+    { value: "150+", label: t("landing.statsProjects") },
+    { value: "$12M+", label: t("landing.statsFunding") },
+    { value: "100%", label: t("landing.statsKyc") },
+    { value: "24/7", label: t("landing.statsMessaging") },
   ];
 
-  const investorPoints = [
-    { icon: BarChart3, text: t("landing.investorPoints.p1") },
-    { icon: Users, text: t("landing.investorPoints.p2") },
-    { icon: FileText, text: t("landing.investorPoints.p3") },
-    { icon: AlertTriangle, text: t("landing.investorPoints.p4") },
-    { icon: MessageSquare, text: t("landing.investorPoints.p5") },
-    { icon: Handshake, text: t("landing.investorPoints.p6") },
-  ];
-
-  const ownerPoints = [
-    t("landing.ownerPoints.p1"),
-    t("landing.ownerPoints.p2"),
-    t("landing.ownerPoints.p3"),
-    t("landing.ownerPoints.p4"),
-    t("landing.ownerPoints.p5"),
-    t("landing.ownerPoints.p6"),
-  ];
-
-  const securityPoints = [
-    {
-      icon: Shield,
-      title: t("landing.verificationFirst"),
-      description: t("landing.verificationFirstDesc"),
-    },
-    {
-      icon: AlertTriangle,
-      title: t("landing.accessControls"),
-      description: t("landing.accessControlsDesc"),
-    },
-    {
-      icon: MessageSquareLock,
-      title: t("landing.onPlatformOnly"),
-      description: t("landing.onPlatformOnlyDesc"),
-    },
-    {
-      icon: Scale,
-      title: t("landing.informedDecision"),
-      description: t("landing.informedDecisionDesc"),
-    },
+  const steps = [
+    { num: "1", title: t("landing.howStep1Title"), desc: t("landing.howStep1Desc") },
+    { num: "2", title: t("landing.howStep2Title"), desc: t("landing.howStep2Desc") },
+    { num: "3", title: t("landing.howStep3Title"), desc: t("landing.howStep3Desc") },
+    { num: "4", title: t("landing.howStep4Title"), desc: t("landing.howStep4Desc") },
   ];
 
   const faqs = [
@@ -161,294 +50,256 @@ export default function HomePage() {
     { q: t("landing.faqs.q2"), a: t("landing.faqs.a2") },
     { q: t("landing.faqs.q3"), a: t("landing.faqs.a3") },
     { q: t("landing.faqs.q4"), a: t("landing.faqs.a4") },
-    { q: t("landing.faqs.q5"), a: t("landing.faqs.a5") },
   ];
 
   return (
-    <div className="min-h-screen bg-[hsl(var(--background))]">
+    <div className="min-h-screen bg-background">
       <MarketingHeader />
 
-      <section className="hero-mesh relative overflow-hidden border-b border-border/60">
-        <div className="container-narrow section-pad relative py-16 md:py-24">
-          <div className="mx-auto max-w-3xl text-center">
-            <p className="font-display text-sm font-medium tracking-wide text-teal-800 md:text-base">
-              {t("landing.brandTagline")}
-            </p>
-            <h1
-              className={cn(
-                "mt-5 font-display text-3xl text-slate-900 sm:text-4xl md:text-[2.75rem]",
-                isHy
-                  ? "mx-auto max-w-2xl font-medium leading-[1.45] tracking-wide"
-                  : "font-semibold leading-tight tracking-tight"
-              )}
-            >
-              {t("landing.heroTitle")}
-            </h1>
-            <p
-              className={cn(
-                "mx-auto mt-5 max-w-2xl text-base text-slate-600 sm:text-lg",
-                isHy && "leading-relaxed tracking-wide"
-              )}
-            >
-              {t("landing.heroSubtitle")}
-            </p>
-            <div className="mt-9 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
-              <Button size="lg" asChild>
-                <Link href={ROUTES.PROJECTS}>
-                  {t("landing.exploreProjects")}
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button size="lg" variant="outline" asChild>
-                <Link href={`${ROUTES.REGISTER}?role=project_owner`}>
-                  {t("landing.publishProject")}
-                </Link>
-              </Button>
-            </div>
-            <p className="mt-4 text-sm text-muted-foreground">
-              <Link
-                href={`${ROUTES.REGISTER}?role=investor`}
-                className="inline-flex items-center gap-1 underline-offset-4 hover:underline"
+      {/* Hero */}
+      <section className="border-b border-border">
+        <div className="container-wide section-pad py-14 lg:py-20">
+          <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
+            <div className="animate-slide-up">
+              <div className="inline-flex items-center gap-2 rounded-full border border-border bg-secondary/80 px-3 py-1 text-xs font-medium text-muted-foreground">
+                <Shield className="h-3.5 w-3.5 text-primary" />
+                {t("landing.brandTagline")}
+              </div>
+              <h1
+                className={cn(
+                  "mt-5 font-display text-4xl font-semibold leading-[1.12] sm:text-5xl lg:text-[3rem]",
+                  isHy && "leading-[1.35]"
+                )}
               >
-                {t("landing.joinAsInvestor")}
-                <ArrowRight className="h-3.5 w-3.5" />
-              </Link>
-            </p>
+                {t("landing.heroTitle")}
+              </h1>
+              <p className="mt-4 max-w-lg text-base leading-relaxed text-muted-foreground sm:text-lg">
+                {t("landing.heroSubtitle")}
+              </p>
+              <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+                <Button size="lg" asChild>
+                  <Link href={ROUTES.PROJECTS}>
+                    {t("landing.exploreProjects")}
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+                <Button size="lg" variant="outline" asChild>
+                  <Link href={`${ROUTES.REGISTER}?role=project_owner`}>
+                    {t("landing.publishProject")}
+                  </Link>
+                </Button>
+              </div>
+            </div>
+
+            <div className="relative animate-slide-up lg:justify-self-end lg:max-w-lg">
+              <div className="surface-card overflow-hidden">
+                <div className="relative aspect-[4/3] bg-secondary">
+                  <Image
+                    src={THEMATIC_IMAGES.hero.marketplace}
+                    alt=""
+                    fill
+                    className="object-cover"
+                    sizes="(max-width:1024px) 100vw, 50vw"
+                    priority
+                  />
+                  <div className="overlay-card absolute inset-0" aria-hidden />
+                  <div className="absolute bottom-0 left-0 right-0 p-5 text-white sm:p-6">
+                    <p className="text-xs font-medium uppercase tracking-wider text-white/70">
+                      {t("nav.marketplace")}
+                    </p>
+                    <p className="mt-1 font-display text-xl font-semibold">
+                      {t("landing.discoverOpportunities")}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      <section id="how-it-works" className="border-y border-border/60 bg-white">
-        <div className="container-narrow section-pad py-16 md:py-20">
-          <div className="mx-auto max-w-2xl text-center">
-            <h2 className="font-display text-3xl font-semibold text-slate-900">
-              {t("landing.howItWorks")}
-            </h2>
-            <p className="mt-3 text-muted-foreground">{t("landing.howItWorksSub")}</p>
-          </div>
-
-          <ol className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {howItWorks.map((item) => (
-              <li key={item.step}>
-                <HowStepCard item={item} />
-              </li>
+      {/* Stats */}
+      <section className="border-b border-border bg-secondary/40">
+        <div className="container-wide section-pad py-8 sm:py-10">
+          <div className="grid grid-cols-2 gap-6 lg:grid-cols-4 lg:gap-8">
+            {stats.map((stat) => (
+              <div key={stat.label} className="text-center lg:text-left">
+                <p className="font-display text-2xl font-semibold tabular-nums sm:text-3xl">
+                  {stat.value}
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">{stat.label}</p>
+              </div>
             ))}
-          </ol>
-
-          <div className="mx-auto mt-14 max-w-xl text-center">
-            <h3 className="font-display text-xl font-semibold text-slate-900">
-              {t("landing.howCtaTitle")}
-            </h3>
-            <p className="mt-2 text-sm text-muted-foreground">{t("landing.howCtaSub")}</p>
-            <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
-              <Button asChild>
-                <Link href={ROUTES.PROJECTS}>
-                  {t("landing.exploreProjects")}
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button variant="outline" asChild>
-                <Link href={`${ROUTES.REGISTER}?role=project_owner`}>
-                  {t("landing.publishProject")}
-                </Link>
-              </Button>
-            </div>
           </div>
         </div>
       </section>
 
-      <section className="border-y border-border/60 bg-[hsl(var(--surface-warm))]/80">
-        <div className="container-narrow section-pad grid gap-16 py-16 lg:grid-cols-2">
-          <div>
-            <div className="mb-3 inline-flex items-center gap-2 text-teal-800">
-              <Users className="h-4 w-4" />
-              <span className="text-sm font-medium">{t("landing.forInvestors")}</span>
-            </div>
-            <h2 className="font-display text-3xl font-semibold text-slate-900">
-              {t("landing.investorHeadline")}
-            </h2>
-            <p className="mt-3 text-muted-foreground">{t("landing.investorSub")}</p>
-            <ul className="mt-6 space-y-3">
-              {investorPoints.map((point) => (
-                <li key={point.text} className="flex gap-3 text-sm text-slate-700">
-                  <point.icon className="mt-0.5 h-4 w-4 shrink-0 text-teal-700" />
-                  {point.text}
-                </li>
-              ))}
-            </ul>
-            <Button className="mt-8" asChild>
-              <Link href={ROUTES.PROJECTS}>
-                {t("landing.browseProjects")}
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
-          <div>
-            <div className="mb-3 inline-flex items-center gap-2 text-teal-800">
-              <Building2 className="h-4 w-4" />
-              <span className="text-sm font-medium">{t("landing.forOwners")}</span>
-            </div>
-            <h2 className="font-display text-3xl font-semibold text-slate-900">
-              {t("landing.ownerHeadline")}
-            </h2>
-            <p className="mt-3 text-muted-foreground">{t("landing.ownerSub")}</p>
-            <ul className="mt-6 space-y-3">
-              {ownerPoints.map((point) => (
-                <li key={point} className="flex gap-3 text-sm text-slate-700">
-                  <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-teal-700" />
-                  {point}
-                </li>
-              ))}
-            </ul>
-            <Button className="mt-8" variant="outline" asChild>
-              <Link href={`${ROUTES.REGISTER}?role=project_owner`}>
-                {t("landing.publishProject")}
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      <section className="container-narrow section-pad py-16 md:py-20">
-        <div className="mx-auto max-w-2xl text-center">
-          <h2 className="font-display text-3xl font-semibold text-slate-900">
-            {t("landing.securityTitle")}
+      {/* How it works */}
+      <div id="how-it-works">
+        <ImageSplitSection
+          imageSrc={THEMATIC_IMAGES.sections.diligence}
+          imageAlt=""
+          imagePosition="right"
+          bordered
+          compact
+        >
+          <p className="eyebrow">{t("landing.howItWorks")}</p>
+          <h2 className="mt-2 font-display text-2xl font-semibold sm:text-3xl">
+            {t("landing.howItWorksSub")}
           </h2>
-          <p className="mt-3 text-muted-foreground">{t("landing.securitySub")}</p>
-        </div>
-        <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-          {securityPoints.map((item) => (
-            <div key={item.title}>
-              <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-slate-100 text-slate-800">
-                <item.icon className="h-5 w-5" />
+          <div className="mt-8 space-y-5">
+            {steps.map((step) => (
+              <div key={step.num} className="flex gap-4">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
+                  {step.num}
+                </span>
+                <div>
+                  <h3 className="font-semibold">{step.title}</h3>
+                  <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{step.desc}</p>
+                </div>
               </div>
-              <h3 className="font-display text-lg font-semibold">{item.title}</h3>
-              <p className="mt-2 text-sm text-muted-foreground">{item.description}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+            ))}
+          </div>
+        </ImageSplitSection>
+      </div>
 
-      <section className="container-narrow section-pad py-16 md:py-20">
-        <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
-          <div>
-            <h2 className="font-display text-3xl font-semibold text-slate-900">
-              {t("landing.featuredProjects")}
+      {/* Investors & owners */}
+      <section className="py-14 lg:py-18">
+        <div className="container-wide section-pad">
+          <div className="mx-auto max-w-2xl text-center">
+            <h2 className="font-display text-2xl font-semibold sm:text-3xl">
+              {t("landing.twoSidesTitle")}
             </h2>
-            <p className="mt-2 text-muted-foreground">{t("landing.featuredSub")}</p>
           </div>
-          <Button variant="outline" asChild>
-            <Link href={ROUTES.PROJECTS}>
-              {t("common.viewAll")} <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
-        </div>
-        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {featured.length > 0 ? (
-            featured.map((project) => (
-              <MarketplaceProjectCard key={project.id} project={project} />
-            ))
-          ) : (
-            <p className="col-span-full text-sm text-muted-foreground">
-              {t("landing.featuredEmpty")}
-            </p>
-          )}
-        </div>
-      </section>
-
-      <section className="border-y border-border/60 bg-[hsl(var(--card))]">
-        <div className="container-narrow section-pad py-16 md:py-20">
-          <h2 className="text-center font-display text-3xl font-semibold text-slate-900">
-            {t("landing.twoSidesTitle")}
-          </h2>
-          <div className="mt-10 grid gap-6 md:grid-cols-2">
-            <div className="premium-card p-6 md:p-8">
-              <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-teal-50 text-teal-800">
-                <Users className="h-5 w-5" />
-              </div>
-              <h3 className="font-display text-xl font-semibold text-slate-900">
-                {t("landing.twoSidesInvestorsTitle")}
-              </h3>
-              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                {t("landing.twoSidesInvestorsBody")}
-              </p>
-            </div>
-            <div className="premium-card p-6 md:p-8">
-              <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-teal-50 text-teal-800">
-                <Building2 className="h-5 w-5" />
-              </div>
-              <h3 className="font-display text-xl font-semibold text-slate-900">
-                {t("landing.twoSidesOwnersTitle")}
-              </h3>
-              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                {t("landing.twoSidesOwnersBody")}
-              </p>
-            </div>
+          <div className="mx-auto mt-8 grid max-w-4xl gap-5 sm:grid-cols-2">
+            <ImageCard
+              variant="overlay"
+              imageSrc={THEMATIC_IMAGES.sections.investors}
+              imageAlt=""
+              title={t("landing.investorHeadline")}
+              description={t("landing.investorSub")}
+              href={ROUTES.PROJECTS}
+              ctaLabel={t("landing.browseProjects")}
+            />
+            <ImageCard
+              variant="overlay"
+              imageSrc={THEMATIC_IMAGES.sections.owners}
+              imageAlt=""
+              title={t("landing.ownerHeadline")}
+              description={t("landing.ownerSub")}
+              href={`${ROUTES.REGISTER}?role=project_owner`}
+              ctaLabel={t("landing.publishProject")}
+            />
           </div>
         </div>
       </section>
 
-      <section className="container-narrow section-pad py-16 md:py-20">
-        <div className="mx-auto max-w-2xl text-center">
-          <h2 className="font-display text-3xl font-semibold text-slate-900">
-            {t("landing.connectTitle")}
-          </h2>
-          <p className="mt-4 text-lg text-slate-700">{t("landing.connectLead")}</p>
-          <p className="mt-4 text-muted-foreground leading-relaxed">{t("landing.connectBody")}</p>
-          <div className="mt-8">
+      {/* Featured projects */}
+      <section className="border-y border-border bg-secondary/30 py-14 lg:py-18">
+        <div className="container-wide section-pad">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <h2 className="font-display text-2xl font-semibold sm:text-3xl">
+                {t("landing.featuredProjects")}
+              </h2>
+              <p className="mt-2 text-muted-foreground">{t("landing.featuredSub")}</p>
+            </div>
             <Button variant="outline" asChild>
-              <Link href={ROUTES.ABOUT}>
-                {t("nav.about")}
-                <ArrowRight className="h-4 w-4" />
+              <Link href={ROUTES.PROJECTS}>
+                {t("common.viewAll")} <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
+          </div>
+          <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {featured.length > 0 ? (
+              featured.map((p) => <MarketplaceProjectCard key={p.id} project={p} />)
+            ) : (
+              <p className="col-span-full py-8 text-center text-muted-foreground">
+                {t("landing.featuredEmpty")}
+              </p>
+            )}
           </div>
         </div>
       </section>
 
-      <section id="faq" className="container-narrow section-pad py-16 md:py-20">
-        <div className="mx-auto max-w-3xl">
-          <p className="text-center text-sm font-medium uppercase tracking-wide text-teal-800">
-            {t("landing.faq")}
-          </p>
-          <h2 className="mt-2 text-center font-display text-2xl font-semibold text-slate-900 md:text-3xl">
+      {/* Security */}
+      <ImageSplitSection
+        imageSrc={THEMATIC_IMAGES.sections.security}
+        imageAlt=""
+        imagePosition="left"
+        compact
+      >
+        <p className="eyebrow">{t("landing.securityTitle")}</p>
+        <h2 className="mt-2 font-display text-2xl font-semibold sm:text-3xl">
+          {t("landing.securitySub")}
+        </h2>
+        <ul className="mt-8 space-y-4">
+          {[
+            { icon: Shield, title: t("landing.verificationFirst"), desc: t("landing.verificationFirstDesc") },
+            { icon: MessageSquare, title: t("landing.onPlatformOnly"), desc: t("landing.onPlatformOnlyDesc") },
+            { icon: FileText, title: t("landing.informedDecision"), desc: t("landing.informedDecisionDesc") },
+            { icon: Handshake, title: t("landing.accessControls"), desc: t("landing.accessControlsDesc") },
+          ].map((item) => (
+            <li key={item.title} className="flex gap-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                <item.icon className="h-4 w-4 text-primary" />
+              </div>
+              <div>
+                <p className="font-medium">{item.title}</p>
+                <p className="text-sm leading-relaxed text-muted-foreground">{item.desc}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </ImageSplitSection>
+
+      {/* FAQ */}
+      <section id="faq" className="py-14 lg:py-18">
+        <div className="container-narrow section-pad">
+          <h2 className="text-center font-display text-2xl font-semibold sm:text-3xl">
             {t("landing.faqSub")}
           </h2>
-          <div className="premium-card mt-10 overflow-hidden px-2 sm:px-4">
-            <Accordion type="single" collapsible className="w-full">
-              {faqs.map((faq, i) => (
-                <AccordionItem key={faq.q} value={`faq-${i}`} className="border-border/70 px-2">
-                  <AccordionTrigger className="text-left text-slate-900 hover:no-underline">
-                    {faq.q}
-                  </AccordionTrigger>
-                  <AccordionContent className="text-slate-600">{faq.a}</AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          </div>
+          <Accordion type="single" collapsible className="mt-8 space-y-2">
+            {faqs.map((faq, i) => (
+              <AccordionItem
+                key={faq.q}
+                value={`faq-${i}`}
+                className="surface-card border-none px-5 sm:px-6"
+              >
+                <AccordionTrigger className="text-left font-medium hover:no-underline">
+                  {faq.q}
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground leading-relaxed">
+                  {faq.a}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
         </div>
       </section>
 
-      <section className="border-t border-border/60 bg-[hsl(var(--surface-warm))]/60">
-        <div className="container-narrow section-pad py-14 md:py-16">
-          <div className="mx-auto max-w-2xl text-center">
-            <h2 className="font-display text-2xl font-semibold text-slate-900 md:text-3xl">
-              {t("landing.contactCta")}
-            </h2>
-            <p className="mt-3 text-muted-foreground">{t("landing.contactCtaSub")}</p>
-            <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-              <Button size="lg" asChild>
-                <Link href={ROUTES.PROJECTS}>
-                  {t("landing.exploreProjects")}
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button size="lg" variant="outline" asChild>
-                <Link href={`${ROUTES.REGISTER}?role=project_owner`}>
-                  {t("landing.publishProject")}
-                </Link>
-              </Button>
-            </div>
+      {/* CTA */}
+      <section className="relative flex min-h-[220px] items-center overflow-hidden sm:min-h-[260px]">
+        <Image
+          src={THEMATIC_IMAGES.hero.investment}
+          alt=""
+          fill
+          className="object-cover object-center"
+          sizes="100vw"
+        />
+        <div className="overlay-cta absolute inset-0" aria-hidden />
+        <div className="on-image relative container-narrow section-pad py-12 text-center text-white">
+          <h2 className="font-display text-2xl font-semibold text-white sm:text-3xl">
+            {t("landing.contactCta")}
+          </h2>
+          <p className="mx-auto mt-3 max-w-md text-white/80">{t("landing.contactCtaHelp")}</p>
+          <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
+            <Button size="lg" variant="onImage" asChild>
+              <Link href={ROUTES.CONTACT}>{t("landing.contactUs")}</Link>
+            </Button>
+            <Button size="lg" variant="onImageOutline" asChild>
+              <Link href={ROUTES.REGISTER}>{t("landing.createAccount")}</Link>
+            </Button>
           </div>
         </div>
       </section>

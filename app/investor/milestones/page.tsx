@@ -15,6 +15,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useMilestones, useProjects, useI18n, useAuth } from "@/hooks";
+import { useSetPageTitle } from "@/components/providers/page-title-provider";
+import { PageHeader } from "@/components/shared/page-header";
 import { milestonesApi } from "@/services/api";
 import { getErrorMessage } from "@/services/api/client";
 import { QUERY_KEYS, STATUS_COLORS, ROUTES } from "@/constants";
@@ -40,6 +42,8 @@ export default function InvestorMilestonesPage() {
   const [items, setItems] = useState<DraftItem[]>([{ title: "", amount: "", dueDate: "" }]);
 
   const hasAccess = hasActiveServiceAccess(user);
+
+  useSetPageTitle(t("milestones.title"));
 
   const createMutation = useMutation({
     mutationFn: () =>
@@ -74,18 +78,17 @@ export default function InvestorMilestonesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h2 className="font-display text-2xl font-semibold text-slate-900">
-            {t("milestones.title")}
-          </h2>
-          <p className="mt-1 text-sm text-muted-foreground">{t("milestones.subtitle")}</p>
-          <p className="mt-2 text-xs text-amber-800">{t("milestones.offPlatformNote")}</p>
-        </div>
-        {hasAccess && (
-          <Button onClick={() => setOpen(true)}>{t("milestones.create")}</Button>
-        )}
-      </div>
+      <PageHeader
+        variant="minimal"
+        title={t("milestones.title")}
+        description={t("milestones.subtitle")}
+        actions={
+          hasAccess ? (
+            <Button onClick={() => setOpen(true)}>{t("milestones.create")}</Button>
+          ) : undefined
+        }
+      />
+      <p className="text-xs text-amber-800">{t("milestones.offPlatformNote")}</p>
 
       {!hasAccess ? (
         <ServicePaywall />

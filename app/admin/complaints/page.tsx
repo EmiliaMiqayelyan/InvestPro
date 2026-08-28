@@ -8,10 +8,13 @@ import { formatDate } from "@/utils/format";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/hooks";
+import { useSetPageTitle } from "@/components/providers/page-title-provider";
+import { PageHeader } from "@/components/shared/page-header";
 import type { Complaint } from "@/types";
 
 export default function AdminComplaintsPage() {
   const { t } = useI18n();
+  useSetPageTitle(t("admin.complaintsTitle"));
   const { data: complaints = [], isLoading } = useQuery({
     queryKey: [QUERY_KEYS.ADMIN_COMPLAINTS],
     queryFn: async () => {
@@ -22,12 +25,11 @@ export default function AdminComplaintsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="font-display text-2xl font-semibold text-slate-900">
-          {t("admin.complaintsTitle")}
-        </h2>
-        <p className="text-sm text-muted-foreground">{t("admin.complaintsSub")}</p>
-      </div>
+      <PageHeader
+        variant="minimal"
+        title={t("admin.complaintsTitle")}
+        description={t("admin.complaintsSub")}
+      />
 
       {isLoading ? (
         <div className="premium-card h-40 animate-pulse bg-slate-100" />

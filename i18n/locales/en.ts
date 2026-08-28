@@ -66,6 +66,14 @@ export const en = {
     complaints: "Complaints",
     settings: "Settings",
     admin: "Admin",
+    groupOverview: "Overview",
+    groupDiscover: "Discover",
+    groupEngage: "Engage",
+    groupAccount: "Account",
+    groupProjects: "Projects",
+    groupManage: "Manage",
+    groupSystem: "System",
+    browseMarketplace: "Browse marketplace",
   },
   footer: {
     tagline:
@@ -190,6 +198,10 @@ export const en = {
       "Whether you are looking for an investment opportunity or want to present your project to investors, start here.",
     contactCtaHelp:
       "Questions about projects, verification, or getting started? Our team is here to help.",
+    statsProjects: "Active projects",
+    statsFunding: "Funding tracked",
+    statsKyc: "KYC verified owners",
+    statsMessaging: "Platform messaging",
     contactUs: "Contact us",
     createAccount: "Create account",
     investorPoints: {

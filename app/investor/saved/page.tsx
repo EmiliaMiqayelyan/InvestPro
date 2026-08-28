@@ -4,9 +4,15 @@ import { useQuery } from "@tanstack/react-query";
 import { Bookmark } from "lucide-react";
 import { investorApi } from "@/services/api";
 import { QUERY_KEYS, ROUTES } from "@/constants";
+import { useI18n } from "@/hooks";
+import { useSetPageTitle } from "@/components/providers/page-title-provider";
+import { PageHeader } from "@/components/shared/page-header";
 import { MarketplaceProjectCard } from "@/features/projects/project-card";
 
 export default function InvestorSavedPage() {
+  const { t } = useI18n();
+  useSetPageTitle(t("investor.savedProjects"));
+
   const { data: projects = [], isLoading } = useQuery({
     queryKey: [QUERY_KEYS.SAVED],
     queryFn: async () => (await investorApi.saved()).data.data,
@@ -14,10 +20,7 @@ export default function InvestorSavedPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="font-display text-2xl font-semibold text-slate-900">Saved projects</h2>
-        <p className="text-sm text-muted-foreground">Projects you bookmarked for later</p>
-      </div>
+      <PageHeader variant="minimal" title={t("investor.savedProjects")} />
 
       {isLoading ? (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -28,10 +31,8 @@ export default function InvestorSavedPage() {
       ) : projects.length === 0 ? (
         <div className="premium-card flex flex-col items-center gap-3 p-12 text-center">
           <Bookmark className="h-10 w-10 text-slate-300" />
-          <p className="font-medium text-slate-900">No saved projects</p>
-          <p className="text-sm text-muted-foreground">
-            Save projects from the marketplace to review them here.
-          </p>
+          <p className="font-medium text-slate-900">{t("common.noResults")}</p>
+          <p className="text-sm text-muted-foreground">{t("investor.browseProjects")}</p>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">

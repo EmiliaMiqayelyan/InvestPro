@@ -21,6 +21,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useI18n } from "@/hooks";
+import { useSetPageTitle } from "@/components/providers/page-title-provider";
+import { PageHeader } from "@/components/shared/page-header";
 import { toast } from "sonner";
 
 const passwordSchema = z
@@ -37,7 +40,9 @@ const passwordSchema = z
 type PasswordForm = z.infer<typeof passwordSchema>;
 
 export default function InvestorSecurityPage() {
+  const { t } = useI18n();
   const { user } = useAuthStore();
+  useSetPageTitle(t("nav.security"));
   const [show2faSetup, setShow2faSetup] = useState(false);
   const [qrCode, setQrCode] = useState("");
   const [twoFaCode, setTwoFaCode] = useState("");
@@ -87,15 +92,12 @@ export default function InvestorSecurityPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <div>
-        <h2 className="font-display text-2xl font-semibold text-slate-900">Security</h2>
-        <p className="text-sm text-muted-foreground">Password and two-factor authentication</p>
-      </div>
+      <PageHeader variant="minimal" title={t("nav.security")} />
 
       <Card className="premium-card border-border bg-white shadow-none backdrop-blur-none">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-slate-900">
-            <Key className="h-5 w-5 text-blue-600" /> Change password
+            <Key className="h-5 w-5 text-teal-800" /> Change password
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -120,7 +122,7 @@ export default function InvestorSecurityPage() {
             </div>
             <Button
               type="submit"
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-gradient-to-r from-teal-900 to-teal-700 hover:opacity-95"
               disabled={changePasswordMutation.isPending}
             >
               Update password
@@ -132,7 +134,7 @@ export default function InvestorSecurityPage() {
       <Card className="premium-card border-border bg-white shadow-none backdrop-blur-none">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-slate-900">
-            <Smartphone className="h-5 w-5 text-blue-600" /> Two-factor authentication
+            <Smartphone className="h-5 w-5 text-teal-800" /> Two-factor authentication
           </CardTitle>
           <CardDescription>Add an extra layer of security to your account</CardDescription>
         </CardHeader>
@@ -163,7 +165,7 @@ export default function InvestorSecurityPage() {
             </div>
           ) : (
             <Button
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-gradient-to-r from-teal-900 to-teal-700 hover:opacity-95"
               onClick={() => enable2faMutation.mutate()}
               disabled={enable2faMutation.isPending}
             >
@@ -194,7 +196,7 @@ export default function InvestorSecurityPage() {
             maxLength={6}
           />
           <Button
-            className="bg-blue-600 hover:bg-blue-700"
+            className="bg-gradient-to-r from-teal-900 to-teal-700 hover:opacity-95"
             onClick={() => confirm2faMutation.mutate()}
             disabled={confirm2faMutation.isPending}
           >

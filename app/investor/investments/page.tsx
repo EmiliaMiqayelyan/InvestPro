@@ -5,12 +5,18 @@ import Link from "next/link";
 import { Handshake } from "lucide-react";
 import { investorApi } from "@/services/api";
 import { QUERY_KEYS, ROUTES, STATUS_COLORS } from "@/constants";
+import { useI18n } from "@/hooks";
+import { useSetPageTitle } from "@/components/providers/page-title-provider";
+import { PageHeader } from "@/components/shared/page-header";
 import { formatCurrency, formatDate } from "@/utils/format";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export default function InvestorInvestmentsPage() {
+  const { t } = useI18n();
+  useSetPageTitle(t("investor.myInvestments"));
+
   const { data: investments = [], isLoading } = useQuery({
     queryKey: [QUERY_KEYS.INVESTMENTS],
     queryFn: async () => (await investorApi.investments()).data.data,
@@ -18,25 +24,23 @@ export default function InvestorInvestmentsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-end justify-between gap-4">
-        <div>
-          <h2 className="font-display text-2xl font-semibold text-slate-900">My investments</h2>
-          <p className="text-sm text-muted-foreground">Accepted offers and active positions</p>
-        </div>
-        <Button asChild variant="outline">
-          <Link href={ROUTES.INVESTOR_PROJECTS}>Browse marketplace</Link>
-        </Button>
-      </div>
+      <PageHeader
+        variant="minimal"
+        title={t("investor.myInvestments")}
+        actions={
+          <Button asChild variant="outline">
+            <Link href={ROUTES.INVESTOR_PROJECTS}>{t("nav.browseMarketplace")}</Link>
+          </Button>
+        }
+      />
 
       {isLoading ? (
         <div className="premium-card h-40 animate-pulse bg-slate-100" />
       ) : investments.length === 0 ? (
         <div className="premium-card flex flex-col items-center gap-3 p-12 text-center">
           <Handshake className="h-10 w-10 text-slate-300" />
-          <p className="font-medium text-slate-900">No investments yet</p>
-          <p className="text-sm text-muted-foreground">
-            Explore projects and send an investment offer to get started.
-          </p>
+          <p className="font-medium text-slate-900">{t("common.noResults")}</p>
+          <p className="text-sm text-muted-foreground">{t("investor.browseProjects")}</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -50,16 +54,16 @@ export default function InvestorInvestmentsPage() {
                   {inv.project?.title || "Project"}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Invested {formatDate(inv.createdAt)}
+                  {formatDate(inv.createdAt)}
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-4">
                 <div className="text-right">
-                  <p className="text-xs text-muted-foreground">Amount</p>
+                  <p className="text-xs text-muted-foreground">{t("offers.amount")}</p>
                   <p className="font-semibold text-slate-900">{formatCurrency(inv.amount)}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs text-muted-foreground">Expected return</p>
+                  <p className="text-xs text-muted-foreground">{t("projects.expectedRoi")}</p>
                   <p className="font-semibold text-emerald-600">
                     {formatCurrency(inv.expectedReturn)}
                   </p>
@@ -69,7 +73,9 @@ export default function InvestorInvestmentsPage() {
                 </Badge>
                 {inv.projectId && (
                   <Button asChild size="sm" variant="outline">
-                    <Link href={`${ROUTES.INVESTOR_PROJECTS}/${inv.projectId}`}>View</Link>
+                    <Link href={`${ROUTES.INVESTOR_PROJECTS}/${inv.projectId}`}>
+                      {t("common.view")}
+                    </Link>
                   </Button>
                 )}
               </div>

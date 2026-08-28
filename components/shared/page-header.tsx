@@ -1,0 +1,92 @@
+"use client";
+
+import { cn } from "@/lib/utils";
+import { Breadcrumbs, type BreadcrumbItem } from "./breadcrumbs";
+
+type PageHeaderProps = {
+  title: string;
+  description?: string;
+  breadcrumbs?: BreadcrumbItem[];
+  actions?: React.ReactNode;
+  variant?: "default" | "gradient" | "minimal";
+  className?: string;
+};
+
+export function PageHeader({
+  title,
+  description,
+  breadcrumbs,
+  actions,
+  variant = "default",
+  className,
+}: PageHeaderProps) {
+  if (variant === "minimal") {
+    return (
+      <div className={cn("space-y-1", className)}>
+        {breadcrumbs && breadcrumbs.length > 0 && (
+          <Breadcrumbs items={breadcrumbs} className="mb-2" />
+        )}
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <h1 className="font-display text-2xl font-semibold text-foreground">{title}</h1>
+            {description && (
+              <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+            )}
+          </div>
+          {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={cn(
+        "relative overflow-hidden rounded-xl border border-border/80",
+        variant === "gradient"
+          ? "hero-gradient text-white shadow-glow"
+          : "surface-card",
+        className
+      )}
+    >
+      {variant === "gradient" && (
+        <div aria-hidden className="absolute inset-0 dot-pattern opacity-10" />
+      )}
+      <div className="relative p-5 sm:p-6">
+        {breadcrumbs && breadcrumbs.length > 0 && (
+          <Breadcrumbs
+            items={breadcrumbs}
+            className={cn(
+              "mb-3",
+              variant === "gradient" &&
+                "[&_a]:text-white/70 [&_a:hover]:text-white [&_span]:text-white/90 [&_svg]:text-white/50"
+            )}
+          />
+        )}
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <h1
+              className={cn(
+                "font-display text-2xl font-semibold sm:text-3xl",
+                variant === "gradient" ? "text-white" : "text-foreground"
+              )}
+            >
+              {title}
+            </h1>
+            {description && (
+              <p
+                className={cn(
+                  "mt-2 max-w-2xl text-sm leading-relaxed",
+                  variant === "gradient" ? "text-white/80" : "text-muted-foreground"
+                )}
+              >
+                {description}
+              </p>
+            )}
+          </div>
+          {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
+        </div>
+      </div>
+    </div>
+  );
+}

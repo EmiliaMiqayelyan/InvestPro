@@ -10,91 +10,78 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { useOwnerDashboard } from "@/hooks/use-marketplace";
+import { useSetPageTitle } from "@/components/providers/page-title-provider";
+import { useAuth } from "@/hooks";
 import { useI18n } from "@/hooks";
 import { ROUTES } from "@/constants";
 import { formatCurrency } from "@/utils/format";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 export default function OwnerDashboardPage() {
   const { t } = useI18n();
+  const { user } = useAuth();
   const { data: stats, isLoading } = useOwnerDashboard();
-
-  const links = [
-    { href: ROUTES.OWNER_PROJECTS, label: t("owner.myProjects"), icon: FolderKanban },
-    { href: ROUTES.OWNER_OFFERS, label: t("owner.investorRequests"), icon: Handshake },
-    { href: ROUTES.OWNER_MESSAGES, label: t("nav.messages"), icon: MessageSquare },
-    { href: ROUTES.OWNER_ANALYTICS, label: t("nav.analytics"), icon: BarChart3 },
-  ];
-
-  const cards = [
-    { label: t("owner.myProjects"), value: stats?.myProjects ?? 0 },
-    { label: t("owner.published"), value: stats?.publishedProjects ?? 0 },
-    { label: t("owner.investorRequests"), value: stats?.investorRequests ?? 0 },
-    { label: t("owner.pendingOffers"), value: stats?.pendingOffers ?? 0 },
-    { label: t("owner.unreadMessages"), value: stats?.unreadMessages ?? 0 },
-    {
-      label: t("owner.fundingRaised"),
-      value: formatCurrency(stats?.totalFundingRaised ?? 0),
-    },
-    { label: t("owner.teamMembers"), value: stats?.teamMembers ?? 0 },
-  ];
+  useSetPageTitle(t("owner.dashboard"));
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-wrap items-end justify-between gap-4">
+      <div className="surface-card flex flex-wrap items-center justify-between gap-4 p-6 lg:p-8">
         <div>
-          <h2 className="font-display text-2xl font-semibold text-slate-900">
-            {t("owner.dashboard")}
-          </h2>
-          <p className="text-sm text-muted-foreground">{t("owner.overview")}</p>
+          <p className="text-sm text-muted-foreground">
+            {user?.firstName ? `${t("owner.dashboard")}, ${user.firstName}` : t("owner.dashboard")}
+          </p>
+          <h2 className="mt-1 font-display text-2xl font-semibold">{t("owner.overview")}</h2>
         </div>
-        <Button asChild className="bg-blue-600 hover:bg-blue-700">
+        <Button asChild>
           <Link href={ROUTES.OWNER_PROJECT_CREATE}>
             <Plus className="h-4 w-4" /> {t("owner.createProjectShort")}
           </Link>
         </Button>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        {cards.map((card) => (
-          <Card
-            key={card.label}
-            className="premium-card border-border bg-white shadow-none backdrop-blur-none"
-          >
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {card.label}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="font-display text-2xl font-semibold text-slate-900">
-                {isLoading ? "…" : card.value}
-              </p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:grid-rows-2">
+        <div className="surface-card flex flex-col justify-between p-6 sm:col-span-2 lg:row-span-2">
+          <div>
+            <BarChart3 className="h-5 w-5 text-primary" />
+            <p className="mt-4 text-sm text-muted-foreground">{t("owner.fundingRaised")}</p>
+            <p className="mt-1 font-display text-4xl font-semibold">
+              {isLoading ? "—" : formatCurrency(stats?.totalFundingRaised ?? 0)}
+            </p>
+          </div>
+          <div className="mt-6 grid grid-cols-2 gap-4 border-t border-border pt-6">
+            <div>
+              <p className="text-xs text-muted-foreground">{t("owner.published")}</p>
+              <p className="mt-1 text-xl font-semibold">{isLoading ? "—" : stats?.publishedProjects ?? 0}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">{t("owner.pendingOffers")}</p>
+              <p className="mt-1 text-xl font-semibold">{isLoading ? "—" : stats?.pendingOffers ?? 0}</p>
+            </div>
+          </div>
+        </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {links.map((link) => {
-          const Icon = link.icon;
+        {[
+          { label: t("owner.myProjects"), value: stats?.myProjects ?? 0, icon: FolderKanban, href: ROUTES.OWNER_PROJECTS },
+          { label: t("owner.investorRequests"), value: stats?.investorRequests ?? 0, icon: Handshake, href: ROUTES.OWNER_OFFERS },
+          { label: t("owner.unreadMessages"), value: stats?.unreadMessages ?? 0, icon: MessageSquare, href: ROUTES.OWNER_MESSAGES },
+          { label: t("owner.teamMembers"), value: stats?.teamMembers ?? 0, icon: BarChart3, href: ROUTES.OWNER_TEAM },
+        ].map((item) => {
+          const Icon = item.icon;
           return (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="premium-card group p-5 transition hover:-translate-y-0.5"
-            >
-              <Icon className="mb-3 h-5 w-5 text-blue-600" />
-              <p className="font-medium text-slate-900">{link.label}</p>
-              <span className="mt-2 inline-flex items-center gap-1 text-xs text-blue-600">
-                {t("common.open")}{" "}
-                <ArrowRight className="h-3 w-3 transition group-hover:translate-x-0.5" />
-              </span>
+            <Link key={item.label} href={item.href} className="surface-card-hover flex flex-col justify-between p-5">
+              <Icon className="h-5 w-5 text-muted-foreground" />
+              <div className="mt-4">
+                <p className="text-2xl font-semibold">{isLoading ? "—" : item.value}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{item.label}</p>
+              </div>
             </Link>
           );
         })}
       </div>
+
+      <Button variant="outline" asChild>
+        <Link href={ROUTES.OWNER_ANALYTICS}>{t("nav.analytics")} <ArrowRight className="h-4 w-4" /></Link>
+      </Button>
     </div>
   );
 }

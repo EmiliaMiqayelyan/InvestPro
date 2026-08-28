@@ -120,6 +120,14 @@ export function MessagesPanel() {
               <div className="flex-1 space-y-3 overflow-y-auto p-5">
                 {messages.map((m) => {
                   const mine = m.senderId === user?.id;
+                  const bubbleStyle =
+                    m.senderRole === "investor"
+                      ? "bg-gradient-to-r from-teal-900 to-teal-700 text-white"
+                      : m.senderRole === "project_owner"
+                        ? "bg-gradient-to-r from-amber-500 to-brand-gold text-white"
+                        : mine
+                          ? "bg-slate-700 text-white"
+                          : "bg-slate-100 text-slate-800";
                   return (
                     <div
                       key={m.id}
@@ -127,10 +135,8 @@ export function MessagesPanel() {
                     >
                       <div
                         className={cn(
-                          "max-w-[80%] rounded-2xl px-4 py-2.5 text-sm",
-                          mine
-                            ? "bg-teal-700 text-white"
-                            : "bg-slate-100 text-slate-800"
+                          "max-w-[80%] rounded-2xl px-4 py-2.5 text-sm shadow-sm",
+                          bubbleStyle
                         )}
                       >
                         <p className="mb-1 text-[11px] opacity-70">

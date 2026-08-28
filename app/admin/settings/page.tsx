@@ -10,10 +10,13 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { PLATFORM_NAME } from "@/constants";
 import { useI18n } from "@/hooks";
+import { useSetPageTitle } from "@/components/providers/page-title-provider";
+import { PageHeader } from "@/components/shared/page-header";
 import { toast } from "sonner";
 
 export default function AdminSettingsPage() {
   const { t } = useI18n();
+  useSetPageTitle(t("admin.settingsTitle"));
   const [settings, setSettings] = useState({
     platformName: PLATFORM_NAME,
     supportEmail: "support@venturebridge.com",
@@ -25,12 +28,11 @@ export default function AdminSettingsPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <div>
-        <h2 className="font-display text-2xl font-semibold text-slate-900">
-          {t("admin.settingsTitle")}
-        </h2>
-        <p className="text-sm text-muted-foreground">{t("admin.settingsSub")}</p>
-      </div>
+      <PageHeader
+        variant="minimal"
+        title={t("admin.settingsTitle")}
+        description={t("admin.settingsSub")}
+      />
 
       <Card className="premium-card border-border bg-white shadow-none backdrop-blur-none">
         <CardHeader>

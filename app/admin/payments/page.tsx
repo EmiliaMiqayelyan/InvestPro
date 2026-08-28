@@ -8,6 +8,8 @@ import { formatCurrency, formatDate } from "@/utils/format";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/hooks";
+import { useSetPageTitle } from "@/components/providers/page-title-provider";
+import { PageHeader } from "@/components/shared/page-header";
 import type { MembershipSubscription } from "@/types";
 
 type PaymentRow = MembershipSubscription & {
@@ -17,6 +19,7 @@ type PaymentRow = MembershipSubscription & {
 
 export default function AdminPaymentsPage() {
   const { t } = useI18n();
+  useSetPageTitle(t("admin.paymentsTitle"));
   const { data: payments = [], isLoading } = useQuery({
     queryKey: [QUERY_KEYS.ADMIN_PAYMENTS],
     queryFn: async () => {
@@ -27,12 +30,11 @@ export default function AdminPaymentsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="font-display text-2xl font-semibold text-slate-900">
-          {t("admin.paymentsTitle")}
-        </h2>
-        <p className="text-sm text-muted-foreground">{t("admin.paymentsSub")}</p>
-      </div>
+      <PageHeader
+        variant="minimal"
+        title={t("admin.paymentsTitle")}
+        description={t("admin.paymentsSub")}
+      />
 
       {isLoading ? (
         <div className="premium-card h-40 animate-pulse bg-slate-100" />

@@ -3,6 +3,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { FileText } from "lucide-react";
 import { ownerApi } from "@/services/api";
+import { useI18n } from "@/hooks";
+import { useSetPageTitle } from "@/components/providers/page-title-provider";
+import { PageHeader } from "@/components/shared/page-header";
 import { QUERY_KEYS, DOCUMENT_CATEGORIES, STATUS_COLORS } from "@/constants";
 import { formatDate } from "@/utils/format";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +17,8 @@ type OwnerDocument = ProjectDocument & {
 };
 
 export default function OwnerDocumentsPage() {
+  const { t } = useI18n();
+  useSetPageTitle(t("nav.documents"));
   const { data: documents = [], isLoading } = useQuery({
     queryKey: [QUERY_KEYS.OWNER_DOCUMENTS],
     queryFn: async () => {
@@ -24,10 +29,7 @@ export default function OwnerDocumentsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="font-display text-2xl font-semibold text-slate-900">Documents</h2>
-        <p className="text-sm text-muted-foreground">Files across all your projects</p>
-      </div>
+      <PageHeader variant="minimal" title={t("nav.documents")} />
 
       {isLoading ? (
         <div className="premium-card h-40 animate-pulse bg-slate-100" />
@@ -48,7 +50,7 @@ export default function OwnerDocumentsPage() {
                 className="premium-card flex flex-wrap items-center justify-between gap-3 p-5"
               >
                 <div className="flex items-start gap-3">
-                  <FileText className="mt-0.5 h-5 w-5 text-blue-600" />
+                  <FileText className="mt-0.5 h-5 w-5 text-teal-800" />
                   <div>
                     <p className="font-medium text-slate-900">{doc.name}</p>
                     <p className="text-sm text-muted-foreground">

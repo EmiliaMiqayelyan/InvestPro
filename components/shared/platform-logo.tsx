@@ -7,20 +7,22 @@ export function PlatformLogo({
   className,
   showText = true,
   size = "md",
+  theme = "light",
 }: {
   className?: string;
   showText?: boolean;
   size?: "sm" | "md";
+  theme?: "light" | "dark";
 }) {
   const { t } = useI18n();
-  const iconSize = size === "sm" ? "h-7 w-7 text-xs" : "h-8 w-8 text-sm";
-  const textSize = size === "sm" ? "text-lg" : "text-xl";
+  const iconSize = size === "sm" ? "h-8 w-8 text-xs" : "h-9 w-9 text-sm";
+  const textSize = size === "sm" ? "text-base" : "text-lg";
 
   return (
     <span className={cn("inline-flex items-center gap-2.5", className)}>
       <span
         className={cn(
-          "flex shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-teal-800 to-teal-600 font-bold text-white shadow-sm",
+          "flex shrink-0 items-center justify-center rounded-lg bg-primary font-bold text-primary-foreground shadow-sm",
           iconSize
         )}
         aria-hidden
@@ -28,7 +30,13 @@ export function PlatformLogo({
         IP
       </span>
       {showText && (
-        <span className={cn("font-display font-semibold tracking-tight text-slate-900", textSize)}>
+        <span
+          className={cn(
+            "font-display font-semibold tracking-tight",
+            textSize,
+            theme === "dark" ? "text-white" : "text-foreground"
+          )}
+        >
           {t("common.platformName")}
         </span>
       )}

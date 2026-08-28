@@ -13,10 +13,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/hooks";
+import { useSetPageTitle } from "@/components/providers/page-title-provider";
+import { PageHeader } from "@/components/shared/page-header";
 import { toast } from "sonner";
 
 export default function InvestorKycPage() {
+  const { t } = useI18n();
   const queryClient = useQueryClient();
+  useSetPageTitle(t("nav.verification"));
   const [form, setForm] = useState({
     idDocumentUrl: "",
     selfieUrl: "",
@@ -45,12 +50,11 @@ export default function InvestorKycPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <div>
-        <h2 className="font-display text-2xl font-semibold text-slate-900">Verification</h2>
-        <p className="text-sm text-muted-foreground">
-          Submit identity documents to unlock full platform access
-        </p>
-      </div>
+      <PageHeader
+        variant="minimal"
+        title={t("nav.verification")}
+        description={t("investor.completeVerification")}
+      />
 
       {kyc && (
         <Card className="premium-card border-border bg-white shadow-none backdrop-blur-none">
@@ -77,7 +81,7 @@ export default function InvestorKycPage() {
         <Card className="premium-card border-border bg-white shadow-none backdrop-blur-none">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-slate-900">
-              <FileCheck className="h-5 w-5 text-blue-600" /> Submit documents
+              <FileCheck className="h-5 w-5 text-teal-800" /> Submit documents
             </CardTitle>
             <CardDescription>
               Provide document URLs (upload simulation). Clear, readable scans work best.
@@ -109,7 +113,7 @@ export default function InvestorKycPage() {
               />
             </div>
             <Button
-              className="w-full bg-blue-600 hover:bg-blue-700"
+              className="w-full bg-gradient-to-r from-teal-900 to-teal-700 hover:opacity-95"
               onClick={() => {
                 if (!form.idDocumentUrl || !form.selfieUrl || !form.addressProofUrl) {
                   toast.error("All document fields are required");
