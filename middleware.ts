@@ -6,7 +6,8 @@ import { ROUTES } from "@/constants";
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  const token = request.cookies.get("access_token")?.value;
+  const rawToken = request.cookies.get("access_token")?.value;
+  const token = rawToken ? decodeURIComponent(rawToken) : undefined;
   const payload = token ? await verifyAccessToken(token) : null;
 
   if (GUEST_ONLY_ROUTES.includes(pathname)) {

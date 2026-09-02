@@ -11,7 +11,7 @@ const TOKEN_COOKIE_MAX_AGE = 7 * 24 * 60 * 60; // mirror access token TTL (7d)
 function syncAuthCookie(accessToken: string | null): void {
   if (typeof document === "undefined") return;
   if (accessToken) {
-    document.cookie = `${TOKEN_KEY}=${accessToken}; path=/; max-age=${TOKEN_COOKIE_MAX_AGE}; SameSite=Lax`;
+    document.cookie = `${TOKEN_KEY}=${encodeURIComponent(accessToken)}; path=/; max-age=${TOKEN_COOKIE_MAX_AGE}; SameSite=Lax`;
   } else {
     document.cookie = `${TOKEN_KEY}=; path=/; max-age=0; SameSite=Lax`;
   }
