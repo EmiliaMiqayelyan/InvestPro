@@ -248,3 +248,64 @@ export async function createComplaint(
   await dispatchNotificationEvent({ kind: "complaint_filed", complaint });
   return complaint;
 }
+
+export async function updateComplaintStatus(
+  id: string,
+  status: "open" | "reviewing" | "resolved" | "dismissed"
+) {
+  const row = await ComplaintModel.findByPk(id);
+  if (!row) throw AppError.notFound("Complaint not found");
+  row.status = status;
+  await row.save();
+  return toComplaint(row);
+}
+
+const SETTINGS_KEY = "platform";
+
+const DEFAULT_SETTINGS = {
+  platformName: "InvestIN",
+  supportEmail: "support@investin.com",
+  maintenanceMode: false,
+  kycRequired: true,
+  contactBlocking: true,
+  announcement: "",
+};
+
+export async function getSystemSettings() {
+  const { SystemSettingModel } = await import("../../shared/database/associations");
+  const row = await SystemSettingModel.findOne({ where: { key: SETTINGS_KEY } });
+  if (!row) return { ...DEFAULT_SETTINGS };
+  return { ...DEFAULT_SETTINGS, ...(row.value as Record<string, unknown>) };
+}
+
+export async function saveSystemSettings(
+  adminId: string,
+  body: Partial<typeof DEFAULT_SETTINGS>
+) {
+  const { SystemSettingModel } = await import("../../shared/database/associations");
+  const value = {
+    ...DEFAULT_SETTINGS,
+    ...body,
+    platformName: String(body.platformName ?? DEFAULT_SETTINGS.platformName),
+    supportEmail: String(body.supportEmail ?? DEFAULT_SETTINGS.supportEmail),
+    announcement: String(body.announcement ?? ""),
+    maintenanceMode: Boolean(body.maintenanceMode),
+    kycRequired: Boolean(body.kycRequired),
+    contactBlocking: Boolean(body.contactBlocking),
+  };
+
+  let row = await SystemSettingModel.findOne({ where: { key: SETTINGS_KEY } });
+  if (!row) {
+    row = await SystemSettingModel.create({
+      id: uuidv4(),
+      key: SETTINGS_KEY,
+      value,
+      updatedBy: adminId,
+    });
+  } else {
+    row.value = value;
+    row.updatedBy = adminId;
+    await row.save();
+  }
+  return value;
+}

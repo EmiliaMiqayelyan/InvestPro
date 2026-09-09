@@ -1,4 +1,4 @@
-# InvestPro API Server
+# InvestIN API Server
 
 Standalone Express + Sequelize backend implementing the **Investment Marketplace Backend Technical Specification v1.0**.
 

@@ -66,8 +66,6 @@ export default function ContactPage() {
       <MarketingHeader />
 
       <PageHeroBanner
-        imageSrc={THEMATIC_IMAGES.sections.contact}
-        imageAlt="Get in touch with our team"
         eyebrow={t("contact.eyebrow")}
         title={t("contact.heroTitle")}
         height="md"
@@ -93,7 +91,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">{t("contact.email")}</p>
-                    <p className="text-sm font-medium">hello@investpro.am</p>
+                    <p className="text-sm font-medium">hello@investin.am</p>
                   </div>
                 </div>
               </div>

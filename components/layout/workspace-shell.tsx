@@ -22,6 +22,10 @@ import {
   Milestone,
   ExternalLink,
   X,
+  Wallet,
+  PieChart,
+  Building2,
+  Lock,
 } from "lucide-react";
 import { useState } from "react";
 import { ROUTES } from "@/constants";
@@ -61,6 +65,8 @@ const INVESTOR_NAV: NavGroup[] = [
     labelKey: "nav.groupEngage",
     items: [
       { href: ROUTES.INVESTOR_INVESTMENTS, labelKey: "nav.myInvestments", icon: Handshake },
+      { href: ROUTES.INVESTOR_PORTFOLIO, labelKey: "nav.portfolio", icon: PieChart },
+      { href: ROUTES.INVESTOR_WALLET, labelKey: "nav.wallet", icon: Wallet },
       { href: ROUTES.INVESTOR_MILESTONES, labelKey: "nav.milestones", icon: Milestone },
       { href: ROUTES.INVESTOR_MESSAGES, labelKey: "nav.messages", icon: MessageSquare },
     ],
@@ -70,6 +76,7 @@ const INVESTOR_NAV: NavGroup[] = [
     items: [
       { href: ROUTES.INVESTOR_MEMBERSHIP, labelKey: "nav.serviceFee", icon: CreditCard },
       { href: ROUTES.INVESTOR_KYC, labelKey: "nav.verification", icon: Shield },
+      { href: ROUTES.INVESTOR_SECURITY, labelKey: "nav.security", icon: Lock },
       { href: ROUTES.INVESTOR_PROFILE, labelKey: "nav.profile", icon: UserCircle },
     ],
   },
@@ -101,6 +108,7 @@ const OWNER_NAV: NavGroup[] = [
     labelKey: "nav.groupAccount",
     items: [
       { href: ROUTES.OWNER_ANALYTICS, labelKey: "nav.analytics", icon: BarChart3 },
+      { href: ROUTES.OWNER_KYB, labelKey: "nav.companyVerification", icon: Building2 },
       { href: ROUTES.OWNER_PROFILE, labelKey: "nav.profile", icon: UserCircle },
     ],
   },
@@ -117,6 +125,7 @@ const ADMIN_NAV: NavGroup[] = [
       { href: ROUTES.ADMIN_USERS, labelKey: "nav.users", icon: Users },
       { href: ROUTES.ADMIN_PROJECTS, labelKey: "nav.projects", icon: FolderKanban },
       { href: ROUTES.ADMIN_PAYMENTS, labelKey: "nav.payments", icon: CreditCard },
+      { href: ROUTES.ADMIN_MEMBERSHIPS, labelKey: "nav.memberships", icon: CreditCard },
     ],
   },
   {
@@ -124,6 +133,7 @@ const ADMIN_NAV: NavGroup[] = [
     items: [
       { href: ROUTES.ADMIN_SECURITY, labelKey: "nav.security", icon: Shield },
       { href: ROUTES.ADMIN_COMPLAINTS, labelKey: "nav.complaints", icon: AlertTriangle },
+      { href: ROUTES.ADMIN_DISPUTES, labelKey: "nav.disputes", icon: AlertTriangle },
       { href: ROUTES.ADMIN_SETTINGS, labelKey: "nav.settings", icon: Settings },
     ],
   },

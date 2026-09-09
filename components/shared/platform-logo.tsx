@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/hooks/use-i18n";
 
@@ -15,20 +16,20 @@ export function PlatformLogo({
   theme?: "light" | "dark";
 }) {
   const { t } = useI18n();
-  const iconSize = size === "sm" ? "h-8 w-8 text-xs" : "h-9 w-9 text-sm";
+  const iconSize = size === "sm" ? 32 : 36;
   const textSize = size === "sm" ? "text-base" : "text-lg";
 
   return (
     <span className={cn("inline-flex items-center gap-2.5", className)}>
-      <span
-        className={cn(
-          "flex shrink-0 items-center justify-center rounded-lg bg-primary font-bold text-primary-foreground shadow-sm",
-          iconSize
-        )}
+      <Image
+        src="/brand/logo.png"
+        alt=""
+        width={iconSize}
+        height={iconSize}
+        className="shrink-0 rounded-lg shadow-sm"
         aria-hidden
-      >
-        IP
-      </span>
+        priority
+      />
       {showText && (
         <span
           className={cn(

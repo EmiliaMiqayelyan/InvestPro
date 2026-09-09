@@ -26,9 +26,9 @@ export function ImageSplitSection({
 }: ImageSplitSectionProps) {
   const aspectMap = {
     video: "aspect-video min-h-[200px]",
-    square: "aspect-square min-h-[240px] max-h-[320px]",
-    portrait: "aspect-[4/5] min-h-[280px] max-h-[400px]",
-    compact: "aspect-[4/3] min-h-[240px] sm:min-h-[280px]",
+    square: "aspect-square min-h-[240px] max-h-[360px]",
+    portrait: "aspect-[4/5] min-h-[300px] max-h-[440px] lg:min-h-[360px]",
+    compact: "aspect-[4/3] min-h-[260px] sm:min-h-[300px]",
   };
 
   const image = (
@@ -37,7 +37,7 @@ export function ImageSplitSection({
       alt={imageAlt}
       aspect="auto"
       overlay="none"
-      className={cn("w-full", aspectMap[imageAspect])}
+      className={cn("w-full shadow-soft", aspectMap[imageAspect])}
       sizes="(max-width:1024px) 100vw, 40vw"
     />
   );

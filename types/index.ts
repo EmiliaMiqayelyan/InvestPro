@@ -410,6 +410,92 @@ export interface Complaint {
   createdAt: string;
 }
 
+export interface Dispute {
+  id: string;
+  reporterId: string;
+  againstUserId?: string;
+  projectId?: string;
+  investmentId?: string;
+  subject: string;
+  description: string;
+  status: string;
+  resolution?: string;
+  resolvedBy?: string;
+  resolvedAt?: string;
+  createdAt: string;
+}
+
+export interface Wallet {
+  id: string;
+  userId: string;
+  currency: string;
+  availableBalance: number;
+  pendingBalance: number;
+  investedBalance: number;
+  totalBalance: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface WalletTransaction {
+  id: string;
+  walletId: string;
+  type: string;
+  amount: number;
+  currency: string;
+  referenceType?: string;
+  referenceId?: string;
+  balanceBefore: number;
+  balanceAfter: number;
+  status: string;
+  description?: string;
+  createdAt: string;
+}
+
+export interface PortfolioSummary {
+  totalInvested: number;
+  currentValue: number;
+  totalReturns: number;
+  realizedReturns: number;
+  unrealizedReturns: number;
+  activeInvestments: number;
+  completedInvestments: number;
+  roi: number;
+}
+
+export interface InvestmentReturn {
+  id: string;
+  investmentId: string;
+  investorId: string;
+  projectId: string;
+  principalAmount: number;
+  returnAmount: number;
+  feeAmount: number;
+  netAmount: number;
+  periodStart?: string;
+  periodEnd?: string;
+  status: string;
+  paidAt?: string;
+  createdAt: string;
+}
+
+export interface KybSubmission {
+  id: string;
+  status: string;
+  rejectionReason?: string;
+  submittedAt: string;
+  reviewedAt?: string;
+}
+
+export interface SystemSettings {
+  platformName: string;
+  supportEmail: string;
+  maintenanceMode: boolean;
+  kycRequired: boolean;
+  contactBlocking: boolean;
+  announcement: string;
+}
+
 export interface Notification {
   id: string;
   userId: string;

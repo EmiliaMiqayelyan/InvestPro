@@ -1,19 +1,23 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle } from "lucide-react";
-import { adminMarketplaceApi } from "@/services/api";
+import { adminMarketplaceApi, adminFinanceApi } from "@/services/api";
 import { QUERY_KEYS, STATUS_COLORS } from "@/constants";
+import { getErrorMessage } from "@/services/api/client";
 import { formatDate } from "@/utils/format";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/hooks";
 import { useSetPageTitle } from "@/components/providers/page-title-provider";
 import { PageHeader } from "@/components/shared/page-header";
 import type { Complaint } from "@/types";
+import { toast } from "sonner";
 
 export default function AdminComplaintsPage() {
   const { t } = useI18n();
+  const queryClient = useQueryClient();
   useSetPageTitle(t("admin.complaintsTitle"));
   const { data: complaints = [], isLoading } = useQuery({
     queryKey: [QUERY_KEYS.ADMIN_COMPLAINTS],
@@ -21,6 +25,16 @@ export default function AdminComplaintsPage() {
       const res = await adminMarketplaceApi.complaints();
       return (res.data.data ?? res.data) as Complaint[];
     },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: Complaint["status"] }) =>
+      adminFinanceApi.updateComplaint(id, status),
+    onSuccess: () => {
+      toast.success(t("admin.complaintUpdated"));
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ADMIN_COMPLAINTS] });
+    },
+    onError: (e) => toast.error(getErrorMessage(e)),
   });
 
   return (
@@ -41,7 +55,7 @@ export default function AdminComplaintsPage() {
       ) : (
         <div className="space-y-3">
           {complaints.map((c) => (
-            <div key={c.id} className="premium-card space-y-2 p-5">
+            <div key={c.id} className="premium-card space-y-3 p-5">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div>
                   <p className="font-semibold text-slate-900">{c.subject}</p>
@@ -58,6 +72,41 @@ export default function AdminComplaintsPage() {
                 </Badge>
               </div>
               <p className="text-sm text-slate-700">{c.description}</p>
+              {(c.status === "open" || c.status === "reviewing") && (
+                <div className="flex flex-wrap gap-2">
+                  {c.status === "open" && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={updateMutation.isPending}
+                      onClick={() =>
+                        updateMutation.mutate({ id: c.id, status: "reviewing" })
+                      }
+                    >
+                      {t("admin.markReviewing")}
+                    </Button>
+                  )}
+                  <Button
+                    size="sm"
+                    disabled={updateMutation.isPending}
+                    onClick={() =>
+                      updateMutation.mutate({ id: c.id, status: "resolved" })
+                    }
+                  >
+                    {t("admin.resolveComplaint")}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    disabled={updateMutation.isPending}
+                    onClick={() =>
+                      updateMutation.mutate({ id: c.id, status: "dismissed" })
+                    }
+                  >
+                    {t("admin.dismissComplaint")}
+                  </Button>
+                </div>
+              )}
             </div>
           ))}
         </div>

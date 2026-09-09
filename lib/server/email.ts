@@ -27,7 +27,7 @@ export async function sendEmail(payload: EmailPayload): Promise<{ ok: boolean }>
 export async function sendServiceFeeReceipt(to: string, amount: number) {
   return sendEmail({
     to,
-    subject: "InvestPro — Platform service fee receipt / Ծառայավճարի անդորրագիր",
+    subject: "InvestIN — Platform service fee receipt / Ծառայավճարի անդորրագիր",
     text: `Your platform service access is active. Amount: $${amount}. This is a platform fee, not investment capital.`,
   });
 }
@@ -35,7 +35,7 @@ export async function sendServiceFeeReceipt(to: string, amount: number) {
 export async function sendNewMessageNotice(to: string, projectTitle: string) {
   return sendEmail({
     to,
-    subject: "InvestPro — New message / Նոր հաղորդագրություն",
+    subject: "InvestIN — New message / Նոր հաղորդագրություն",
     text: `You have a new on-platform message about "${projectTitle}". Sign in to reply — do not share external contact details.`,
   });
 }

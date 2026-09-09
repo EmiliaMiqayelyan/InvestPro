@@ -1,9 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { PlatformLogo } from "@/components/shared/platform-logo";
-import { THEMATIC_IMAGES } from "@/constants/thematic-images";
 import { ROUTES } from "@/constants";
 import { useI18n } from "@/hooks";
 
@@ -25,16 +23,16 @@ export function AuthShell({ children, title, subtitle }: AuthShellProps) {
 
   return (
     <div className="flex min-h-screen">
-      <div className="relative hidden w-[44%] max-w-xl flex-col justify-between overflow-hidden lg:flex xl:w-[42%]">
-        <Image
-          src={THEMATIC_IMAGES.auth.panel}
-          alt=""
-          fill
-          className="object-cover object-center"
-          sizes="45vw"
-          priority
+      <div className="relative hidden w-[46%] max-w-2xl flex-col justify-between overflow-hidden cta-gradient lg:flex xl:w-[44%]">
+        <div className="pointer-events-none absolute inset-0 dot-pattern opacity-[0.18]" aria-hidden />
+        <div
+          className="pointer-events-none absolute -right-16 top-0 h-80 w-80 rounded-full bg-white/[0.06] blur-3xl"
+          aria-hidden
         />
-        <div className="absolute inset-0 overlay-auth" aria-hidden />
+        <div
+          className="pointer-events-none absolute -bottom-20 -left-10 h-64 w-64 rounded-full bg-emerald-400/10 blur-3xl"
+          aria-hidden
+        />
         <div className="relative z-10 flex h-full flex-col justify-between p-10 xl:p-12">
           <Link href={ROUTES.HOME}>
             <PlatformLogo theme="dark" />
@@ -42,11 +40,11 @@ export function AuthShell({ children, title, subtitle }: AuthShellProps) {
           <div>
             {title && (
               <>
-                <h1 className="font-display text-3xl font-semibold leading-tight text-white xl:text-[2rem]">
+                <h1 className="max-w-lg font-display text-3xl font-semibold leading-tight text-white xl:max-w-xl xl:text-[2rem]">
                   {title}
                 </h1>
                 {subtitle && (
-                  <p className="mt-3 max-w-sm text-base leading-relaxed text-white/70">
+                  <p className="mt-3 max-w-lg text-base leading-relaxed text-white/70 xl:max-w-xl">
                     {subtitle}
                   </p>
                 )}

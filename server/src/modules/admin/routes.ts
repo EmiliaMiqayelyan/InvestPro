@@ -233,4 +233,19 @@ router.post("/complaints", asyncHandler(async (req: AuthedRequest, res) => {
   return ok(res, complaint, undefined, 201);
 }));
 
+router.patch("/complaints/:id", asyncHandler(async (req, res) => {
+  const status = req.body?.status as "open" | "reviewing" | "resolved" | "dismissed";
+  if (!status || !["open", "reviewing", "resolved", "dismissed"].includes(status)) {
+    throw AppError.badRequest("Invalid complaint status");
+  }
+  return ok(res, await admin.updateComplaintStatus(param(req, "id"), status));
+}));
+
+router.get("/settings", asyncHandler(async (_req, res) => ok(res, await admin.getSystemSettings())));
+
+router.put("/settings", asyncHandler(async (req: AuthedRequest, res) => {
+  const auth = requireAuth(req);
+  return ok(res, await admin.saveSystemSettings(auth.sub, req.body));
+}));
+
 export default router;

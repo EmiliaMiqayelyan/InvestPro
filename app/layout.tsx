@@ -27,6 +27,14 @@ export const metadata: Metadata = {
   title: `${PLATFORM_NAME} — Investment Marketplace | Ներդրումային շուկա`,
   description:
     "Connect innovative projects with trusted investors. / Կապեք նորարար նախագծերը վստահելի ներդրողների հետ։",
+  applicationName: PLATFORM_NAME,
+  icons: {
+    icon: [
+      { url: "/favicon.png", type: "image/png" },
+      { url: "/brand/logo.svg", type: "image/svg+xml" },
+    ],
+    apple: "/favicon.png",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -218,7 +218,7 @@ export async function enable2fa(userId: string) {
   const user = await UserModel.findByPk(userId);
   if (!user) throw AppError.notFound("User not found");
 
-  const secret = speakeasy.generateSecret({ name: "InvestPro", length: 20 });
+  const secret = speakeasy.generateSecret({ name: "InvestIN", length: 20 });
   user.totpSecret = secret.base32;
   await user.save();
 

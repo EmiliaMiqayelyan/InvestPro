@@ -1,8 +1,8 @@
 {
-  "name": "investpro-server",
+  "name": "investin-server",
   "version": "1.0.0",
   "private": true,
-  "description": "InvestPro Express + Sequelize + MySQL API",
+  "description": "InvestIN Express + Sequelize + MySQL API",
   "main": "dist/main.js",
   "scripts": {
     "dev": "tsx watch src/main.ts",

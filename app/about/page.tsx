@@ -12,6 +12,7 @@ import {
   Users,
 } from "lucide-react";
 import { MarketingHeader, MarketingFooter } from "@/components/layout/marketing-shell";
+import { CtaBand } from "@/components/shared/cta-band";
 import { PageHeroBanner } from "@/components/shared/page-hero-banner";
 import { ImageSplitSection } from "@/components/shared/image-split-section";
 import { SectionHeading } from "@/components/shared/section-heading";
@@ -69,30 +70,15 @@ export default function AboutPage() {
       <MarketingHeader />
 
       <PageHeroBanner
-        imageSrc={THEMATIC_IMAGES.hero.growth}
-        imageAlt="Business growth and analytics"
         eyebrow={t("about.eyebrow")}
         title={t("about.heroTitle")}
         description={t("about.heroSub")}
-      >
-        <div className="flex flex-col gap-3 sm:flex-row">
-          <Button size="lg" variant="onImage" asChild>
-            <Link href={ROUTES.PROJECTS}>
-              {t("landing.exploreProjects")}
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
-          <Button size="lg" variant="onImageOutline" asChild>
-            <Link href={`${ROUTES.REGISTER}?role=project_owner`}>
-              {t("landing.publishProject")}
-            </Link>
-          </Button>
-        </div>
-      </PageHeroBanner>
+        height="md"
+      />
 
       <ImageSplitSection
         imageSrc={THEMATIC_IMAGES.sections.mission}
-        imageAlt="Modern city skyline representing our mission"
+        imageAlt="Platform mission and vision"
         imagePosition="right"
         bordered
         compact
@@ -103,6 +89,34 @@ export default function AboutPage() {
           <p>{t("about.missionP2")}</p>
         </div>
       </ImageSplitSection>
+
+      <section className="border-b border-border py-16">
+        <div className="container-narrow section-pad space-y-10">
+          <div>
+            <h2 className="font-display text-2xl font-semibold">{t("about.whatWeAreTitle")}</h2>
+            <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+              {t("about.whatWeAreBody")}
+            </p>
+            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+              {t("about.whatWeAreNotBody")}
+            </p>
+          </div>
+          <div className="grid gap-8 sm:grid-cols-2">
+            <div className="border-t border-border pt-6">
+              <h3 className="font-display text-lg font-semibold">{t("about.jurisdictionTitle")}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                {t("about.jurisdictionBody")}
+              </p>
+            </div>
+            <div className="border-t border-border pt-6">
+              <h3 className="font-display text-lg font-semibold">{t("about.credibilityTitle")}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                {t("about.credibilityBody")}
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <section className="border-b border-border bg-secondary/30 py-20">
         <div className="container-wide section-pad">
@@ -174,7 +188,7 @@ export default function AboutPage() {
 
       <ImageSplitSection
         imageSrc={THEMATIC_IMAGES.sections.security}
-        imageAlt="Platform security and trust"
+        imageAlt="Trust, verification, and secure collaboration"
         imagePosition="left"
         compact
       >
@@ -197,7 +211,7 @@ export default function AboutPage() {
 
       <ImageSplitSection
         imageSrc={THEMATIC_IMAGES.sections.innovation}
-        imageAlt="Innovation and technology"
+        imageAlt="What makes InvestIN different"
         imagePosition="right"
         bordered
         compact
@@ -227,27 +241,19 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <PageHeroBanner
-        imageSrc={THEMATIC_IMAGES.sections.handshake}
-        imageAlt="Partnership and collaboration"
-        title={t("about.ctaTitle")}
-        description={t("about.ctaSub")}
-        height="md"
-      >
-        <div className="flex flex-col gap-3 sm:flex-row">
-          <Button size="lg" variant="onImage" asChild>
-            <Link href={ROUTES.CONTACT}>
-              {t("landing.contactUs")}
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
-          <Button size="lg" variant="onImageOutline" asChild>
-            <Link href={ROUTES.REGISTER}>
-              {t("landing.createAccount")}
-            </Link>
-          </Button>
-        </div>
-      </PageHeroBanner>
+      <CtaBand title={t("about.ctaTitle")} description={t("about.ctaSub")}>
+        <Button size="lg" variant="onImage" className="shrink-0" asChild>
+          <Link href={ROUTES.PROJECTS}>
+            {t("landing.exploreProjects")}
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </Button>
+        <Button size="lg" variant="onImageOutline" className="shrink-0" asChild>
+          <Link href={`${ROUTES.REGISTER}?role=project_owner`}>
+            {t("landing.publishProject")}
+          </Link>
+        </Button>
+      </CtaBand>
 
       <MarketingFooter />
     </div>

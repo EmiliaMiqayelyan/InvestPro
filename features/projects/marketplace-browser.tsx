@@ -114,7 +114,7 @@ export function MarketplaceBrowser({
   };
 
   const filters = (
-    <div className="space-y-4">
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
       <FilterField label={t("projects.category")}>
         <Select value={category} onValueChange={setCategory}>
           <SelectTrigger className="w-full">
@@ -186,7 +186,6 @@ export function MarketplaceBrowser({
       <FilterField label={t("projects.location")} htmlFor="filter-location">
         <Input
           id="filter-location"
-          className=""
           placeholder={t("projects.locationPlaceholder")}
           value={location}
           onChange={(e) => setLocation(e.target.value)}
@@ -196,7 +195,6 @@ export function MarketplaceBrowser({
       <FilterField label={t("projects.investmentBudget")} htmlFor="filter-budget">
         <Input
           id="filter-budget"
-          className=""
           type="number"
           inputMode="numeric"
           placeholder="50,000"
@@ -232,103 +230,78 @@ export function MarketplaceBrowser({
         />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-8">
-        <aside className="lg:sticky lg:top-24 lg:self-start">
-          <details className="surface-card p-4 lg:hidden">
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-2 text-sm font-medium text-foreground">
-              <span className="inline-flex items-center gap-2">
-                <SlidersHorizontal className="h-4 w-4 text-primary" />
-                {t("projects.filters")}
+      <div className="surface-card p-4 sm:p-5">
+        <div className="mb-4 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+            <SlidersHorizontal className="h-4 w-4 text-primary" />
+            {t("projects.filters")}
+            {hasFilters ? (
+              <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                {t("projects.filtersActive")}
               </span>
-              {hasFilters ? (
-                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-                  {t("projects.filtersActive")}
-                </span>
-              ) : null}
-            </summary>
-            <div className="mt-4 border-t border-border pt-4">
-              {filters}
-              {hasFilters ? (
-                <Button
-                  variant="ghost"
-                  className="mt-3 w-full justify-start gap-2 px-2 text-muted-foreground"
-                  onClick={clearFilters}
-                >
-                  <X className="h-3.5 w-3.5" />
-                  {t("projects.clearFilters")}
-                </Button>
-              ) : null}
-            </div>
-          </details>
-
-          <div className="hidden surface-card p-5 lg:block">
-            <div className="mb-4 flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                <SlidersHorizontal className="h-4 w-4 text-primary" />
-                {t("projects.filters")}
-              </div>
-              {hasFilters ? (
-                <button
-                  type="button"
-                  onClick={clearFilters}
-                  className="text-xs font-medium text-primary hover:underline"
-                >
-                  {t("projects.clearFilters")}
-                </button>
-              ) : null}
-            </div>
-            {filters}
+            ) : null}
           </div>
-        </aside>
-
-        <div>
-          <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-            <p className="text-sm text-muted-foreground">
-              {isLoading ? t("common.loading") : t("projects.resultsCount", { count: total })}
-            </p>
-            <div className="flex items-center gap-2">
-              <span className="hidden text-xs text-muted-foreground sm:inline">{t("projects.sortLabel")}</span>
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-[180px] bg-white">
-                  <SelectValue placeholder={t("projects.sortLabel")} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="newest">{t("projects.sortNewest")}</SelectItem>
-                  <SelectItem value="most_viewed">{t("projects.sortMostViewed")}</SelectItem>
-                  <SelectItem value="funding_progress">{t("projects.sortFunding")}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {isLoading ? (
-            <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-              <CardSkeleton />
-              <CardSkeleton />
-              <CardSkeleton />
-            </div>
-          ) : projects.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-border bg-secondary/30 py-16 text-center">
-              <p className="text-sm text-muted-foreground">{t("projects.noMatch")}</p>
-              {hasFilters ? (
-                <Button variant="outline" className="mt-4" onClick={clearFilters}>
-                  {t("projects.clearFilters")}
-                </Button>
-              ) : null}
-            </div>
-          ) : (
-            <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-              {projects.map((project) => (
-                <MarketplaceProjectCard
-                  key={project.id}
-                  project={project}
-                  savedByMe={savedIdSet.has(project.id)}
-                  basePath={projectBasePath}
-                />
-              ))}
-            </div>
-          )}
+          {hasFilters ? (
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
+            >
+              <X className="h-3.5 w-3.5" />
+              {t("projects.clearFilters")}
+            </button>
+          ) : null}
         </div>
+        {filters}
+      </div>
+
+      <div>
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm text-muted-foreground">
+            {isLoading ? t("common.loading") : t("projects.resultsCount", { count: total })}
+          </p>
+          <div className="flex items-center gap-2">
+            <span className="hidden text-xs text-muted-foreground sm:inline">{t("projects.sortLabel")}</span>
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="w-[180px] bg-white">
+                <SelectValue placeholder={t("projects.sortLabel")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="newest">{t("projects.sortNewest")}</SelectItem>
+                <SelectItem value="most_viewed">{t("projects.sortMostViewed")}</SelectItem>
+                <SelectItem value="funding_progress">{t("projects.sortFunding")}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {isLoading ? (
+          <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+            <CardSkeleton />
+            <CardSkeleton />
+            <CardSkeleton />
+          </div>
+        ) : projects.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-border bg-card px-6 py-10 text-center">
+            <p className="text-sm text-muted-foreground">{t("projects.noMatch")}</p>
+            {hasFilters ? (
+              <Button variant="outline" className="mt-4" onClick={clearFilters}>
+                {t("projects.clearFilters")}
+              </Button>
+            ) : null}
+          </div>
+        ) : (
+          <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+            {projects.map((project) => (
+              <MarketplaceProjectCard
+                key={project.id}
+                project={project}
+                savedByMe={savedIdSet.has(project.id)}
+                basePath={projectBasePath}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

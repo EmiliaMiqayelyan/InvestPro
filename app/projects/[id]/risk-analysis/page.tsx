@@ -81,9 +81,22 @@ export default function RiskAnalysisPage() {
 
         <div className="mt-6 premium-card border-slate-200 bg-slate-50 p-5">
           <p className="font-display text-sm font-semibold text-slate-900">
-            Informational risk assessment
+            {t("risk.howToReadTitle")}
           </p>
-          <p className="mt-1 text-sm text-muted-foreground">{disclaimer}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{t("risk.howToReadBody")}</p>
+          <p className="mt-3 text-sm text-muted-foreground">{disclaimer}</p>
+        </div>
+
+        <div className="mt-4 premium-card p-5">
+          <p className="font-display text-sm font-semibold text-slate-900">
+            {t("risk.glossaryTitle")}
+          </p>
+          <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+            <li>• {t("risk.glossaryRisk")}</li>
+            <li>• {t("risk.glossaryCompleteness")}</li>
+            <li>• {t("risk.glossaryMissing")}</li>
+            <li>• {t("risk.glossaryQuestions")}</li>
+          </ul>
         </div>
 
         {isLoading ? (

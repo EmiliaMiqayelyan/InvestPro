@@ -68,7 +68,8 @@ export function MessagesPanel() {
             ) : conversations.length === 0 ? (
               <div className="flex flex-col items-center gap-2 p-8 text-center text-sm text-muted-foreground">
                 <MessageSquare className="h-8 w-8 text-slate-300" />
-                {t("messages.noConversations")}
+                <p className="font-medium text-slate-900">{t("messages.emptyTitle")}</p>
+                <p className="text-xs leading-relaxed">{t("messages.emptyBody")}</p>
               </div>
             ) : (
               conversations.map((c) => (

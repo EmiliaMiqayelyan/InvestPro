@@ -15,7 +15,7 @@ import { useMembershipPlans, useMyMembership, useI18n } from "@/hooks";
 import { useAuthStore } from "@/store";
 import { membershipApi } from "@/services/api";
 import { getErrorMessage, setTokens } from "@/services/api/client";
-import { ROUTES, QUERY_KEYS } from "@/constants";
+import { MEMBERSHIP_NOT_INCLUDED, ROUTES, QUERY_KEYS } from "@/constants";
 import { THEMATIC_IMAGES } from "@/constants/thematic-images";
 import { hasActiveServiceAccess } from "@/lib/rbac";
 import { useSetPageTitle } from "@/components/providers/page-title-provider";
@@ -106,6 +106,18 @@ export default function MembershipPage() {
             </li>
           ))}
         </ul>
+        <p className="mt-6 text-sm font-medium text-slate-900">{t("membership.notIncludedTitle")}</p>
+        <ul className="mt-3 space-y-2">
+          {MEMBERSHIP_NOT_INCLUDED.map((f) => (
+            <li key={f} className="text-sm text-muted-foreground">
+              • {f}
+            </li>
+          ))}
+        </ul>
+        <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
+          {t("membership.refundPolicy")}
+        </p>
+        <p className="mt-2 text-xs text-muted-foreground">{t("membership.lockedWithout")}</p>
         {hasAccess ? (
           <p className="mt-8 rounded-xl border border-teal-200/80 bg-teal-50/60 px-4 py-3 text-sm text-teal-900">
             {t("membership.yourCurrent")}
@@ -157,16 +169,14 @@ export default function MembershipPage() {
     <div className="min-h-screen bg-background">
       <MarketingHeader />
       <PageHeroBanner
-        imageSrc={THEMATIC_IMAGES.sections.membership}
-        imageAlt="Investor membership and premium access"
         eyebrow={t("membership.eyebrow")}
         title={t("membership.heroTitle")}
         height="md"
       />
 
       <ImageSplitSection
-        imageSrc={THEMATIC_IMAGES.sections.investors}
-        imageAlt="Full investor access and analytics"
+        imageSrc={THEMATIC_IMAGES.sections.membership}
+        imageAlt="Investor membership and premium access"
         imagePosition="left"
         imageAspect="compact"
         compact

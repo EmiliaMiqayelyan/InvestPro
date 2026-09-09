@@ -21,7 +21,7 @@ export function SectionHeading({
     <div
       className={cn(
         "space-y-3",
-        align === "center" && "mx-auto max-w-2xl text-center",
+        align === "center" && "mx-auto copy-wide text-center",
         className
       )}
     >
@@ -30,7 +30,7 @@ export function SectionHeading({
         {title}
       </h2>
       {description && (
-        <p className="max-w-2xl text-muted-foreground leading-relaxed">{description}</p>
+        <p className="copy-measure text-muted-foreground leading-relaxed">{description}</p>
       )}
     </div>
   );

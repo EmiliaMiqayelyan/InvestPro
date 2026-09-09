@@ -110,6 +110,22 @@
   html.locale-hy .font-bold {
     font-weight: 500 !important;
   }
+
+  /* Armenian letter/word spacing needs a wider measure to avoid short stacked lines */
+  html.locale-hy .copy-tight,
+  html[lang="hy"] .copy-tight {
+    max-width: 42rem;
+  }
+
+  html.locale-hy .copy-measure,
+  html[lang="hy"] .copy-measure {
+    max-width: 48rem;
+  }
+
+  html.locale-hy .copy-wide,
+  html[lang="hy"] .copy-wide {
+    max-width: 56rem;
+  }
 }
 
 @layer utilities {
@@ -122,7 +138,11 @@
   }
 
   .container-wide {
-    @apply mx-auto w-full max-w-7xl;
+    @apply mx-auto w-full max-w-[96rem];
+  }
+
+  .container-header {
+    @apply mx-auto w-full max-w-[100rem];
   }
 
   .surface-card {
@@ -139,6 +159,19 @@
 
   .text-balance {
     text-wrap: balance;
+  }
+
+  /* Prefer longer 1–2 line wraps over short stacked rows */
+  .copy-tight {
+    @apply max-w-xl sm:max-w-2xl;
+  }
+
+  .copy-measure {
+    @apply max-w-2xl sm:max-w-3xl;
+  }
+
+  .copy-wide {
+    @apply max-w-3xl sm:max-w-4xl;
   }
 
   .eyebrow {
@@ -164,10 +197,11 @@
   /* Image overlays — consistent brand-tinted gradients for readability */
   .overlay-hero {
     background: linear-gradient(
-      135deg,
-      hsl(var(--sidebar) / 0.88) 0%,
-      hsl(172 56% 18% / 0.55) 45%,
-      hsl(172 56% 30% / 0.25) 100%
+      105deg,
+      hsl(var(--sidebar) / 0.78) 0%,
+      hsl(172 56% 16% / 0.52) 42%,
+      hsl(172 40% 28% / 0.22) 72%,
+      hsl(172 40% 28% / 0.12) 100%
     );
   }
 
@@ -196,12 +230,30 @@
     );
   }
 
-  .on-image h1,
-  .on-image h2,
-  .on-image h3,
-  .on-image h4,
-  .on-image p {
+  /* Image hero text: white by default — never force color onto CTAs */
+  .on-image {
+    color: #fff;
+  }
+
+  .on-image :where(h1, h2, h3, h4, p, li, label) {
     color: inherit;
+  }
+
+  /* Solid white CTA sitting on photo heroes */
+  .btn-on-image {
+    color: #0f172a !important;
+  }
+
+  .btn-on-image:visited {
+    color: #0f172a !important;
+  }
+
+  .btn-on-image-outline {
+    color: #fff !important;
+  }
+
+  .btn-on-image-outline:visited {
+    color: #fff !important;
   }
 
   .dot-pattern {
@@ -223,6 +275,26 @@
       hsl(172 56% 18%) 0%,
       hsl(172 56% 26%) 50%,
       hsl(160 50% 22%) 100%
+    );
+  }
+
+  /* Mid-page CTA bands — solid color mix, no photography */
+  .cta-gradient {
+    background: linear-gradient(
+      145deg,
+      hsl(222 47% 10%) 0%,
+      hsl(172 56% 16%) 42%,
+      hsl(172 48% 22%) 78%,
+      hsl(160 42% 18%) 100%
+    );
+  }
+
+  .cta-gradient-navy {
+    background: linear-gradient(
+      145deg,
+      hsl(222 47% 9%) 0%,
+      hsl(210 40% 14%) 40%,
+      hsl(172 40% 18%) 100%
     );
   }
 

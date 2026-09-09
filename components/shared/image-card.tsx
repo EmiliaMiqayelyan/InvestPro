@@ -45,11 +45,11 @@ export function ImageCard({
             sizes="(max-width:768px) 100vw, 50vw"
           />
           <div className="absolute inset-0 overlay-card" aria-hidden />
-          <div className="absolute inset-x-0 bottom-0 flex flex-col gap-3 p-5 sm:p-6 text-white">
+          <div className="on-image absolute inset-x-0 bottom-0 flex flex-col gap-3 p-5 text-white sm:p-6">
             <div>
-              <h3 className="font-display text-xl font-semibold">{title}</h3>
+              <h3 className="font-display text-xl font-semibold text-white">{title}</h3>
               {description && (
-                <p className="mt-1.5 text-sm leading-relaxed text-white/80 line-clamp-2">
+                <p className="mt-1.5 text-sm leading-relaxed text-white/85 line-clamp-2">
                   {description}
                 </p>
               )}

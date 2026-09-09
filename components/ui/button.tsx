@@ -20,9 +20,9 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
         dark: "bg-sidebar text-white shadow-sm hover:bg-sidebar/90",
         onImage:
-          "bg-white text-foreground shadow-sm hover:bg-white/95 border border-white/90 no-underline visited:text-foreground",
+          "btn-on-image bg-white text-slate-900 shadow-sm hover:bg-white/95 border border-white/90 no-underline visited:text-slate-900 [&_svg]:text-slate-900",
         onImageOutline:
-          "border border-white/70 bg-white/10 text-white backdrop-blur-sm hover:bg-white/20 hover:border-white no-underline visited:text-white",
+          "btn-on-image-outline border border-white/90 bg-slate-950/55 text-white shadow-sm backdrop-blur-sm hover:bg-slate-950/70 hover:border-white no-underline visited:text-white [&_svg]:text-white",
         gold:
           "bg-warning text-warning-foreground shadow-sm hover:bg-warning/90",
         gradient:

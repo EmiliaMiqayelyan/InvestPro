@@ -6,7 +6,8 @@ export const API_BASE_URL =
       ? `https://${process.env.VERCEL_URL}/api/v1`
       : "/api/v1");
 
-export const PLATFORM_NAME = "InvestPro";
+export const PLATFORM_NAME = "InvestIN";
+export const SUPPORT_EMAIL = "support@investin.com";
 
 export const ROUTES = {
   HOME: "/",
@@ -19,6 +20,12 @@ export const ROUTES = {
   FORGOT_PASSWORD: "/forgot-password",
   VERIFY_EMAIL: "/verify-email",
   TWO_FACTOR: "/two-factor",
+  PRIVACY: "/privacy",
+  TERMS: "/terms",
+  HOW_IT_WORKS: "/how-it-works",
+  FAQ: "/faq",
+  FOR_INVESTORS: "/for-investors",
+  FOR_OWNERS: "/for-owners",
 
   // Investor
   INVESTOR_DASHBOARD: "/investor/dashboard",
@@ -31,6 +38,8 @@ export const ROUTES = {
   INVESTOR_MILESTONES: "/investor/milestones",
   INVESTOR_PROJECTS: "/investor/projects",
   INVESTOR_MEMBERSHIP: "/investor/membership",
+  INVESTOR_WALLET: "/investor/wallet",
+  INVESTOR_PORTFOLIO: "/investor/portfolio",
   MESSAGES: "/messages",
 
   // Owner
@@ -45,6 +54,7 @@ export const ROUTES = {
   OWNER_ANALYTICS: "/owner/analytics",
   OWNER_TEAM: "/owner/team",
   OWNER_PROFILE: "/owner/profile",
+  OWNER_KYB: "/owner/kyb",
 
   // Admin
   ADMIN: "/admin/dashboard",
@@ -56,6 +66,7 @@ export const ROUTES = {
   ADMIN_SECURITY: "/admin/security",
   ADMIN_MEMBERSHIPS: "/admin/memberships",
   ADMIN_COMPLAINTS: "/admin/complaints",
+  ADMIN_DISPUTES: "/admin/disputes",
   ADMIN_SETTINGS: "/admin/settings",
 
   // Legacy aliases (redirect targets)
@@ -161,6 +172,13 @@ export const MEMBERSHIP_FEATURES = {
   ],
 } as const;
 
+export const MEMBERSHIP_NOT_INCLUDED = [
+  "Investment capital or escrow",
+  "Guaranteed returns or project success",
+  "Off-platform contact details",
+  "Brokerage or investment advice",
+] as const;
+
 export const QUERY_KEYS = {
   AUTH: "auth",
   USER: "user",
@@ -176,6 +194,11 @@ export const QUERY_KEYS = {
   MILESTONES: "milestones",
   NOTIFICATIONS: "notifications",
   KYC: "kyc",
+  KYB: "kyb",
+  WALLET: "wallet",
+  WALLET_TX: "wallet-transactions",
+  PORTFOLIO: "portfolio",
+  RETURNS: "returns",
   INVESTOR_DASHBOARD: "investor-dashboard",
   OWNER_DASHBOARD: "owner-dashboard",
   OWNER_PROJECTS: "owner-projects",
@@ -183,8 +206,11 @@ export const QUERY_KEYS = {
   ADMIN_STATS: "admin-stats",
   ADMIN_USERS: "admin-users",
   ADMIN_PAYMENTS: "admin-payments",
+  ADMIN_MEMBERSHIPS: "admin-memberships",
   ADMIN_SECURITY: "admin-security",
   ADMIN_COMPLAINTS: "admin-complaints",
+  ADMIN_DISPUTES: "admin-disputes",
+  ADMIN_SETTINGS: "admin-settings",
   ACTIVITY_LOGS: "activity-logs",
 } as const;
 

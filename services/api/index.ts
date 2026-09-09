@@ -14,3 +14,4 @@ export {
   notificationsApi,
   kycApi,
 } from "./marketplace";
+export { walletApi, portfolioApi, kybApi, adminFinanceApi } from "./finance";

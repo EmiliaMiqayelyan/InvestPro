@@ -133,7 +133,7 @@ async function sendInAppEmail(draft: NotificationDraft) {
   if (!user?.email) return;
   await sendEmail({
     to: user.email,
-    subject: `InvestPro — ${draft.title}`,
+    subject: `InvestIN — ${draft.title}`,
     text: draft.message.slice(0, MAX_EMAIL_BODY),
   });
 }

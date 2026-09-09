@@ -76,7 +76,7 @@ export function PageHeader({
             {description && (
               <p
                 className={cn(
-                  "mt-2 max-w-2xl text-sm leading-relaxed",
+                  "mt-2 max-w-3xl text-sm leading-relaxed",
                   variant === "gradient" ? "text-white/80" : "text-muted-foreground"
                 )}
               >
