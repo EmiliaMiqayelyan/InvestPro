@@ -73,7 +73,10 @@ export default function LoginPage() {
                   key={account.email}
                   type="button"
                   className="flex w-full items-center justify-between rounded-lg bg-card px-3 py-2 text-left text-xs transition hover:bg-secondary"
-                  onClick={() => { setValue("email", account.email); setValue("password", account.password); }}
+                  onClick={() => {
+                    setValue("email", account.email, { shouldDirty: true, shouldValidate: true });
+                    setValue("password", account.password, { shouldDirty: true, shouldValidate: true });
+                  }}
                 >
                   <span className="font-medium">{t(account.roleKey)}</span>
                   <span className="text-muted-foreground">{account.email}</span>

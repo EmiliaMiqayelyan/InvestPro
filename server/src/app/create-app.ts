@@ -22,6 +22,8 @@ export function createApp() {
 
   const app = express();
   app.disable("x-powered-by");
+  // Next.js API proxy / nginx send X-Forwarded-For; required for express-rate-limit.
+  app.set("trust proxy", 1);
   app.use(requestIdMiddleware);
   app.use(parseCookies);
   app.use(
