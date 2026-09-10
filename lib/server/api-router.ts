@@ -663,6 +663,14 @@ const handlers: Record<string, Handler> = {
     const project = getStore().projects.get(params.id);
     if (!project) return fail("Project not found", 404);
     if (auth!.role === "project_owner" && project.ownerId !== auth!.sub) return fail("Forbidden", 403);
+    if (
+      auth!.role === "project_owner" &&
+      project.status !== "draft" &&
+      project.status !== "pending_review" &&
+      project.status !== "rejected"
+    ) {
+      return fail("Only draft, pending review, or rejected projects can be changed", 400);
+    }
     const body = await parseBody<Partial<Project>>(req);
     const { status: _status, approvedAt: _a, approvedBy: _b, rejectedAt: _c, rejectedBy: _d, rejectionReason: _e, reviewHistory: _f, ownerId: _o, id: _id, ...safe } = body;
     const updated = {
@@ -676,6 +684,48 @@ const handlers: Record<string, Handler> = {
     };
     getStore().projects.set(params.id, updated);
     return ok(updated);
+  },
+
+  "DELETE /owner/projects/:id": async (_req, params, auth) => {
+    const err = requireRole(auth, ["project_owner"]);
+    if (err) return err;
+    const store = getStore();
+    const project = store.projects.get(params.id);
+    if (!project) return fail("Project not found", 404);
+    if (project.ownerId !== auth!.sub) return fail("Forbidden", 403);
+    if (
+      project.status !== "draft" &&
+      project.status !== "pending_review" &&
+      project.status !== "rejected"
+    ) {
+      return fail("Only draft, pending review, or rejected projects can be deleted", 400);
+    }
+    const hasInvestments = Array.from(store.investments.values()).some((list) =>
+      list.some((inv) => inv.projectId === params.id)
+    );
+    if (hasInvestments) return fail("Cannot delete a project with investments", 400);
+
+    for (const [offerId, offer] of store.offers) {
+      if (offer.projectId === params.id) store.offers.delete(offerId);
+    }
+    for (const [userId, saved] of store.savedProjects) {
+      store.savedProjects.set(
+        userId,
+        saved.filter((id) => id !== params.id)
+      );
+    }
+    for (const [planId, plan] of store.milestonePlans) {
+      if (plan.projectId === params.id) store.milestonePlans.delete(planId);
+    }
+    for (const [convId, conv] of store.conversations) {
+      if (conv.projectId === params.id) {
+        store.conversations.delete(convId);
+        store.messages.delete(convId);
+      }
+    }
+    store.projects.delete(params.id);
+    logActivity(auth!.sub, "project_deleted", "project", params.id);
+    return ok({ id: params.id }, "Project deleted");
   },
 
   "POST /owner/projects/:id/documents": async (req, params, auth) => {
@@ -697,6 +747,21 @@ const handlers: Record<string, Handler> = {
     return ok(doc, "Document uploaded", 201);
   },
 
+  "DELETE /owner/projects/:id/documents/:docId": async (_req, params, auth) => {
+    const err = requireRole(auth, ["project_owner"]);
+    if (err) return err;
+    const project = getStore().projects.get(params.id);
+    if (!project || project.ownerId !== auth!.sub) return fail("Not found", 404);
+    const before = project.documents.length;
+    project.documents = project.documents.filter(
+      (d, index) => (d.id || String(index)) !== params.docId
+    );
+    if (project.documents.length === before) return fail("Document not found", 404);
+    project.updatedAt = new Date().toISOString();
+    getStore().projects.set(project.id, project);
+    return ok({ id: params.docId }, "Document removed");
+  },
+
   "POST /owner/projects/:id/team": async (req, params, auth) => {
     const err = requireRole(auth, ["project_owner"]);
     if (err) return err;
@@ -710,6 +775,19 @@ const handlers: Record<string, Handler> = {
     return ok(member, "Team member added", 201);
   },
 
+  "DELETE /owner/projects/:id/team/:memberId": async (_req, params, auth) => {
+    const err = requireRole(auth, ["project_owner"]);
+    if (err) return err;
+    const project = getStore().projects.get(params.id);
+    if (!project || project.ownerId !== auth!.sub) return fail("Not found", 404);
+    const before = project.team.length;
+    project.team = project.team.filter((m) => m.id !== params.memberId);
+    if (project.team.length === before) return fail("Team member not found", 404);
+    project.updatedAt = new Date().toISOString();
+    getStore().projects.set(project.id, project);
+    return ok({ id: params.memberId }, "Team member removed");
+  },
+
   "GET /owner/documents": async (_req, _p, auth) => {
     const err = requireRole(auth, ["project_owner"]);
     if (err) return err;
@@ -718,6 +796,7 @@ const handlers: Record<string, Handler> = {
       .flatMap((p) =>
         p.documents.map((d, index) => ({
           ...d,
+          documentId: d.id || String(index),
           id: `${p.id}:${d.id || index}`,
           projectId: p.id,
           projectTitle: p.title,

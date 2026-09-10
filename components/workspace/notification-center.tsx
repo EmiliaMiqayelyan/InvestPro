@@ -40,7 +40,7 @@ const TYPE_META: Record<
   },
   offer_updated: {
     icon: Handshake,
-    className: "bg-teal-50 text-teal-800",
+    className: "bg-primary/10 text-primary",
     labelKey: "notifications.types.offer_updated",
   },
   message: {
@@ -70,22 +70,22 @@ const TYPE_META: Record<
   },
   milestone_update: {
     icon: Milestone,
-    className: "bg-teal-50 text-teal-800",
+    className: "bg-primary/10 text-primary",
     labelKey: "notifications.types.milestone_update",
   },
   complaint: {
     icon: FileWarning,
-    className: "bg-orange-50 text-orange-700",
+    className: "bg-warning/15 text-warning-foreground",
     labelKey: "notifications.types.complaint",
   },
   user_update: {
     icon: UserRound,
-    className: "bg-slate-100 text-slate-700",
+    className: "bg-muted text-muted-foreground",
     labelKey: "notifications.types.user_update",
   },
   general: {
     icon: Bell,
-    className: "bg-slate-100 text-slate-700",
+    className: "bg-muted text-muted-foreground",
     labelKey: "notifications.types.general",
   },
 };
@@ -159,18 +159,18 @@ export function NotificationCenter() {
             <button
               type="button"
               aria-label={t("common.cancel")}
-              className="fixed inset-0 z-[80] cursor-default bg-slate-900/15"
+              className="fixed inset-0 z-[80] cursor-default bg-foreground/15"
               onClick={() => setOpen(false)}
             />
             <div
               role="dialog"
               aria-label={t("notifications.title")}
-              className="fixed z-[90] overflow-hidden rounded-2xl border border-border bg-white shadow-[0_16px_48px_rgba(15,23,42,0.16)]"
+              className="fixed z-[90] overflow-hidden rounded-2xl border border-border bg-card shadow-lg"
               style={{ top: coords.top, left: coords.left, width: coords.width }}
             >
               <div className="flex items-start justify-between gap-3 border-b border-border px-4 py-3">
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-slate-900">{t("notifications.title")}</p>
+                  <p className="text-sm font-semibold text-foreground">{t("notifications.title")}</p>
                   <p className="mt-0.5 text-xs text-muted-foreground">
                     {unreadCount > 0
                       ? t("notifications.unreadCount", { count: unreadCount })
@@ -181,7 +181,7 @@ export function NotificationCenter() {
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="h-auto shrink-0 px-2 py-1 text-xs leading-tight text-teal-800"
+                  className="h-auto shrink-0 px-2 py-1 text-xs leading-tight text-primary"
                   disabled={unreadCount === 0 || markAll.isPending}
                   onClick={() => markAll.mutate()}
                 >
@@ -198,8 +198,8 @@ export function NotificationCenter() {
                 )}
                 {!isLoading && items.length === 0 && (
                   <div className="px-4 py-10 text-center">
-                    <Bell className="mx-auto h-8 w-8 text-slate-300" />
-                    <p className="mt-3 text-sm font-medium text-slate-900">
+                    <Bell className="mx-auto h-8 w-8 text-muted-foreground/50" />
+                    <p className="mt-3 text-sm font-medium text-foreground">
                       {t("notifications.emptyTitle")}
                     </p>
                     <p className="mt-1 text-xs text-muted-foreground">{t("notifications.emptyBody")}</p>
@@ -214,8 +214,8 @@ export function NotificationCenter() {
                       type="button"
                       onClick={() => onOpenItem(item)}
                       className={cn(
-                        "flex w-full gap-3 border-b border-slate-100 px-4 py-3 text-left transition last:border-b-0 hover:bg-slate-50",
-                        !item.isRead && "bg-teal-50/50"
+                        "flex w-full gap-3 border-b border-border px-4 py-3 text-left transition last:border-b-0 hover:bg-muted/50",
+                        !item.isRead && "bg-primary/5"
                       )}
                     >
                       <span
@@ -228,12 +228,12 @@ export function NotificationCenter() {
                       </span>
                       <span className="min-w-0 flex-1">
                         <span className="flex items-start justify-between gap-2">
-                          <span className="text-sm font-medium text-slate-900">{item.title}</span>
+                          <span className="text-sm font-medium text-foreground">{item.title}</span>
                           {!item.isRead && (
-                            <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-teal-700" />
+                            <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-primary" />
                           )}
                         </span>
-                        <span className="mt-0.5 line-clamp-2 text-xs text-slate-600">
+                        <span className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
                           {item.message}
                         </span>
                         <span className="mt-1.5 flex items-center gap-2 text-[11px] text-muted-foreground">
@@ -259,14 +259,14 @@ export function NotificationCenter() {
         type="button"
         variant="ghost"
         size="icon"
-        className={cn("relative rounded-xl", open && "bg-teal-50 text-teal-800")}
+        className={cn("relative rounded-xl", open && "bg-primary/10 text-primary")}
         aria-label={t("notifications.title")}
         aria-expanded={open}
         onClick={() => setOpen((value) => !value)}
       >
         <Bell className="h-5 w-5" />
         {unreadCount > 0 && (
-          <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-teal-700 px-1 text-[10px] font-semibold leading-none text-white ring-2 ring-white">
+          <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold leading-none text-white ring-2 ring-card">
             {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         )}

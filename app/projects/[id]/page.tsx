@@ -35,7 +35,7 @@ import { useAuthStore } from "@/store";
 import { getErrorMessage } from "@/services/api/client";
 import { ROUTES, RISK_LEVELS } from "@/constants";
 import { formatCurrency, formatPercent, formatDate } from "@/utils/format";
-import { projectText, teamMemberText, updateText } from "@/i18n/localize";
+import { projectText, teamMemberText, updateText, stageLabel, teamRoleLabel, docCategoryLabel } from "@/i18n/localize";
 import { hasActiveServiceAccess } from "@/lib/rbac";
 import { cn } from "@/lib/utils";
 
@@ -207,17 +207,17 @@ export default function ProjectDetailPage() {
       case "published":
       case "funded":
       case "closed":
-        return { label: "Verified", className: "border-emerald-200 bg-emerald-50 text-emerald-700" };
+        return { label: t("projects.statusVerified"), className: "border-emerald-200 bg-emerald-50 text-emerald-700" };
       case "pending_review":
-        return { label: "Under Review", className: "border-amber-200 bg-amber-50 text-amber-700" };
+        return { label: t("projects.statusUnderReview"), className: "border-amber-200 bg-amber-50 text-amber-700" };
       case "draft":
         return {
-          label: "Additional Information Required",
+          label: t("projects.statusNeedsInfo"),
           className: "border-teal-200 bg-teal-50 text-teal-800",
         };
       case "rejected":
       default:
-        return { label: "Not Verified", className: "border-slate-200 bg-slate-100 text-slate-700" };
+        return { label: t("projects.statusNotVerified"), className: "border-slate-200 bg-slate-100 text-slate-700" };
     }
   })();
 
@@ -278,7 +278,7 @@ export default function ProjectDetailPage() {
               {title}
             </h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              {location} · {industry} · {t("projects.stage")}: {project.stage.replace("_", " ")}
+              {location} · {industry} · {t("projects.stage")}: {stageLabel(locale, project.stage)}
             </p>
 
             <Tabs defaultValue="overview" className="mt-8">
@@ -321,38 +321,40 @@ export default function ProjectDetailPage() {
                 </p>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="premium-card p-4">
-                    <p className="text-xs text-muted-foreground">Industry</p>
+                    <p className="text-xs text-muted-foreground">{t("projects.industry")}</p>
                     <p className="mt-1 text-sm text-slate-800">{industry}</p>
                   </div>
                   <div className="premium-card p-4">
-                    <p className="text-xs text-muted-foreground">Location</p>
+                    <p className="text-xs text-muted-foreground">{t("projects.location")}</p>
                     <p className="mt-1 text-sm text-slate-800">{location}</p>
                   </div>
                   <div className="premium-card p-4">
-                    <p className="text-xs text-muted-foreground">Stage</p>
-                    <p className="mt-1 text-sm text-slate-800">{project.stage.replace("_", " ")}</p>
+                    <p className="text-xs text-muted-foreground">{t("projects.stage")}</p>
+                    <p className="mt-1 text-sm text-slate-800">{stageLabel(locale, project.stage)}</p>
                   </div>
                   <div className="premium-card p-4">
-                    <p className="text-xs text-muted-foreground">Founded</p>
+                    <p className="text-xs text-muted-foreground">{t("projects.founded")}</p>
                     <p className="mt-1 text-sm text-slate-800">{formatDate(project.createdAt)}</p>
                   </div>
                   <div className="premium-card p-4">
-                    <p className="text-xs text-muted-foreground">Project owner</p>
+                    <p className="text-xs text-muted-foreground">{t("admin.ownerSection")}</p>
                     <p className="mt-1 text-sm text-slate-800">{project.ownerName || "—"}</p>
                   </div>
                   <div className="premium-card p-4">
-                    <p className="text-xs text-muted-foreground">Team size</p>
-                    <p className="mt-1 text-sm text-slate-800">{project.team.length} members</p>
+                    <p className="text-xs text-muted-foreground">{t("projects.teamSize")}</p>
+                    <p className="mt-1 text-sm text-slate-800">
+                      {t("common.membersCount", { count: project.team.length })}
+                    </p>
                   </div>
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="premium-card p-4">
-                    <p className="text-xs text-muted-foreground">Business model</p>
+                    <p className="text-xs text-muted-foreground">{t("projects.businessModel")}</p>
                     <p className="mt-1 text-sm text-slate-800 whitespace-pre-line">{businessModel}</p>
                   </div>
                   <div className="premium-card p-4">
-                    <p className="text-xs text-muted-foreground">Growth strategy</p>
+                    <p className="text-xs text-muted-foreground">{t("projects.growthStrategy")}</p>
                     <p className="mt-1 text-sm text-slate-800 whitespace-pre-line">{timeline}</p>
                   </div>
                 </div>
@@ -375,7 +377,7 @@ export default function ProjectDetailPage() {
                             <div className="flex flex-wrap items-start justify-between gap-2">
                               <div>
                                 <p className="text-xs font-medium uppercase tracking-wide text-teal-800">
-                                  Phase {index + 1}
+                                  {t("common.phaseLabel", { n: index + 1 })}
                                 </p>
                                 <h3 className="mt-1 font-display font-semibold text-slate-900">
                                   {phaseTitle}
@@ -394,7 +396,7 @@ export default function ProjectDetailPage() {
                             ) : null}
                             {phase.durationWeeks ? (
                               <p className="mt-2 text-xs text-slate-500">
-                                {phase.durationWeeks} weeks
+                                {t("projects.durationWeeks", { count: phase.durationWeeks })}
                               </p>
                             ) : null}
                           </li>
@@ -457,7 +459,7 @@ export default function ProjectDetailPage() {
                       <div className="flex items-start gap-3">
                         <Avatar className="h-10 w-10">
                           <AvatarFallback>
-                            {(project.ownerName || "Founder")
+                            {(project.ownerName || t("projects.founder"))
                               .split(" ")
                               .filter(Boolean)
                               .slice(0, 2)
@@ -467,11 +469,11 @@ export default function ProjectDetailPage() {
                         </Avatar>
                         <div className="min-w-0 flex-1">
                           <h3 className="font-display font-semibold">
-                            {project.ownerName || "Founder"}
+                            {project.ownerName || t("projects.founder")}
                           </h3>
-                          <p className="text-sm text-teal-700">Founder</p>
+                          <p className="text-sm text-teal-700">{t("projects.founder")}</p>
                           <p className="mt-2 text-sm text-muted-foreground">
-                            {project.ownerName ? `Project owner and founder.` : "—"}
+                            {project.ownerName ? t("projects.founderBio") : "—"}
                           </p>
                         </div>
                       </div>
@@ -496,7 +498,8 @@ export default function ProjectDetailPage() {
                           <div className="min-w-0 flex-1">
                             <h3 className="font-display font-semibold">{member.name}</h3>
                             <p className="text-sm text-teal-700">
-                              {teamMemberText(member, "position", locale)} · {member.role}
+                              {teamMemberText(member, "position", locale)} ·{" "}
+                              {teamRoleLabel(locale, member.role)}
                             </p>
                             <p className="mt-2 text-sm text-muted-foreground line-clamp-3">
                               {teamMemberText(member, "biography", locale)}
@@ -511,7 +514,7 @@ export default function ProjectDetailPage() {
                                 rel="noreferrer"
                                 className="mt-3 inline-flex items-center text-sm font-medium text-teal-800 underline underline-offset-4"
                               >
-                                View profile
+                                {t("projects.viewProfile")}
                               </a>
                             ) : null}
                           </div>
@@ -539,7 +542,7 @@ export default function ProjectDetailPage() {
                           <div>
                             <p className="text-sm font-medium">{doc.name}</p>
                             <p className="text-xs text-muted-foreground capitalize">
-                              {doc.category.replace("_", " ")} · {formatDate(doc.uploadedAt)}
+                              {docCategoryLabel(locale, doc.category)} · {formatDate(doc.uploadedAt)}
                             </p>
                           </div>
                         </div>

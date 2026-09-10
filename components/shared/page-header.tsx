@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { Breadcrumbs, type BreadcrumbItem } from "./breadcrumbs";
 
 type PageHeaderProps = {
+  /** Kept for a11y / marketing variants. In panel `minimal`, shell header owns the H1. */
   title: string;
   description?: string;
   breadcrumbs?: BreadcrumbItem[];
@@ -20,20 +21,29 @@ export function PageHeader({
   variant = "default",
   className,
 }: PageHeaderProps) {
+  // Panel pages: WorkspaceShell already renders the page title — avoid duplicate H1.
   if (variant === "minimal") {
+    const hasBreadcrumbs = Boolean(breadcrumbs && breadcrumbs.length > 0);
+    if (!description && !actions && !hasBreadcrumbs) {
+      return null;
+    }
+
     return (
       <div className={cn("space-y-1", className)}>
-        {breadcrumbs && breadcrumbs.length > 0 && (
-          <Breadcrumbs items={breadcrumbs} className="mb-2" />
+        {hasBreadcrumbs && (
+          <Breadcrumbs items={breadcrumbs!} className="mb-2" />
         )}
         <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <h1 className="font-display text-2xl font-semibold text-foreground">{title}</h1>
-            {description && (
-              <p className="mt-1 text-sm text-muted-foreground">{description}</p>
-            )}
-          </div>
-          {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
+          {description ? (
+            <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground">
+              {description}
+            </p>
+          ) : (
+            <span className="sr-only">{title}</span>
+          )}
+          {actions && (
+            <div className="flex flex-wrap items-center gap-2">{actions}</div>
+          )}
         </div>
       </div>
     );

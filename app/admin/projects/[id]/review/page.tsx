@@ -10,6 +10,7 @@ import {
   Download,
   ExternalLink,
   FileText,
+  FolderKanban,
   ShieldAlert,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -20,7 +21,11 @@ import { formatCurrency, formatDate, formatPercent } from "@/utils/format";
 import { useI18n } from "@/hooks";
 import { useSetPageTitle } from "@/components/providers/page-title-provider";
 import { PageHeader } from "@/components/shared/page-header";
-import { projectText, teamMemberText } from "@/i18n/localize";
+import { PanelPage } from "@/components/shared/panel-page";
+import { PanelCard } from "@/components/shared/panel-card";
+import { EmptyState } from "@/components/shared/empty-state";
+import { PanelBlockSkeleton } from "@/components/shared/loading-skeleton";
+import { projectText, teamMemberText, teamRoleLabel, docCategoryLabel } from "@/i18n/localize";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -44,10 +49,10 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="premium-card space-y-4 p-5 md:p-6">
-      <h3 className="font-display text-lg font-semibold text-slate-900">{title}</h3>
+    <PanelCard padding="lg" className="space-y-4 md:p-6">
+      <h3 className="font-display text-lg font-semibold text-foreground">{title}</h3>
       {children}
-    </section>
+    </PanelCard>
   );
 }
 
@@ -56,7 +61,7 @@ function Field({ label, value }: { label: string; value?: React.ReactNode }) {
   return (
     <div>
       <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
-      <div className="mt-1 text-sm leading-relaxed text-slate-800">{value}</div>
+      <div className="mt-1 text-sm leading-relaxed text-foreground">{value}</div>
     </div>
   );
 }
@@ -168,22 +173,31 @@ export default function AdminProjectReviewPage() {
   };
 
   if (isLoading) {
-    return <div className="premium-card h-64 animate-pulse bg-slate-100" />;
+    return (
+      <PanelPage>
+        <PanelBlockSkeleton height="h-64" />
+      </PanelPage>
+    );
   }
 
   if (isError || !project) {
     return (
-      <div className="premium-card space-y-4 p-8 text-center">
-        <p className="font-medium text-slate-900">{t("admin.notFound")}</p>
-        <Button asChild variant="outline">
-          <Link href={ROUTES.ADMIN_PROJECTS}>{t("admin.backToProjects")}</Link>
-        </Button>
-      </div>
+      <PanelPage>
+        <EmptyState
+          icon={FolderKanban}
+          title={t("admin.notFound")}
+          action={
+            <Button asChild variant="outline">
+              <Link href={ROUTES.ADMIN_PROJECTS}>{t("admin.backToProjects")}</Link>
+            </Button>
+          }
+        />
+      </PanelPage>
     );
   }
 
   return (
-    <div className="space-y-6 pb-28">
+    <PanelPage className="pb-28">
       <div className="flex flex-wrap items-center gap-3">
         <Button asChild variant="ghost" size="sm">
           <Link href={ROUTES.ADMIN_PROJECTS}>
@@ -244,7 +258,7 @@ export default function AdminProjectReviewPage() {
         </div>
         <Field label={t("projects.overview")} value={description} />
         {fullDescription && fullDescription !== description ? (
-          <div className="text-sm leading-relaxed text-slate-800 whitespace-pre-wrap">
+          <div className="text-sm leading-relaxed text-foreground whitespace-pre-wrap">
             {fullDescription}
           </div>
         ) : null}
@@ -293,7 +307,7 @@ export default function AdminProjectReviewPage() {
               <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 {t("admin.budgetBreakdown")}
               </p>
-              <ul className="mt-2 space-y-1 text-sm text-slate-800">
+              <ul className="mt-2 space-y-1 text-sm text-foreground">
                 {project.budgetBreakdown.map((item) => (
                   <li key={item.label} className="flex justify-between gap-4 border-b border-border/50 py-1.5">
                     <span>{locale === "hy" && item.labelHy ? item.labelHy : item.label}</span>
@@ -309,15 +323,17 @@ export default function AdminProjectReviewPage() {
                 {t("projects.phases")}
               </p>
               {project.phases.map((phase) => (
-                <div key={phase.id} className="rounded-xl border border-border/70 bg-slate-50/80 p-3">
-                  <p className="font-medium text-slate-900">
+                <div key={phase.id} className="rounded-xl border border-border/70 bg-muted/50 p-3">
+                  <p className="font-medium text-foreground">
                     {locale === "hy" && phase.titleHy ? phase.titleHy : phase.title}
                   </p>
                   <p className="mt-1 text-sm text-muted-foreground">
                     {formatCurrency(phase.budgetAsk)}
-                    {phase.durationWeeks ? ` · ${phase.durationWeeks}w` : ""}
+                    {phase.durationWeeks
+                      ? ` · ${t("projects.durationWeeks", { count: phase.durationWeeks })}`
+                      : ""}
                   </p>
-                  <p className="mt-2 text-sm text-slate-700">
+                  <p className="mt-2 text-sm text-foreground">
                     {locale === "hy" && phase.descriptionHy
                       ? phase.descriptionHy
                       : phase.description}
@@ -336,14 +352,14 @@ export default function AdminProjectReviewPage() {
           <div className="grid gap-3 sm:grid-cols-2">
             {project.team.map((member) => (
               <div key={member.id} className="rounded-xl border border-border/70 p-4">
-                <p className="font-semibold text-slate-900">{member.name}</p>
-                <p className="text-sm text-teal-800">
-                  {teamMemberText(member, "position", locale)} · {member.role}
+                <p className="font-semibold text-foreground">{member.name}</p>
+                <p className="text-sm text-primary">
+                  {teamMemberText(member, "position", locale)} · {teamRoleLabel(locale, member.role)}
                 </p>
                 <p className="mt-2 text-sm text-muted-foreground">
                   {teamMemberText(member, "experience", locale)}
                 </p>
-                <p className="mt-2 text-sm text-slate-700">
+                <p className="mt-2 text-sm text-foreground">
                   {teamMemberText(member, "biography", locale)}
                 </p>
                 {member.portfolio ? (
@@ -351,7 +367,7 @@ export default function AdminProjectReviewPage() {
                     href={member.portfolio}
                     target="_blank"
                     rel="noreferrer"
-                    className="mt-2 inline-flex items-center gap-1 text-sm text-teal-800 hover:underline"
+                    className="mt-2 inline-flex items-center gap-1 text-sm text-primary hover:underline"
                   >
                     {t("admin.profileLink")} <ExternalLink className="h-3.5 w-3.5" />
                   </a>
@@ -373,13 +389,13 @@ export default function AdminProjectReviewPage() {
                 className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/70 px-4 py-3"
               >
                 <div className="flex items-center gap-3">
-                  <FileText className="h-4 w-4 text-teal-800" />
+                  <FileText className="h-4 w-4 text-primary" />
                   <div>
-                    <p className="text-sm font-medium text-slate-900">
+                    <p className="text-sm font-medium text-foreground">
                       {locale === "hy" && doc.nameHy ? doc.nameHy : doc.name}
                     </p>
                     <p className="text-xs text-muted-foreground capitalize">
-                      {doc.category.replace(/_/g, " ")} · {formatDate(doc.uploadedAt)}
+                      {docCategoryLabel(locale, doc.category)} · {formatDate(doc.uploadedAt)}
                     </p>
                   </div>
                 </div>
@@ -407,7 +423,7 @@ export default function AdminProjectReviewPage() {
         {project.image || mediaDocs.length ? (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {project.image ? (
-              <div className="relative aspect-video overflow-hidden rounded-xl bg-slate-100">
+              <div className="relative aspect-video overflow-hidden rounded-xl bg-muted">
                 <Image src={project.image} alt={title} fill className="object-cover" />
               </div>
             ) : null}
@@ -417,7 +433,7 @@ export default function AdminProjectReviewPage() {
                 href={doc.url}
                 target="_blank"
                 rel="noreferrer"
-                className="rounded-xl border border-border/70 p-4 text-sm hover:bg-slate-50"
+                className="rounded-xl border border-border/70 p-4 text-sm hover:bg-muted"
               >
                 {doc.name}
               </a>
@@ -438,7 +454,7 @@ export default function AdminProjectReviewPage() {
           />
         </div>
         {risk?.summary ? (
-          <p className="text-sm leading-relaxed text-slate-700">
+          <p className="text-sm leading-relaxed text-foreground">
             {locale === "hy" && risk.summaryHy ? risk.summaryHy : risk.summary}
           </p>
         ) : null}
@@ -448,7 +464,7 @@ export default function AdminProjectReviewPage() {
               <ShieldAlert className="h-4 w-4" />
               {t("admin.warnings")}
             </p>
-            <ul className="space-y-2 text-sm text-slate-700">
+            <ul className="space-y-2 text-sm text-foreground">
               {risk.warningIndicators.map((w) => (
                 <li key={w.label} className="rounded-lg border border-amber-100 bg-amber-50/60 px-3 py-2">
                   <span className="font-medium">
@@ -464,7 +480,7 @@ export default function AdminProjectReviewPage() {
         ) : null}
         {risk?.missingDocuments?.length ? (
           <div>
-            <p className="mb-2 text-sm font-medium text-slate-900">{t("admin.missingInfo")}</p>
+            <p className="mb-2 text-sm font-medium text-foreground">{t("admin.missingInfo")}</p>
             <ul className="list-inside list-disc text-sm text-muted-foreground">
               {(locale === "hy" && risk.missingDocumentsHy?.length
                 ? risk.missingDocumentsHy
@@ -506,14 +522,14 @@ export default function AdminProjectReviewPage() {
             {[...history].reverse().map((entry) => (
               <li key={entry.id} className="rounded-xl border border-border/70 px-4 py-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="text-sm font-medium text-slate-900">
+                  <p className="text-sm font-medium text-foreground">
                     {decisionLabel(t, entry.decision)}
                     {entry.reviewerName ? ` · ${entry.reviewerName}` : ""}
                   </p>
                   <p className="text-xs text-muted-foreground">{formatDate(entry.createdAt)}</p>
                 </div>
                 {entry.reason ? (
-                  <p className="mt-2 text-sm text-slate-700 whitespace-pre-wrap">{entry.reason}</p>
+                  <p className="mt-2 text-sm text-foreground whitespace-pre-wrap">{entry.reason}</p>
                 ) : null}
               </li>
             ))}
@@ -522,7 +538,7 @@ export default function AdminProjectReviewPage() {
       </Section>
 
       {canDecide ? (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-white/95 backdrop-blur">
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 backdrop-blur">
           <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-end gap-3 px-4 py-4 sm:px-6">
             <Button
               variant="destructive"
@@ -600,7 +616,7 @@ export default function AdminProjectReviewPage() {
               {t("admin.rejectConfirmBody")}
             </DialogDescription>
           </DialogHeader>
-          <p className="rounded-xl border border-border bg-slate-50 p-3 text-sm whitespace-pre-wrap text-slate-800">
+          <p className="rounded-xl border border-border bg-muted/50 p-3 text-sm whitespace-pre-wrap text-foreground">
             {rejectReason}
           </p>
           <DialogFooter>
@@ -623,6 +639,6 @@ export default function AdminProjectReviewPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </PanelPage>
   );
 }

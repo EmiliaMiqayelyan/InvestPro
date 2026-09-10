@@ -214,6 +214,21 @@ export const QUERY_KEYS = {
   ACTIVITY_LOGS: "activity-logs",
 } as const;
 
+/** Project statuses an owner may edit or delete (not live marketplace listings). */
+export const OWNER_MUTABLE_PROJECT_STATUSES = [
+  "draft",
+  "pending_review",
+  "rejected",
+] as const;
+
+export type OwnerMutableProjectStatus = (typeof OWNER_MUTABLE_PROJECT_STATUSES)[number];
+
+export function isOwnerMutableProjectStatus(
+  status: string
+): status is OwnerMutableProjectStatus {
+  return (OWNER_MUTABLE_PROJECT_STATUSES as readonly string[]).includes(status);
+}
+
 export const DEFAULT_PAGE_SIZE = 10;
 
 export const CONTACT_BLOCKED_PATTERNS = [

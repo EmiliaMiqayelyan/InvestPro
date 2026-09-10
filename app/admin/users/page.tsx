@@ -1,13 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Users } from "lucide-react";
 import { adminMarketplaceApi } from "@/services/api";
 import { QUERY_KEYS, STATUS_COLORS } from "@/constants";
 import { formatDate } from "@/utils/format";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -19,6 +18,12 @@ import { cn } from "@/lib/utils";
 import { useI18n } from "@/hooks";
 import { useSetPageTitle } from "@/components/providers/page-title-provider";
 import { PageHeader } from "@/components/shared/page-header";
+import { PanelPage } from "@/components/shared/panel-page";
+import { EmptyState } from "@/components/shared/empty-state";
+import { PanelListSkeleton } from "@/components/shared/loading-skeleton";
+import { SearchInput } from "@/components/shared/search-input";
+import { DataTable, type Column } from "@/components/shared/data-table";
+import type { User } from "@/types";
 
 export default function AdminUsersPage() {
   const { t } = useI18n();
@@ -40,8 +45,62 @@ export default function AdminUsersPage() {
 
   const users = data?.data ?? [];
 
+  const columns: Column<User>[] = useMemo(
+    () => [
+      {
+        key: "name",
+        header: t("admin.colName"),
+        cell: (u) => (
+          <span className="font-medium text-foreground">
+            {u.firstName} {u.lastName}
+          </span>
+        ),
+      },
+      {
+        key: "email",
+        header: t("admin.colEmail"),
+        cell: (u) => (
+          <span className="text-muted-foreground">{u.email}</span>
+        ),
+      },
+      {
+        key: "role",
+        header: t("admin.colRole"),
+        cell: (u) => (
+          <Badge variant="outline">
+            {t(`roles.${u.role}` as "roles.investor")}
+          </Badge>
+        ),
+      },
+      {
+        key: "membership",
+        header: t("admin.colMembership"),
+        cell: (u) => (
+          <span className="capitalize text-foreground">{u.membershipTier}</span>
+        ),
+      },
+      {
+        key: "kyc",
+        header: t("admin.colKyc"),
+        cell: (u) => (
+          <Badge className={cn("border capitalize", STATUS_COLORS[u.kycStatus])}>
+            {u.kycStatus.replace(/_/g, " ")}
+          </Badge>
+        ),
+      },
+      {
+        key: "joined",
+        header: t("admin.colJoined"),
+        cell: (u) => (
+          <span className="text-muted-foreground">{formatDate(u.createdAt)}</span>
+        ),
+      },
+    ],
+    [t]
+  );
+
   return (
-    <div className="space-y-6">
+    <PanelPage>
       <PageHeader
         variant="minimal"
         title={t("admin.usersTitle")}
@@ -49,14 +108,14 @@ export default function AdminUsersPage() {
       />
 
       <div className="flex flex-wrap gap-3">
-        <Input
+        <SearchInput
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={setSearch}
           placeholder={t("admin.searchUsers")}
-          className="max-w-sm bg-white"
+          className="max-w-sm"
         />
         <Select value={role} onValueChange={setRole}>
-          <SelectTrigger className="w-44 bg-white">
+          <SelectTrigger className="w-44">
             <SelectValue placeholder={t("admin.role")} />
           </SelectTrigger>
           <SelectContent>
@@ -69,54 +128,16 @@ export default function AdminUsersPage() {
       </div>
 
       {isLoading ? (
-        <div className="premium-card h-40 animate-pulse bg-slate-100" />
+        <PanelListSkeleton />
       ) : users.length === 0 ? (
-        <div className="premium-card flex flex-col items-center gap-3 p-12 text-center">
-          <Users className="h-10 w-10 text-slate-300" />
-          <p className="font-medium text-slate-900">{t("admin.noUsers")}</p>
-        </div>
+        <EmptyState icon={Users} title={t("admin.noUsers")} />
       ) : (
-        <div className="overflow-hidden rounded-2xl border border-border bg-white">
-          <table className="w-full text-left text-sm">
-            <thead className="border-b border-border bg-slate-50 text-xs uppercase tracking-wide text-muted-foreground">
-              <tr>
-                <th className="px-4 py-3 font-medium">{t("admin.colName")}</th>
-                <th className="px-4 py-3 font-medium">{t("admin.colEmail")}</th>
-                <th className="px-4 py-3 font-medium">{t("admin.colRole")}</th>
-                <th className="px-4 py-3 font-medium">{t("admin.colMembership")}</th>
-                <th className="px-4 py-3 font-medium">{t("admin.colKyc")}</th>
-                <th className="px-4 py-3 font-medium">{t("admin.colJoined")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((u) => (
-                <tr key={u.id} className="border-b border-border last:border-0">
-                  <td className="px-4 py-3 font-medium text-slate-900">
-                    {u.firstName} {u.lastName}
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">{u.email}</td>
-                  <td className="px-4 py-3">
-                    <Badge variant="outline">
-                      {t(`roles.${u.role}` as "roles.investor")}
-                    </Badge>
-                  </td>
-                  <td className="px-4 py-3 capitalize text-slate-700">
-                    {u.membershipTier}
-                  </td>
-                  <td className="px-4 py-3">
-                    <Badge className={cn("border capitalize", STATUS_COLORS[u.kycStatus])}>
-                      {u.kycStatus.replace(/_/g, " ")}
-                    </Badge>
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">
-                    {formatDate(u.createdAt)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <DataTable
+          columns={columns}
+          data={users}
+          keyExtractor={(u) => u.id}
+        />
       )}
-    </div>
+    </PanelPage>
   );
 }

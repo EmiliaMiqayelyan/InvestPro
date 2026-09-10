@@ -9,8 +9,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ROUTES } from "@/constants";
 import { authApi } from "@/services/api";
+import { useI18n } from "@/hooks";
 
 export default function VerifyEmailContent() {
+  const { t } = useI18n();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
 
@@ -30,27 +32,27 @@ export default function VerifyEmailContent() {
           {mutation.isPending && (
             <>
               <Loader2 className="h-12 w-12 text-primary mx-auto mb-4 animate-spin" />
-              <CardTitle>Verifying your email...</CardTitle>
+              <CardTitle>{t("auth.verifyEmailPending")}</CardTitle>
             </>
           )}
           {mutation.isSuccess && (
             <>
               <CheckCircle className="h-12 w-12 text-emerald mx-auto mb-4" />
-              <CardTitle>Email verified!</CardTitle>
-              <CardDescription>Your email has been successfully verified.</CardDescription>
+              <CardTitle>{t("auth.verifyEmailSuccess")}</CardTitle>
+              <CardDescription>{t("auth.verifyEmailSuccessBody")}</CardDescription>
             </>
           )}
           {mutation.isError && (
             <>
               <XCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
-              <CardTitle>Verification failed</CardTitle>
-              <CardDescription>Invalid or expired verification link.</CardDescription>
+              <CardTitle>{t("auth.verifyEmailFailed")}</CardTitle>
+              <CardDescription>{t("auth.verifyEmailFailedBody")}</CardDescription>
             </>
           )}
         </CardHeader>
         <CardContent>
           <Button variant="gradient" asChild>
-            <Link href={ROUTES.LOGIN}>Continue to Login</Link>
+            <Link href={ROUTES.LOGIN}>{t("auth.continueToLogin")}</Link>
           </Button>
         </CardContent>
       </Card>

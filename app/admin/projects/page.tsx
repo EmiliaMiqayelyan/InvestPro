@@ -13,6 +13,10 @@ import { cn } from "@/lib/utils";
 import { useI18n } from "@/hooks";
 import { useSetPageTitle } from "@/components/providers/page-title-provider";
 import { PageHeader } from "@/components/shared/page-header";
+import { PanelPage } from "@/components/shared/panel-page";
+import { PanelCard } from "@/components/shared/panel-card";
+import { EmptyState } from "@/components/shared/empty-state";
+import { PanelListSkeleton, PanelBlockSkeleton } from "@/components/shared/loading-skeleton";
 import type { Project, ProjectStatus } from "@/types";
 
 type FilterId = "all" | ProjectStatus | "approved";
@@ -90,7 +94,7 @@ export default function AdminProjectsPage() {
   }, [projects]);
 
   return (
-    <div className="space-y-8">
+    <PanelPage>
       <PageHeader
         variant="minimal"
         title={t("admin.projectsTitle")}
@@ -112,13 +116,13 @@ export default function AdminProjectsPage() {
                 : t("admin.pendingQueueCountPlural", { count: pending.length })}
             </p>
           </div>
-          <Badge className="border-amber-300 bg-white text-amber-900">
+          <Badge className="border-amber-300 bg-background text-amber-900">
             {t("admin.pendingBadge")}
           </Badge>
         </div>
 
         {isLoading ? (
-          <div className="mt-4 h-24 animate-pulse rounded-xl bg-white/70" />
+          <PanelBlockSkeleton className="mt-4" height="h-24" />
         ) : pending.length === 0 ? (
           <p className="mt-4 text-sm text-amber-900/70">{t("admin.pendingEmpty")}</p>
         ) : (
@@ -126,16 +130,16 @@ export default function AdminProjectsPage() {
             {pending.map((project) => (
               <div
                 key={project.id}
-                className="rounded-xl border border-amber-200/60 bg-white p-4 shadow-sm"
+                className="rounded-xl border border-amber-200/60 bg-background p-4 shadow-sm"
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="font-semibold text-slate-900">{project.title}</p>
+                    <p className="font-semibold text-foreground">{project.title}</p>
                     <p className="mt-1 text-sm text-muted-foreground">
                       {project.ownerName || "—"} · {project.category} ·{" "}
                       {t("admin.stage")}: {t(`projects.stages.${project.stage ?? "idea"}`)}
                     </p>
-                    <p className="mt-1 text-sm text-slate-700">
+                    <p className="mt-1 text-sm text-foreground">
                       {formatCurrency(project.requiredInvestment)} ·{" "}
                       {t("admin.submissionDate")}:{" "}
                       {formatDate(project.submittedAt || project.createdAt)}
@@ -178,8 +182,8 @@ export default function AdminProjectsPage() {
                 active
                   ? item.id === "pending_review"
                     ? "border-amber-400 bg-amber-100 font-medium text-amber-950"
-                    : "border-teal-700 bg-teal-800 text-white"
-                  : "border-border bg-white text-slate-700 hover:bg-slate-50",
+                    : "border-primary bg-primary font-medium text-primary-foreground"
+                  : "border-border bg-background text-foreground hover:bg-muted",
                 item.id === "pending_review" && !active && "border-amber-200 text-amber-900"
               )}
             >
@@ -193,26 +197,23 @@ export default function AdminProjectsPage() {
       </div>
 
       {isLoading ? (
-        <div className="premium-card h-40 animate-pulse bg-slate-100" />
+        <PanelListSkeleton />
       ) : filtered.length === 0 ? (
-        <div className="premium-card flex flex-col items-center gap-3 p-12 text-center">
-          <FolderKanban className="h-10 w-10 text-slate-300" />
-          <p className="font-medium text-slate-900">{t("common.noResults")}</p>
-        </div>
+        <EmptyState icon={FolderKanban} title={t("common.noResults")} />
       ) : (
         <div className="space-y-3">
           {filtered.map((project) => (
-            <div
+            <PanelCard
               key={project.id}
-              className="premium-card flex flex-wrap items-center justify-between gap-4 p-5"
+              className="flex flex-wrap items-center justify-between gap-4"
             >
               <div>
-                <p className="font-semibold text-slate-900">{project.title}</p>
+                <p className="font-semibold text-foreground">{project.title}</p>
                 <p className="text-sm text-muted-foreground">
                   {project.ownerName || "—"} · {project.category} ·{" "}
                   {formatDate(project.createdAt)}
                 </p>
-                <p className="mt-1 text-sm text-slate-700">
+                <p className="mt-1 text-sm text-foreground">
                   {formatCurrency(project.requiredInvestment)}
                 </p>
               </div>
@@ -237,10 +238,10 @@ export default function AdminProjectsPage() {
                   </Link>
                 </Button>
               </div>
-            </div>
+            </PanelCard>
           ))}
         </div>
       )}
-    </div>
+    </PanelPage>
   );
 }

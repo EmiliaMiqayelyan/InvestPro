@@ -4,14 +4,26 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, FolderKanban } from "lucide-react";
 import { toast } from "sonner";
 import { ownerApi } from "@/services/api";
 import { getErrorMessage } from "@/services/api/client";
 import { useI18n } from "@/hooks";
+import { categoryLabel, industryLabel } from "@/i18n/localize";
 import { useSetPageTitle } from "@/components/providers/page-title-provider";
 import { PageHeader } from "@/components/shared/page-header";
-import { QUERY_KEYS, ROUTES, PROJECT_CATEGORIES, PROJECT_INDUSTRIES, PROJECT_STAGES } from "@/constants";
+import { PanelPage } from "@/components/shared/panel-page";
+import { PanelCard } from "@/components/shared/panel-card";
+import { EmptyState } from "@/components/shared/empty-state";
+import { PanelBlockSkeleton } from "@/components/shared/loading-skeleton";
+import {
+  QUERY_KEYS,
+  ROUTES,
+  PROJECT_CATEGORIES,
+  PROJECT_INDUSTRIES,
+  PROJECT_STAGES,
+  isOwnerMutableProjectStatus,
+} from "@/constants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,7 +41,7 @@ export default function OwnerEditProjectPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   useSetPageTitle(t("ownerReview.editTitle"));
 
   const { data: projects = [], isLoading } = useQuery({
@@ -121,34 +133,62 @@ export default function OwnerEditProjectPage() {
     onError: (error) => toast.error(getErrorMessage(error)),
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: () => ownerApi.deleteProject(id),
+    onSuccess: () => {
+      toast.success(t("ownerReview.deletedToast"));
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.OWNER_PROJECTS] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.OWNER_DOCUMENTS] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.OWNER_DASHBOARD] });
+      router.push(ROUTES.OWNER_PROJECTS);
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
+  });
+
   if (isLoading) {
-    return <div className="premium-card h-48 animate-pulse bg-slate-100" />;
+    return (
+      <PanelPage maxWidth="content">
+        <PanelBlockSkeleton height="h-48" />
+      </PanelPage>
+    );
   }
 
   if (!project) {
     return (
-      <div className="premium-card space-y-4 p-8 text-center">
-        <p className="font-medium">{t("projects.notFound")}</p>
-        <Button asChild variant="outline">
-          <Link href={ROUTES.OWNER_PROJECTS}>{t("common.back")}</Link>
-        </Button>
-      </div>
+      <PanelPage maxWidth="content">
+        <EmptyState
+          icon={FolderKanban}
+          title={t("projects.notFound")}
+          action={
+            <Button asChild variant="outline">
+              <Link href={ROUTES.OWNER_PROJECTS}>{t("common.back")}</Link>
+            </Button>
+          }
+        />
+      </PanelPage>
     );
   }
 
-  if (project.status !== "rejected" && project.status !== "draft") {
+  if (!isOwnerMutableProjectStatus(project.status)) {
     return (
-      <div className="premium-card space-y-4 p-8 text-center">
-        <p className="text-sm text-muted-foreground">{t("ownerReview.editOnlyRejected")}</p>
-        <Button asChild variant="outline">
-          <Link href={ROUTES.OWNER_PROJECTS}>{t("common.back")}</Link>
-        </Button>
-      </div>
+      <PanelPage maxWidth="content">
+        <EmptyState
+          icon={FolderKanban}
+          title={t("ownerReview.editOnlyRejected")}
+          action={
+            <Button asChild variant="outline">
+              <Link href={ROUTES.OWNER_PROJECTS}>{t("common.back")}</Link>
+            </Button>
+          }
+        />
+      </PanelPage>
     );
   }
+
+  const canResubmit = project.status === "rejected" || project.status === "draft";
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <PanelPage maxWidth="content">
       <Button asChild variant="ghost" size="sm">
         <Link href={ROUTES.OWNER_PROJECTS}>
           <ArrowLeft className="h-4 w-4" />
@@ -166,13 +206,13 @@ export default function OwnerEditProjectPage() {
           <p className="text-xs font-medium uppercase tracking-wide text-red-800">
             {t("ownerReview.rejectionReason")}
           </p>
-          <p className="mt-1 whitespace-pre-wrap text-sm text-slate-800">
+          <p className="mt-1 whitespace-pre-wrap text-sm text-foreground">
             {project.rejectionReason}
           </p>
         </div>
       ) : null}
 
-      <div className="premium-card space-y-4 p-5 md:p-6">
+      <PanelCard className="space-y-4 md:p-6" padding="md">
         <div className="space-y-2">
           <Label htmlFor="title">{t("projects.overview")}</Label>
           <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} />
@@ -205,7 +245,7 @@ export default function OwnerEditProjectPage() {
               <SelectContent>
                 {PROJECT_CATEGORIES.map((c) => (
                   <SelectItem key={c} value={c}>
-                    {c}
+                    {categoryLabel(locale, c)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -220,7 +260,7 @@ export default function OwnerEditProjectPage() {
               <SelectContent>
                 {PROJECT_INDUSTRIES.map((c) => (
                   <SelectItem key={c} value={c}>
-                    {c}
+                    {industryLabel(locale, c)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -304,7 +344,7 @@ export default function OwnerEditProjectPage() {
             onChange={(e) => setInvestmentPlan(e.target.value)}
           />
         </div>
-      </div>
+      </PanelCard>
 
       <div className="flex flex-wrap gap-3">
         <Button
@@ -314,13 +354,26 @@ export default function OwnerEditProjectPage() {
         >
           {t("ownerReview.saveChanges")}
         </Button>
+        {canResubmit ? (
+          <Button
+            disabled={resubmitMutation.isPending}
+            onClick={() => resubmitMutation.mutate()}
+          >
+            {t("ownerReview.resubmit")}
+          </Button>
+        ) : null}
         <Button
-          disabled={resubmitMutation.isPending}
-          onClick={() => resubmitMutation.mutate()}
+          variant="ghost"
+          className="text-destructive hover:text-destructive"
+          disabled={deleteMutation.isPending}
+          onClick={() => {
+            if (!window.confirm(t("ownerReview.deleteConfirm"))) return;
+            deleteMutation.mutate();
+          }}
         >
-          {t("ownerReview.resubmit")}
+          {t("ownerReview.deleteProject")}
         </Button>
       </div>
-    </div>
+    </PanelPage>
   );
 }

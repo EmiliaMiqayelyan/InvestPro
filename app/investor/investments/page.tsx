@@ -8,6 +8,10 @@ import { QUERY_KEYS, ROUTES, STATUS_COLORS } from "@/constants";
 import { useI18n } from "@/hooks";
 import { useSetPageTitle } from "@/components/providers/page-title-provider";
 import { PageHeader } from "@/components/shared/page-header";
+import { PanelPage } from "@/components/shared/panel-page";
+import { PanelCard } from "@/components/shared/panel-card";
+import { EmptyState } from "@/components/shared/empty-state";
+import { PanelListSkeleton } from "@/components/shared/loading-skeleton";
 import { formatCurrency, formatDate } from "@/utils/format";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,7 +27,7 @@ export default function InvestorInvestmentsPage() {
   });
 
   return (
-    <div className="space-y-6">
+    <PanelPage>
       <PageHeader
         variant="minimal"
         title={t("investor.myInvestments")}
@@ -35,23 +39,23 @@ export default function InvestorInvestmentsPage() {
       />
 
       {isLoading ? (
-        <div className="premium-card h-40 animate-pulse bg-slate-100" />
+        <PanelListSkeleton rows={1} />
       ) : investments.length === 0 ? (
-        <div className="premium-card flex flex-col items-center gap-3 p-12 text-center">
-          <Handshake className="h-10 w-10 text-slate-300" />
-          <p className="font-medium text-slate-900">{t("common.noResults")}</p>
-          <p className="text-sm text-muted-foreground">{t("investor.browseProjects")}</p>
-        </div>
+        <EmptyState
+          icon={Handshake}
+          title={t("common.noResults")}
+          description={t("investor.browseProjects")}
+        />
       ) : (
         <div className="space-y-3">
           {investments.map((inv) => (
-            <div
+            <PanelCard
               key={inv.id}
-              className="premium-card flex flex-wrap items-center justify-between gap-4 p-5"
+              className="flex flex-wrap items-center justify-between gap-4"
             >
               <div>
-                <p className="font-semibold text-slate-900">
-                  {inv.project?.title || "Project"}
+                <p className="font-semibold text-foreground">
+                  {inv.project?.title || t("common.projectFallback")}
                 </p>
                 <p className="text-sm text-muted-foreground">
                   {formatDate(inv.createdAt)}
@@ -60,7 +64,7 @@ export default function InvestorInvestmentsPage() {
               <div className="flex flex-wrap items-center gap-4">
                 <div className="text-right">
                   <p className="text-xs text-muted-foreground">{t("offers.amount")}</p>
-                  <p className="font-semibold text-slate-900">{formatCurrency(inv.amount)}</p>
+                  <p className="font-semibold text-foreground">{formatCurrency(inv.amount)}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-xs text-muted-foreground">{t("projects.expectedRoi")}</p>
@@ -79,10 +83,10 @@ export default function InvestorInvestmentsPage() {
                   </Button>
                 )}
               </div>
-            </div>
+            </PanelCard>
           ))}
         </div>
       )}
-    </div>
+    </PanelPage>
   );
 }

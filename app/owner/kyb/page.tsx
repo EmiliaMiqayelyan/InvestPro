@@ -13,6 +13,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/shared/page-header";
+import { PanelPage } from "@/components/shared/panel-page";
+import { EmptyState } from "@/components/shared/empty-state";
+import { PanelBlockSkeleton } from "@/components/shared/loading-skeleton";
 import { useSetPageTitle } from "@/components/providers/page-title-provider";
 import { useI18n } from "@/hooks";
 import { cn } from "@/lib/utils";
@@ -51,7 +54,7 @@ export default function OwnerKybPage() {
     !kyb || kyb.status === "rejected" || kyb.status === "resubmission_requested";
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <PanelPage maxWidth="form">
       <PageHeader
         variant="minimal"
         title={t("owner.kybTitle")}
@@ -59,12 +62,12 @@ export default function OwnerKybPage() {
       />
 
       {isLoading ? (
-        <div className="premium-card h-24 animate-pulse bg-slate-100" />
+        <PanelBlockSkeleton height="h-24" />
       ) : kyb ? (
-        <Card className="premium-card border-border bg-white shadow-none">
+        <Card>
           <CardContent className="flex items-center justify-between p-6">
             <div>
-              <p className="font-medium text-slate-900">{t("owner.kybStatus")}</p>
+              <p className="font-medium text-foreground">{t("owner.kybStatus")}</p>
               <p className="text-sm text-muted-foreground">{formatDate(kyb.submittedAt)}</p>
               {kyb.rejectionReason && (
                 <p className="mt-1 text-sm text-destructive">{kyb.rejectionReason}</p>
@@ -76,17 +79,14 @@ export default function OwnerKybPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="premium-card flex flex-col items-center gap-2 p-10 text-center">
-          <Building2 className="h-10 w-10 text-slate-300" />
-          <p className="text-sm text-muted-foreground">{t("owner.kybEmpty")}</p>
-        </div>
+        <EmptyState icon={Building2} title={t("owner.kybEmpty")} />
       )}
 
       {canSubmit && (
-        <Card className="premium-card border-border bg-white shadow-none">
+        <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-slate-900">
-              <FileCheck className="h-5 w-5 text-teal-800" />
+            <CardTitle className="flex items-center gap-2 text-foreground">
+              <FileCheck className="h-5 w-5 text-primary" />
               {t("owner.kybSubmit")}
             </CardTitle>
             <CardDescription>{t("owner.kybHint")}</CardDescription>
@@ -126,6 +126,6 @@ export default function OwnerKybPage() {
           </CardContent>
         </Card>
       )}
-    </div>
+    </PanelPage>
   );
 }

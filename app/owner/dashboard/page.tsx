@@ -16,6 +16,7 @@ import { useI18n } from "@/hooks";
 import { ROUTES } from "@/constants";
 import { formatCurrency } from "@/utils/format";
 import { Button } from "@/components/ui/button";
+import { PanelPage } from "@/components/shared/panel-page";
 
 export default function OwnerDashboardPage() {
   const { t } = useI18n();
@@ -24,13 +25,15 @@ export default function OwnerDashboardPage() {
   useSetPageTitle(t("owner.dashboard"));
 
   return (
-    <div className="space-y-8">
+    <PanelPage>
       <div className="surface-card flex flex-wrap items-center justify-between gap-4 p-6 lg:p-8">
         <div>
           <p className="text-sm text-muted-foreground">
             {user?.firstName ? `${t("owner.dashboard")}, ${user.firstName}` : t("owner.dashboard")}
           </p>
-          <h2 className="mt-1 font-display text-2xl font-semibold">{t("owner.overview")}</h2>
+          <h2 className="mt-1 font-display text-2xl font-semibold text-foreground">
+            {t("owner.overview")}
+          </h2>
         </div>
         <Button asChild>
           <Link href={ROUTES.OWNER_PROJECT_CREATE}>
@@ -44,18 +47,22 @@ export default function OwnerDashboardPage() {
           <div>
             <BarChart3 className="h-5 w-5 text-primary" />
             <p className="mt-4 text-sm text-muted-foreground">{t("owner.fundingRaised")}</p>
-            <p className="mt-1 font-display text-4xl font-semibold">
+            <p className="mt-1 font-display text-4xl font-semibold text-foreground">
               {isLoading ? "—" : formatCurrency(stats?.totalFundingRaised ?? 0)}
             </p>
           </div>
           <div className="mt-6 grid grid-cols-2 gap-4 border-t border-border pt-6">
             <div>
               <p className="text-xs text-muted-foreground">{t("owner.published")}</p>
-              <p className="mt-1 text-xl font-semibold">{isLoading ? "—" : stats?.publishedProjects ?? 0}</p>
+              <p className="mt-1 text-xl font-semibold text-foreground">
+                {isLoading ? "—" : stats?.publishedProjects ?? 0}
+              </p>
             </div>
             <div>
               <p className="text-xs text-muted-foreground">{t("owner.pendingOffers")}</p>
-              <p className="mt-1 text-xl font-semibold">{isLoading ? "—" : stats?.pendingOffers ?? 0}</p>
+              <p className="mt-1 text-xl font-semibold text-foreground">
+                {isLoading ? "—" : stats?.pendingOffers ?? 0}
+              </p>
             </div>
           </div>
         </div>
@@ -71,7 +78,9 @@ export default function OwnerDashboardPage() {
             <Link key={item.label} href={item.href} className="surface-card-hover flex flex-col justify-between p-5">
               <Icon className="h-5 w-5 text-muted-foreground" />
               <div className="mt-4">
-                <p className="text-2xl font-semibold">{isLoading ? "—" : item.value}</p>
+                <p className="text-2xl font-semibold text-foreground">
+                  {isLoading ? "—" : item.value}
+                </p>
                 <p className="mt-1 text-xs text-muted-foreground">{item.label}</p>
               </div>
             </Link>
@@ -80,8 +89,10 @@ export default function OwnerDashboardPage() {
       </div>
 
       <Button variant="outline" asChild>
-        <Link href={ROUTES.OWNER_ANALYTICS}>{t("nav.analytics")} <ArrowRight className="h-4 w-4" /></Link>
+        <Link href={ROUTES.OWNER_ANALYTICS}>
+          {t("nav.analytics")} <ArrowRight className="h-4 w-4" />
+        </Link>
       </Button>
-    </div>
+    </PanelPage>
   );
 }

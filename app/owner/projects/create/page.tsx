@@ -15,8 +15,16 @@ import {
 } from "@/constants";
 import { getErrorMessage } from "@/services/api/client";
 import { useI18n } from "@/hooks";
+import {
+  categoryLabel,
+  industryLabel,
+  stageLabel,
+  docCategoryLabel,
+  teamRoleLabel,
+} from "@/i18n/localize";
 import { useSetPageTitle } from "@/components/providers/page-title-provider";
 import { PageHeader } from "@/components/shared/page-header";
+import { PanelPage } from "@/components/shared/panel-page";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -74,10 +82,10 @@ const emptyPhase = (sortOrder: number): PhaseDraft => ({
 });
 
 const tabTriggerClass =
-  "data-[state=active]:bg-teal-50 data-[state=active]:text-teal-900 data-[state=active]:shadow-none";
+  "data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none";
 
 export default function OwnerCreateProjectPage() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   useSetPageTitle(t("owner.createProject"));
   const router = useRouter();
   const [tab, setTab] = useState<TabId>("basic");
@@ -165,7 +173,7 @@ export default function OwnerCreateProjectPage() {
           })),
       }),
     onSuccess: () => {
-      toast.success("Project created");
+      toast.success(t("owner.projectCreated"));
       router.push(ROUTES.OWNER_PROJECTS);
     },
     onError: (error) => toast.error(getErrorMessage(error)),
@@ -175,20 +183,23 @@ export default function OwnerCreateProjectPage() {
 
   const submit = () => {
     if (!basic.title.trim()) {
-      toast.error("Project title is required");
+      toast.error(t("owner.titleRequired"));
       setTab("basic");
       return;
     }
     if (budgetMismatch) {
       toast.warning(
-        `Phase budgets total ${phaseBudgetSum.toLocaleString()} vs required investment ${financial.requiredInvestment.toLocaleString()}. You can still submit.`
+        t("owner.phaseBudgetToast", {
+          sum: phaseBudgetSum.toLocaleString(),
+          required: financial.requiredInvestment.toLocaleString(),
+        })
       );
     }
     createMutation.mutate();
   };
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <PanelPage maxWidth="content">
       <PageHeader
         variant="minimal"
         title={t("owner.createProject")}
@@ -196,40 +207,40 @@ export default function OwnerCreateProjectPage() {
       />
 
       <Tabs value={tab} onValueChange={(v) => setTab(v as TabId)}>
-        <TabsList className="grid h-auto w-full grid-cols-2 gap-1 bg-slate-100 p-1 sm:grid-cols-5">
+        <TabsList className="grid h-auto w-full grid-cols-2 gap-1 bg-muted p-1 sm:grid-cols-5">
           <TabsTrigger value="basic" className={tabTriggerClass}>
-            Basic
+            {t("owner.tabBasic")}
           </TabsTrigger>
           <TabsTrigger value="team" className={tabTriggerClass}>
-            Team
+            {t("owner.tabTeam")}
           </TabsTrigger>
           <TabsTrigger value="documents" className={tabTriggerClass}>
-            Documents
+            {t("owner.tabDocuments")}
           </TabsTrigger>
           <TabsTrigger value="finance" className={tabTriggerClass}>
-            Finance
+            {t("owner.tabFinance")}
           </TabsTrigger>
           <TabsTrigger value="review" className={tabTriggerClass}>
-            Review
+            {t("owner.tabReview")}
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="basic" className="mt-4">
-          <Card className="premium-card border-border bg-white shadow-none backdrop-blur-none">
+          <Card>
             <CardHeader>
-              <CardTitle className="text-slate-900">Basic information</CardTitle>
+              <CardTitle className="text-foreground">{t("owner.basicInfo")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label>Title</Label>
+                  <Label>{t("owner.titleLabel")}</Label>
                   <Input
                     value={basic.title}
                     onChange={(e) => setBasic({ ...basic, title: e.target.value })}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Title (Armenian, optional)</Label>
+                  <Label>{t("owner.titleHyOptional")}</Label>
                   <Input
                     value={basic.titleHy}
                     onChange={(e) => setBasic({ ...basic, titleHy: e.target.value })}
@@ -238,14 +249,14 @@ export default function OwnerCreateProjectPage() {
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label>Short description</Label>
+                  <Label>{t("owner.shortDescription")}</Label>
                   <Textarea
                     value={basic.description}
                     onChange={(e) => setBasic({ ...basic, description: e.target.value })}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Short description (Armenian, optional)</Label>
+                  <Label>{t("owner.shortDescriptionHy")}</Label>
                   <Textarea
                     value={basic.descriptionHy}
                     onChange={(e) => setBasic({ ...basic, descriptionHy: e.target.value })}
@@ -253,7 +264,7 @@ export default function OwnerCreateProjectPage() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label>Full description</Label>
+                <Label>{t("owner.fullDescription")}</Label>
                 <Textarea
                   rows={5}
                   value={basic.fullDescription}
@@ -262,7 +273,7 @@ export default function OwnerCreateProjectPage() {
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label>Category</Label>
+                  <Label>{t("owner.category")}</Label>
                   <Select
                     value={basic.category}
                     onValueChange={(v) => setBasic({ ...basic, category: v as typeof basic.category })}
@@ -273,14 +284,14 @@ export default function OwnerCreateProjectPage() {
                     <SelectContent>
                       {PROJECT_CATEGORIES.map((c) => (
                         <SelectItem key={c} value={c}>
-                          {c}
+                          {categoryLabel(locale, c)}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>Industry</Label>
+                  <Label>{t("owner.industry")}</Label>
                   <Select
                     value={basic.industry}
                     onValueChange={(v) => setBasic({ ...basic, industry: v as typeof basic.industry })}
@@ -291,7 +302,7 @@ export default function OwnerCreateProjectPage() {
                     <SelectContent>
                       {PROJECT_INDUSTRIES.map((c) => (
                         <SelectItem key={c} value={c}>
-                          {c}
+                          {industryLabel(locale, c)}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -300,14 +311,14 @@ export default function OwnerCreateProjectPage() {
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label>Location</Label>
+                  <Label>{t("projects.location")}</Label>
                   <Input
                     value={basic.location}
                     onChange={(e) => setBasic({ ...basic, location: e.target.value })}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Stage</Label>
+                  <Label>{t("projects.stage")}</Label>
                   <Select
                     value={basic.stage}
                     onValueChange={(v) => setBasic({ ...basic, stage: v as ProjectStage })}
@@ -318,7 +329,7 @@ export default function OwnerCreateProjectPage() {
                     <SelectContent>
                       {PROJECT_STAGES.map((s) => (
                         <SelectItem key={s.value} value={s.value}>
-                          {s.label}
+                          {stageLabel(locale, s.value)}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -326,15 +337,15 @@ export default function OwnerCreateProjectPage() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label>Timeline</Label>
+                <Label>{t("owner.timeline")}</Label>
                 <Input
                   value={basic.timeline}
                   onChange={(e) => setBasic({ ...basic, timeline: e.target.value })}
-                  placeholder="e.g. 18 months to Series A"
+                  placeholder={t("owner.timelinePlaceholder")}
                 />
               </div>
               <div className="space-y-2">
-                <Label>Business model</Label>
+                <Label>{t("projects.businessModel")}</Label>
                 <Textarea
                   value={basic.businessModel}
                   onChange={(e) => setBasic({ ...basic, businessModel: e.target.value })}
@@ -343,25 +354,27 @@ export default function OwnerCreateProjectPage() {
               <Button
                 type="button"
                 variant="outline"
-                className="border-teal-200 text-teal-900 hover:bg-teal-50"
+                className="border-primary/30 text-primary hover:bg-primary/5"
                 onClick={() => goNext("team")}
               >
-                Continue to team
+                {t("owner.continueToTeam")}
               </Button>
             </CardContent>
           </Card>
         </TabsContent>
 
         <TabsContent value="team" className="mt-4">
-          <Card className="premium-card border-border bg-white shadow-none backdrop-blur-none">
+          <Card>
             <CardHeader>
-              <CardTitle className="text-slate-900">Team members</CardTitle>
+              <CardTitle className="text-foreground">{t("owner.teamInfo")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {team.map((member, index) => (
                 <div key={index} className="space-y-3 rounded-xl border border-border p-4">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium text-slate-900">Member {index + 1}</p>
+                    <p className="text-sm font-medium text-foreground">
+                      {t("common.memberLabel", { n: index + 1 })}
+                    </p>
                     <Button
                       type="button"
                       variant="ghost"
@@ -374,7 +387,7 @@ export default function OwnerCreateProjectPage() {
                   </div>
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div className="space-y-2">
-                      <Label>Name</Label>
+                      <Label>{t("owner.name")}</Label>
                       <Input
                         value={member.name}
                         onChange={(e) => {
@@ -385,7 +398,7 @@ export default function OwnerCreateProjectPage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>Position</Label>
+                      <Label>{t("owner.position")}</Label>
                       <Input
                         value={member.position}
                         onChange={(e) => {
@@ -397,7 +410,7 @@ export default function OwnerCreateProjectPage() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label>Role</Label>
+                    <Label>{t("owner.role")}</Label>
                     <Select
                       value={member.role}
                       onValueChange={(v) => {
@@ -412,14 +425,14 @@ export default function OwnerCreateProjectPage() {
                       <SelectContent>
                         {TEAM_ROLES.map((r) => (
                           <SelectItem key={r.value} value={r.value}>
-                            {r.label}
+                            {teamRoleLabel(locale, r.value)}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label>Experience</Label>
+                    <Label>{t("owner.experience")}</Label>
                     <Input
                       value={member.experience}
                       onChange={(e) => {
@@ -430,7 +443,7 @@ export default function OwnerCreateProjectPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Biography</Label>
+                    <Label>{t("owner.biography")}</Label>
                     <Textarea
                       value={member.biography}
                       onChange={(e) => {
@@ -445,19 +458,19 @@ export default function OwnerCreateProjectPage() {
               <Button
                 type="button"
                 variant="outline"
-                className="border-teal-200 text-teal-900 hover:bg-teal-50"
+                className="border-primary/30 text-primary hover:bg-primary/5"
                 onClick={() => setTeam([...team, emptyTeam()])}
               >
-                <Plus className="h-4 w-4" /> Add team member
+                <Plus className="h-4 w-4" /> {t("owner.addTeamMember")}
               </Button>
               <div>
                 <Button
                   type="button"
                   variant="outline"
-                  className="border-teal-200 text-teal-900 hover:bg-teal-50"
+                  className="border-primary/30 text-primary hover:bg-primary/5"
                   onClick={() => goNext("documents")}
                 >
-                  Continue to documents
+                  {t("owner.continueToDocuments")}
                 </Button>
               </div>
             </CardContent>
@@ -465,21 +478,19 @@ export default function OwnerCreateProjectPage() {
         </TabsContent>
 
         <TabsContent value="documents" className="mt-4">
-          <Card className="premium-card border-border bg-white shadow-none backdrop-blur-none">
+          <Card>
             <CardHeader>
-              <CardTitle className="text-slate-900">Documents</CardTitle>
+              <CardTitle className="text-foreground">{t("owner.documentation")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Simulate uploads with a document name and category (includes finance plan).
-              </p>
+              <p className="text-sm text-muted-foreground">{t("owner.documentsHint")}</p>
               {documents.map((doc, index) => (
                 <div
                   key={index}
                   className="flex flex-wrap items-end gap-3 rounded-xl border border-border p-3"
                 >
                   <div className="min-w-[180px] flex-1 space-y-2">
-                    <Label>Name</Label>
+                    <Label>{t("owner.name")}</Label>
                     <Input
                       value={doc.name}
                       onChange={(e) => {
@@ -487,11 +498,11 @@ export default function OwnerCreateProjectPage() {
                         next[index] = { ...doc, name: e.target.value };
                         setDocuments(next);
                       }}
-                      placeholder="Pitch deck.pdf"
+                      placeholder={t("owner.docNamePlaceholder")}
                     />
                   </div>
                   <div className="w-44 space-y-2">
-                    <Label>Category</Label>
+                    <Label>{t("owner.category")}</Label>
                     <Select
                       value={doc.category}
                       onValueChange={(v) => {
@@ -506,7 +517,7 @@ export default function OwnerCreateProjectPage() {
                       <SelectContent>
                         {DOCUMENT_CATEGORIES.map((c) => (
                           <SelectItem key={c.value} value={c.value}>
-                            {c.label}
+                            {docCategoryLabel(locale, c.value)}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -526,21 +537,21 @@ export default function OwnerCreateProjectPage() {
               <Button
                 type="button"
                 variant="outline"
-                className="border-teal-200 text-teal-900 hover:bg-teal-50"
+                className="border-primary/30 text-primary hover:bg-primary/5"
                 onClick={() =>
                   setDocuments([...documents, { name: "", category: "finance_plan" }])
                 }
               >
-                <Plus className="h-4 w-4" /> Add document
+                <Plus className="h-4 w-4" /> {t("owner.addDocument")}
               </Button>
               <div>
                 <Button
                   type="button"
                   variant="outline"
-                  className="border-teal-200 text-teal-900 hover:bg-teal-50"
+                  className="border-primary/30 text-primary hover:bg-primary/5"
                   onClick={() => goNext("finance")}
                 >
-                  Continue to finance
+                  {t("owner.continueToFinance")}
                 </Button>
               </div>
             </CardContent>
@@ -548,14 +559,14 @@ export default function OwnerCreateProjectPage() {
         </TabsContent>
 
         <TabsContent value="finance" className="mt-4">
-          <Card className="premium-card border-border bg-white shadow-none backdrop-blur-none">
+          <Card>
             <CardHeader>
-              <CardTitle className="text-slate-900">Financial details & phases</CardTitle>
+              <CardTitle className="text-foreground">{t("owner.financialDetails")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-3">
                 <div className="space-y-2">
-                  <Label>Required investment</Label>
+                  <Label>{t("owner.requiredAmount")}</Label>
                   <Input
                     type="number"
                     value={financial.requiredInvestment}
@@ -565,7 +576,7 @@ export default function OwnerCreateProjectPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Min investment</Label>
+                  <Label>{t("owner.minAmount")}</Label>
                   <Input
                     type="number"
                     value={financial.minInvestment}
@@ -575,7 +586,7 @@ export default function OwnerCreateProjectPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Expected ROI %</Label>
+                  <Label>{t("owner.expectedRoiPercent")}</Label>
                   <Input
                     type="number"
                     value={financial.expectedRoi}
@@ -586,7 +597,7 @@ export default function OwnerCreateProjectPage() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label>Revenue model</Label>
+                <Label>{t("owner.revenueModel")}</Label>
                 <Textarea
                   value={financial.revenueModel}
                   onChange={(e) =>
@@ -595,7 +606,7 @@ export default function OwnerCreateProjectPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Financial projections</Label>
+                <Label>{t("owner.projections")}</Label>
                 <Textarea
                   value={financial.financialProjections}
                   onChange={(e) =>
@@ -604,7 +615,7 @@ export default function OwnerCreateProjectPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Investment plan</Label>
+                <Label>{t("owner.investmentPlan")}</Label>
                 <Textarea
                   value={financial.investmentPlan}
                   onChange={(e) =>
@@ -616,12 +627,10 @@ export default function OwnerCreateProjectPage() {
               <div className="space-y-3 border-t border-border pt-4">
                 <div className="flex flex-wrap items-end justify-between gap-2">
                   <div>
-                    <h3 className="font-display text-base font-semibold text-slate-900">
-                      Build phases
+                    <h3 className="font-display text-base font-semibold text-foreground">
+                      {t("projects.phases")}
                     </h3>
-                    <p className="text-xs text-muted-foreground">
-                      Phase budgets should roughly match required investment
-                    </p>
+                    <p className="text-xs text-muted-foreground">{t("owner.phasesHint")}</p>
                   </div>
                   <p
                     className={cn(
@@ -629,20 +638,23 @@ export default function OwnerCreateProjectPage() {
                       budgetMismatch ? "text-amber-700" : "text-teal-800"
                     )}
                   >
-                    Sum: {phaseBudgetSum.toLocaleString()} /{" "}
-                    {financial.requiredInvestment.toLocaleString()}
+                    {t("owner.phaseBudgetSum", {
+                      sum: phaseBudgetSum.toLocaleString(),
+                      required: financial.requiredInvestment.toLocaleString(),
+                    })}
                   </p>
                 </div>
                 {budgetMismatch && (
                   <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
-                    Phase budget total differs from required investment. Adjust phases or continue
-                    with a warning on submit.
+                    {t("owner.phaseBudgetMismatch")}
                   </p>
                 )}
                 {phases.map((phase, index) => (
                   <div key={index} className="space-y-3 rounded-xl border border-border p-4">
                     <div className="flex items-center justify-between">
-                      <p className="text-sm font-medium text-slate-900">Phase {index + 1}</p>
+                      <p className="text-sm font-medium text-foreground">
+                        {t("common.phaseLabel", { n: index + 1 })}
+                      </p>
                       <Button
                         type="button"
                         variant="ghost"
@@ -661,7 +673,7 @@ export default function OwnerCreateProjectPage() {
                     </div>
                     <div className="grid gap-3 sm:grid-cols-2">
                       <div className="space-y-2">
-                        <Label>Title</Label>
+                        <Label>{t("owner.titleLabel")}</Label>
                         <Input
                           value={phase.title}
                           onChange={(e) => {
@@ -672,7 +684,7 @@ export default function OwnerCreateProjectPage() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Title (Armenian, optional)</Label>
+                        <Label>{t("owner.titleHyOptional")}</Label>
                         <Input
                           value={phase.titleHy}
                           onChange={(e) => {
@@ -684,7 +696,7 @@ export default function OwnerCreateProjectPage() {
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <Label>Description</Label>
+                      <Label>{t("owner.description")}</Label>
                       <Textarea
                         value={phase.description}
                         onChange={(e) => {
@@ -696,7 +708,7 @@ export default function OwnerCreateProjectPage() {
                     </div>
                     <div className="grid gap-3 sm:grid-cols-3">
                       <div className="space-y-2">
-                        <Label>Budget ask</Label>
+                        <Label>{t("owner.budgetAsk")}</Label>
                         <Input
                           type="number"
                           value={phase.budgetAsk}
@@ -708,7 +720,7 @@ export default function OwnerCreateProjectPage() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Duration (weeks)</Label>
+                        <Label>{t("owner.durationWeeks")}</Label>
                         <Input
                           type="number"
                           value={phase.durationWeeks}
@@ -720,7 +732,7 @@ export default function OwnerCreateProjectPage() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Sort order</Label>
+                        <Label>{t("owner.sortOrder")}</Label>
                         <Input
                           type="number"
                           value={phase.sortOrder}
@@ -733,7 +745,7 @@ export default function OwnerCreateProjectPage() {
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <Label>Deliverables (comma-separated)</Label>
+                      <Label>{t("owner.deliverables")}</Label>
                       <Input
                         value={phase.deliverables}
                         onChange={(e) => {
@@ -741,7 +753,7 @@ export default function OwnerCreateProjectPage() {
                           next[index] = { ...phase, deliverables: e.target.value };
                           setPhases(next);
                         }}
-                        placeholder="MVP, Hiring plan, Docs"
+                        placeholder={t("owner.deliverablesPlaceholder")}
                       />
                     </div>
                   </div>
@@ -749,75 +761,76 @@ export default function OwnerCreateProjectPage() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="border-teal-200 text-teal-900 hover:bg-teal-50"
+                  className="border-primary/30 text-primary hover:bg-primary/5"
                   onClick={() => setPhases([...phases, emptyPhase(phases.length)])}
                 >
-                  <Plus className="h-4 w-4" /> Add phase
+                  <Plus className="h-4 w-4" /> {t("owner.addPhase")}
                 </Button>
               </div>
 
               <Button
                 type="button"
                 variant="outline"
-                className="border-teal-200 text-teal-900 hover:bg-teal-50"
+                className="border-primary/30 text-primary hover:bg-primary/5"
                 onClick={() => goNext("review")}
               >
-                Continue to review
+                {t("owner.continueToReview")}
               </Button>
             </CardContent>
           </Card>
         </TabsContent>
 
         <TabsContent value="review" className="mt-4">
-          <Card className="premium-card border-border bg-white shadow-none backdrop-blur-none">
+          <Card>
             <CardHeader>
-              <CardTitle className="text-slate-900">Review & submit</CardTitle>
+              <CardTitle className="text-foreground">{t("owner.reviewSubmit")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="rounded-xl border border-border bg-slate-50/80 p-4 text-sm space-y-2">
+              <div className="rounded-xl border border-border bg-muted/50 p-4 text-sm space-y-2">
                 <p>
-                  <span className="text-muted-foreground">Title:</span>{" "}
-                  <span className="font-medium text-slate-900">{basic.title || "—"}</span>
+                  <span className="text-muted-foreground">{t("owner.titleLabel")}:</span>{" "}
+                  <span className="font-medium text-foreground">{basic.title || "—"}</span>
                 </p>
                 {basic.titleHy ? (
                   <p>
-                    <span className="text-muted-foreground">Title (HY):</span> {basic.titleHy}
+                    <span className="text-muted-foreground">{t("owner.titleHyReview")}:</span>{" "}
+                    {basic.titleHy}
                   </p>
                 ) : null}
                 <p>
-                  <span className="text-muted-foreground">Team:</span>{" "}
-                  {team.filter((m) => m.name.trim()).length} members
+                  <span className="text-muted-foreground">{t("owner.tabTeam")}:</span>{" "}
+                  {t("common.membersCount", {
+                    count: team.filter((m) => m.name.trim()).length,
+                  })}
                 </p>
                 <p>
-                  <span className="text-muted-foreground">Documents:</span>{" "}
+                  <span className="text-muted-foreground">{t("owner.tabDocuments")}:</span>{" "}
                   {documents.filter((d) => d.name.trim()).length}
                 </p>
                 <p>
-                  <span className="text-muted-foreground">Required investment:</span>{" "}
+                  <span className="text-muted-foreground">{t("owner.requiredAmount")}:</span>{" "}
                   {financial.requiredInvestment.toLocaleString()}
                 </p>
                 <p>
-                  <span className="text-muted-foreground">Phases:</span>{" "}
-                  {phases.filter((p) => p.title.trim()).length} · budget sum{" "}
+                  <span className="text-muted-foreground">{t("projects.phases")}:</span>{" "}
+                  {phases.filter((p) => p.title.trim()).length} · {t("owner.budgetSumReview")}{" "}
                   {phaseBudgetSum.toLocaleString()}
                 </p>
                 {budgetMismatch && (
-                  <p className="text-amber-800">
-                    Warning: phase budgets do not roughly match required investment.
-                  </p>
+                  <p className="text-amber-800">{t("owner.phaseBudgetWarning")}</p>
                 )}
               </div>
               <Button
-                className="w-full bg-teal-700 hover:bg-teal-800"
+                className="w-full"
                 onClick={submit}
                 disabled={createMutation.isPending}
               >
-                {createMutation.isPending ? "Creating…" : "Submit project"}
+                {createMutation.isPending ? t("common.creating") : t("owner.submitProject")}
               </Button>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
+    </PanelPage>
   );
 }

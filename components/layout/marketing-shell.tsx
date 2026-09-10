@@ -90,7 +90,7 @@ export function MarketingHeader() {
           <button
             onClick={() => setOpen((v) => !v)}
             className="rounded-lg p-2 text-foreground hover:bg-secondary"
-            aria-label="Menu"
+            aria-label={t("common.menu")}
             aria-expanded={open}
           >
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}

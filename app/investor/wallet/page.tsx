@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Wallet } from "lucide-react";
+import { Clock, Landmark, TrendingUp, Wallet } from "lucide-react";
 import { walletApi } from "@/services/api";
 import { QUERY_KEYS, STATUS_COLORS } from "@/constants";
 import { getErrorMessage } from "@/services/api/client";
@@ -13,6 +13,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/shared/page-header";
+import { PanelPage } from "@/components/shared/panel-page";
+import { PanelCard } from "@/components/shared/panel-card";
+import { EmptyState } from "@/components/shared/empty-state";
+import { StatCard } from "@/components/shared/stat-card";
+import { PanelBlockSkeleton } from "@/components/shared/loading-skeleton";
 import { useSetPageTitle } from "@/components/providers/page-title-provider";
 import { useI18n } from "@/hooks";
 import { cn } from "@/lib/utils";
@@ -68,7 +73,7 @@ export default function InvestorWalletPage() {
   const transactions = txPage?.data ?? [];
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <PanelPage maxWidth="content">
       <PageHeader
         variant="minimal"
         title={t("investor.walletTitle")}
@@ -76,31 +81,40 @@ export default function InvestorWalletPage() {
       />
 
       {isLoading ? (
-        <div className="premium-card h-32 animate-pulse bg-slate-100" />
+        <PanelBlockSkeleton height="h-32" />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {[
-            { label: t("investor.available"), value: wallet?.availableBalance ?? 0 },
-            { label: t("investor.pending"), value: wallet?.pendingBalance ?? 0 },
-            { label: t("investor.invested"), value: wallet?.investedBalance ?? 0 },
-            { label: t("investor.totalBalance"), value: wallet?.totalBalance ?? 0 },
-          ].map((item) => (
-            <Card key={item.label} className="premium-card border-border bg-white shadow-none">
-              <CardContent className="p-5">
-                <p className="text-xs text-muted-foreground">{item.label}</p>
-                <p className="mt-1 font-display text-2xl font-semibold text-slate-900">
-                  {formatCurrency(item.value)}
-                </p>
-              </CardContent>
-            </Card>
-          ))}
+          <StatCard
+            title={t("investor.available")}
+            value={formatCurrency(wallet?.availableBalance ?? 0)}
+            icon={Wallet}
+            accent="primary"
+          />
+          <StatCard
+            title={t("investor.pending")}
+            value={formatCurrency(wallet?.pendingBalance ?? 0)}
+            icon={Clock}
+            accent="gold"
+          />
+          <StatCard
+            title={t("investor.invested")}
+            value={formatCurrency(wallet?.investedBalance ?? 0)}
+            icon={TrendingUp}
+            accent="success"
+          />
+          <StatCard
+            title={t("investor.totalBalance")}
+            value={formatCurrency(wallet?.totalBalance ?? 0)}
+            icon={Landmark}
+            accent="default"
+          />
         </div>
       )}
 
-      <Card className="premium-card border-border bg-white shadow-none">
+      <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base text-slate-900">
-            <Wallet className="h-5 w-5 text-teal-800" />
+          <CardTitle className="flex items-center gap-2 text-base text-foreground">
+            <Wallet className="h-5 w-5 text-primary" />
             {t("investor.deposit")} / {t("investor.withdraw")}
           </CardTitle>
         </CardHeader>
@@ -135,31 +149,33 @@ export default function InvestorWalletPage() {
       <div className="space-y-3">
         <h2 className="font-display text-lg font-semibold">{t("investor.transactions")}</h2>
         {transactions.length === 0 ? (
-          <div className="premium-card p-8 text-center text-sm text-muted-foreground">
-            {t("investor.noTransactions")}
-          </div>
+          <EmptyState
+            icon={Wallet}
+            title={t("investor.noTransactions")}
+          />
         ) : (
           transactions.map((tx) => (
-            <div
+            <PanelCard
               key={tx.id}
-              className="premium-card flex flex-wrap items-center justify-between gap-3 p-4"
+              padding="sm"
+              className="flex flex-wrap items-center justify-between gap-3"
             >
               <div>
-                <p className="font-medium capitalize text-slate-900">{tx.type}</p>
+                <p className="font-medium capitalize text-foreground">{tx.type}</p>
                 <p className="text-xs text-muted-foreground">
                   {tx.description || tx.referenceType || "—"} · {formatDate(tx.createdAt)}
                 </p>
               </div>
               <div className="flex items-center gap-3">
-                <p className="font-semibold text-slate-900">{formatCurrency(tx.amount)}</p>
+                <p className="font-semibold text-foreground">{formatCurrency(tx.amount)}</p>
                 <Badge className={cn("border capitalize", STATUS_COLORS[tx.status] || STATUS_COLORS.pending)}>
                   {tx.status}
                 </Badge>
               </div>
-            </div>
+            </PanelCard>
           ))
         )}
       </div>
-    </div>
+    </PanelPage>
   );
 }

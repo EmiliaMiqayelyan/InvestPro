@@ -47,3 +47,30 @@ export function StatsSkeleton({ count = 4 }: { count?: number }) {
     </div>
   );
 }
+
+/** Compact loading block for panel list pages. */
+export function PanelListSkeleton({
+  rows = 3,
+  className,
+}: {
+  rows?: number;
+  className?: string;
+}) {
+  return (
+    <div className={cn("space-y-3", className)}>
+      {Array.from({ length: rows }).map((_, i) => (
+        <Skeleton key={i} className="h-24 w-full rounded-xl shimmer" />
+      ))}
+    </div>
+  );
+}
+
+export function PanelBlockSkeleton({
+  className,
+  height = "h-40",
+}: {
+  className?: string;
+  height?: string;
+}) {
+  return <Skeleton className={cn("w-full rounded-xl shimmer", height, className)} />;
+}

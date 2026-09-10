@@ -9,9 +9,18 @@ import { useOwnerProjects } from "@/hooks/use-marketplace";
 import { useI18n } from "@/hooks";
 import { useSetPageTitle } from "@/components/providers/page-title-provider";
 import { PageHeader } from "@/components/shared/page-header";
+import { PanelPage } from "@/components/shared/panel-page";
+import { PanelCard } from "@/components/shared/panel-card";
+import { EmptyState } from "@/components/shared/empty-state";
+import { PanelBlockSkeleton } from "@/components/shared/loading-skeleton";
 import { ownerApi } from "@/services/api";
 import { getErrorMessage } from "@/services/api/client";
-import { ROUTES, STATUS_COLORS, QUERY_KEYS } from "@/constants";
+import {
+  ROUTES,
+  STATUS_COLORS,
+  QUERY_KEYS,
+  isOwnerMutableProjectStatus,
+} from "@/constants";
 import { formatCurrency, formatDate } from "@/utils/format";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -62,8 +71,19 @@ export default function OwnerProjectsPage() {
     onError: (error) => toast.error(getErrorMessage(error)),
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => ownerApi.deleteProject(id),
+    onSuccess: () => {
+      toast.success(t("ownerReview.deletedToast"));
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.OWNER_PROJECTS] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.OWNER_DOCUMENTS] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.OWNER_DASHBOARD] });
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
+  });
+
   return (
-    <div className="space-y-6">
+    <PanelPage>
       <PageHeader
         variant="minimal"
         title={t("owner.myProjects")}
@@ -78,15 +98,17 @@ export default function OwnerProjectsPage() {
       />
 
       {isLoading ? (
-        <div className="premium-card h-40 animate-pulse bg-slate-100" />
+        <PanelBlockSkeleton height="h-40" />
       ) : sortedProjects.length === 0 ? (
-        <div className="premium-card flex flex-col items-center gap-3 p-12 text-center">
-          <FolderKanban className="h-10 w-10 text-slate-300" />
-          <p className="font-medium text-slate-900">{t("owner.noProjects")}</p>
-          <Button asChild>
-            <Link href={ROUTES.OWNER_PROJECT_CREATE}>{t("owner.createFirst")}</Link>
-          </Button>
-        </div>
+        <EmptyState
+          icon={FolderKanban}
+          title={t("owner.noProjects")}
+          action={
+            <Button asChild>
+              <Link href={ROUTES.OWNER_PROJECT_CREATE}>{t("owner.createFirst")}</Link>
+            </Button>
+          }
+        />
       ) : (
         <div className="space-y-3">
           {sortedProjects.map((project) => {
@@ -97,17 +119,17 @@ export default function OwnerProjectsPage() {
               )
             );
             const isRejected = project.status === "rejected";
+            const canMutate = isOwnerMutableProjectStatus(project.status);
+            const canResubmit =
+              project.status === "rejected" || project.status === "draft";
             return (
-              <div
+              <PanelCard
                 key={project.id}
-                className={cn(
-                  "premium-card space-y-4 p-5",
-                  isRejected && "border-red-200 bg-red-50/30"
-                )}
+                className={cn("space-y-4", isRejected && "border-red-200 bg-red-50/30")}
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <p className="font-semibold text-slate-900">{project.title}</p>
+                    <p className="font-semibold text-foreground">{project.title}</p>
                     <p className="text-sm text-muted-foreground">
                       {project.category} · {formatDate(project.updatedAt)}
                     </p>
@@ -131,11 +153,11 @@ export default function OwnerProjectsPage() {
                 </div>
 
                 {isRejected && project.rejectionReason ? (
-                  <div className="rounded-xl border border-red-200 bg-white px-4 py-3">
+                  <div className="rounded-xl border border-red-200 bg-card px-4 py-3">
                     <p className="text-xs font-medium uppercase tracking-wide text-red-800">
                       {t("ownerReview.rejectionReason")}
                     </p>
-                    <p className="mt-1 whitespace-pre-wrap text-sm text-slate-800">
+                    <p className="mt-1 whitespace-pre-wrap text-sm text-foreground">
                       {project.rejectionReason}
                     </p>
                   </div>
@@ -152,26 +174,39 @@ export default function OwnerProjectsPage() {
                   <Progress value={progress} />
                 </div>
 
-                {isRejected || project.status === "draft" ? (
+                {canMutate ? (
                   <div className="flex flex-wrap gap-2 border-t border-border/60 pt-4">
                     <Button asChild variant="outline">
                       <Link href={`${ROUTES.OWNER_PROJECTS}/${project.id}/edit`}>
                         {t("ownerReview.editProject")}
                       </Link>
                     </Button>
+                    {canResubmit ? (
+                      <Button
+                        disabled={resubmitMutation.isPending}
+                        onClick={() => resubmitMutation.mutate(project.id)}
+                      >
+                        {t("ownerReview.resubmit")}
+                      </Button>
+                    ) : null}
                     <Button
-                      disabled={resubmitMutation.isPending}
-                      onClick={() => resubmitMutation.mutate(project.id)}
+                      variant="ghost"
+                      className="text-destructive hover:text-destructive"
+                      disabled={deleteMutation.isPending}
+                      onClick={() => {
+                        if (!window.confirm(t("ownerReview.deleteConfirm"))) return;
+                        deleteMutation.mutate(project.id);
+                      }}
                     >
-                      {t("ownerReview.resubmit")}
+                      {t("ownerReview.deleteProject")}
                     </Button>
                   </div>
                 ) : null}
-              </div>
+              </PanelCard>
             );
           })}
         </div>
       )}
-    </div>
+    </PanelPage>
   );
 }

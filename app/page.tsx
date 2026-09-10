@@ -4,10 +4,14 @@ import Link from "next/link";
 import Image from "next/image";
 import {
   ArrowRight,
+  ArrowUpRight,
   FileText,
   Handshake,
   MessageSquare,
+  Scale,
   Shield,
+  ShieldCheck,
+  Trophy,
 } from "lucide-react";
 import { MarketingHeader, MarketingFooter } from "@/components/layout/marketing-shell";
 import { FeaturedProjectsSlider } from "@/features/projects";
@@ -56,36 +60,87 @@ export default function HomePage() {
           alt=""
           fill
           priority
-          className="object-cover object-left"
+          className="object-cover object-[center_40%]"
           sizes="100vw"
         />
-        <div className="overlay-hero absolute inset-0" aria-hidden />
-        <div className="on-image relative container-wide section-pad flex min-h-[calc(100dvh-4rem)] flex-col items-start justify-center py-16 sm:py-20">
-          <div className="w-full max-w-xl animate-slide-up text-left sm:max-w-2xl lg:max-w-[36rem] xl:max-w-2xl">
-            <p className="text-sm font-semibold tracking-wide text-white/85">InvestIN</p>
-            <h1
-              className={cn(
-                "mt-4 font-display text-4xl font-semibold leading-[1.15] text-white sm:text-5xl lg:text-[3.25rem]",
-                isHy && "leading-[1.28]"
-              )}
-            >
-              {t("landing.heroTitle")}
-            </h1>
-            <p className="mt-5 max-w-xl text-base leading-relaxed text-white/85 sm:text-lg">
-              {t("landing.heroSubtitle")}
-            </p>
-            <div className="mt-8 flex flex-col items-stretch gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-start">
-              <Button size="lg" variant="onImage" className="shrink-0" asChild>
-                <Link href={ROUTES.PROJECTS}>
-                  {t("landing.exploreProjects")}
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button size="lg" variant="onImageOutline" className="shrink-0" asChild>
-                <Link href={`${ROUTES.REGISTER}?role=project_owner`}>
-                  {t("landing.publishProject")}
-                </Link>
-              </Button>
+        <div
+          className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/45 to-black/20"
+          aria-hidden
+        />
+        <div
+          className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-black/25"
+          aria-hidden
+        />
+
+        <div className="on-image relative flex min-h-[calc(100dvh-4rem)] flex-col">
+          <div className="container-wide section-pad flex flex-1 flex-col justify-end pb-10 pt-24 sm:pb-12 sm:pt-28 lg:pb-14">
+            <div className="w-full max-w-2xl animate-slide-up text-left lg:max-w-3xl">
+              <p className="text-sm font-semibold tracking-[0.18em] text-white/90 uppercase">
+                InvestIN
+              </p>
+              <h1
+                className={cn(
+                  "mt-4 font-display text-[2rem] font-bold uppercase leading-[1.12] tracking-wide text-white drop-shadow-sm sm:text-4xl md:text-5xl lg:text-[3.35rem]",
+                  isHy && "leading-[1.22] tracking-normal"
+                )}
+              >
+                {t("landing.heroTitle")}
+              </h1>
+              <p className="mt-4 max-w-xl text-[0.95rem] font-normal leading-relaxed text-white/90 sm:mt-5 sm:text-base md:text-lg">
+                {t("landing.heroSubtitle")}
+              </p>
+              <div className="mt-7 flex flex-col items-stretch gap-3 sm:mt-8 sm:flex-row sm:flex-wrap sm:items-center">
+                <Button
+                  size="lg"
+                  className="h-11 shrink-0 rounded-full bg-[#1e3a5f] px-6 text-sm font-medium text-white shadow-sm hover:bg-[#18314f] [&_svg]:text-white"
+                  asChild
+                >
+                  <Link href={ROUTES.PROJECTS}>
+                    {t("landing.exploreProjects")}
+                    <ArrowUpRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+                <Button
+                  size="lg"
+                  className="h-11 shrink-0 rounded-full border-0 bg-[#ebe6dc] px-6 text-sm font-medium text-slate-900 shadow-sm hover:bg-[#e2ddd2] [&_svg]:text-slate-900"
+                  asChild
+                >
+                  <Link href={`${ROUTES.REGISTER}?role=project_owner`}>
+                    <FileText className="h-4 w-4" />
+                    {t("landing.publishProject")}
+                  </Link>
+                </Button>
+                <Button
+                  size="lg"
+                  variant="ghost"
+                  className="h-11 shrink-0 rounded-full border border-white/85 bg-transparent px-6 text-sm font-medium text-white hover:bg-white/10 hover:text-white"
+                  asChild
+                >
+                  <Link href={ROUTES.HOW_IT_WORKS}>{t("landing.heroHowItWorks")}</Link>
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          <div className="border-t border-white/10 bg-black/45 backdrop-blur-md">
+            <div className="container-wide section-pad">
+              <ul className="grid grid-cols-2 gap-x-4 gap-y-4 py-4 sm:grid-cols-4 sm:gap-6 sm:py-5">
+                {[
+                  { icon: Trophy, label: t("landing.heroFeature1") },
+                  { icon: FileText, label: t("landing.heroFeature2") },
+                  { icon: ShieldCheck, label: t("landing.heroFeature3") },
+                  { icon: Scale, label: t("landing.heroFeature4") },
+                ].map((item) => (
+                  <li key={item.label} className="flex items-center gap-3 text-white">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/35">
+                      <item.icon className="h-4 w-4" strokeWidth={1.6} />
+                    </span>
+                    <span className="text-xs font-medium leading-snug sm:text-sm">
+                      {item.label}
+                    </span>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
         </div>

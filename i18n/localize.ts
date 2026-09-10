@@ -1,4 +1,5 @@
 import type { Locale } from "@/i18n/config";
+import { translate, type TranslationKey } from "@/i18n";
 import type { Project, TeamMember, ProjectUpdate, ProjectPhase } from "@/types";
 
 type LocalizedProjectField =
@@ -78,4 +79,24 @@ export function updateText(
     if (typeof hy === "string" && hy.trim()) return hy;
   }
   return update[field] || "";
+}
+
+export function categoryLabel(locale: Locale, value: string): string {
+  return translate(locale, `projects.categories.${value}` as TranslationKey) || value;
+}
+
+export function industryLabel(locale: Locale, value: string): string {
+  return translate(locale, `projects.industries.${value}` as TranslationKey) || value;
+}
+
+export function stageLabel(locale: Locale, value: string): string {
+  return translate(locale, `projects.stages.${value}` as TranslationKey) || value;
+}
+
+export function docCategoryLabel(locale: Locale, value: string): string {
+  return translate(locale, `projects.docCategories.${value}` as TranslationKey) || value;
+}
+
+export function teamRoleLabel(locale: Locale, value: string): string {
+  return translate(locale, `projects.teamRoles.${value}` as TranslationKey) || value;
 }

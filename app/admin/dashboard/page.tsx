@@ -13,6 +13,9 @@ import { useSetPageTitle } from "@/components/providers/page-title-provider";
 import { useI18n } from "@/hooks";
 import { ROUTES } from "@/constants";
 import { formatCurrency } from "@/utils/format";
+import { PageHeader } from "@/components/shared/page-header";
+import { PanelPage } from "@/components/shared/panel-page";
+import { PanelCard } from "@/components/shared/panel-card";
 import type { TranslationKey } from "@/i18n";
 
 export default function AdminDashboardPage() {
@@ -30,17 +33,21 @@ export default function AdminDashboardPage() {
   ];
 
   return (
-    <div className="space-y-8">
-      <div className="surface-card p-6 lg:p-8">
-        <h2 className="font-display text-2xl font-semibold">{t("admin.dashboardTitle")}</h2>
-        <p className="mt-1 text-muted-foreground">{t("admin.dashboardSub")}</p>
-        <div className="mt-6 flex items-baseline gap-2">
-          <span className="font-display text-3xl font-semibold">
+    <PanelPage>
+      <PageHeader
+        variant="minimal"
+        title={t("admin.dashboardTitle")}
+        description={t("admin.dashboardSub")}
+      />
+
+      <PanelCard padding="lg">
+        <div className="flex items-baseline gap-2">
+          <span className="font-display text-3xl font-semibold text-foreground">
             {isLoading ? "—" : formatCurrency(stats?.totalFunding ?? 0)}
           </span>
           <span className="text-sm text-muted-foreground">{t("admin.totalFunding")}</span>
         </div>
-      </div>
+      </PanelCard>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {metrics.map((m) => {
@@ -51,13 +58,15 @@ export default function AdminDashboardPage() {
                 <Icon className="h-5 w-5 text-muted-foreground" />
               </div>
               <div>
-                <p className="text-2xl font-semibold tabular-nums">{isLoading ? "—" : m.value}</p>
+                <p className="text-2xl font-semibold tabular-nums text-foreground">
+                  {isLoading ? "—" : m.value}
+                </p>
                 <p className="text-sm text-muted-foreground">{t(m.key)}</p>
               </div>
             </Link>
           );
         })}
       </div>
-    </div>
+    </PanelPage>
   );
 }

@@ -256,8 +256,8 @@ function WorkspaceShellInner({
   );
 
   return (
-    <div className="flex min-h-screen bg-secondary/30">
-      <aside className="sidebar-surface hidden w-[252px] shrink-0 flex-col lg:flex">
+    <div className="flex h-dvh overflow-hidden bg-secondary/30">
+      <aside className="sidebar-surface hidden h-full w-[252px] shrink-0 flex-col lg:flex">
         {SidebarContent}
       </aside>
 
@@ -268,7 +268,7 @@ function WorkspaceShellInner({
             <button
               className="absolute right-3 top-4 rounded-lg p-1.5 text-sidebar-muted hover:bg-white/10 hover:text-white"
               onClick={() => setOpen(false)}
-              aria-label="Close"
+              aria-label={t("common.close")}
             >
               <X className="h-5 w-5" />
             </button>
@@ -277,8 +277,8 @@ function WorkspaceShellInner({
         </div>
       )}
 
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-40 border-b border-border bg-card/95 backdrop-blur-md">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+        <header className="z-40 shrink-0 border-b border-border bg-card/95 backdrop-blur-md">
           <div className="flex h-16 items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
             <div className="flex min-w-0 items-center gap-3">
               <button
@@ -303,7 +303,7 @@ function WorkspaceShellInner({
             </div>
           </div>
         </header>
-        <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
+        <main className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">{children}</main>
       </div>
     </div>
   );

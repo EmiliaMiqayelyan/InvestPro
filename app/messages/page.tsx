@@ -5,9 +5,11 @@ import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store";
 import { ROUTES } from "@/constants";
 import { getRoleHome } from "@/lib/rbac";
+import { useI18n } from "@/hooks";
 
 export default function MessagesRedirectPage() {
   const router = useRouter();
+  const { t } = useI18n();
   const { user, isAuthenticated, isLoading } = useAuthStore();
 
   useEffect(() => {
@@ -36,7 +38,7 @@ export default function MessagesRedirectPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-white">
-      <p className="text-sm text-muted-foreground">Redirecting to messages...</p>
+      <p className="text-sm text-muted-foreground">{t("common.redirecting")}</p>
     </div>
   );
 }

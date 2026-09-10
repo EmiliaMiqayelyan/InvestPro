@@ -134,14 +134,20 @@ export const ownerApi = {
     apiClient.post<ApiResponse<Project>>("/owner/projects", data),
   updateProject: (id: string, data: Partial<Project>) =>
     apiClient.patch<ApiResponse<Project>>(`/owner/projects/${id}`, data),
+  deleteProject: (id: string) =>
+    apiClient.delete<ApiResponse<{ id: string }>>(`/owner/projects/${id}`),
   resubmitProject: (id: string) =>
     apiClient.post<ApiResponse<Project>>(`/owner/projects/${id}/resubmit`),
   addDocument: (
     id: string,
     data: { name: string; category: string; url?: string }
   ) => apiClient.post(`/owner/projects/${id}/documents`, data),
+  removeDocument: (projectId: string, documentId: string) =>
+    apiClient.delete(`/owner/projects/${projectId}/documents/${documentId}`),
   addTeamMember: (id: string, data: Record<string, string>) =>
     apiClient.post(`/owner/projects/${id}/team`, data),
+  removeTeamMember: (projectId: string, memberId: string) =>
+    apiClient.delete(`/owner/projects/${projectId}/team/${memberId}`),
   documents: () => apiClient.get("/owner/documents"),
 };
 

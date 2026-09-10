@@ -23,21 +23,14 @@ import {
 } from "@/components/ui/dialog";
 import { useI18n } from "@/hooks";
 import { useSetPageTitle } from "@/components/providers/page-title-provider";
-import { PageHeader } from "@/components/shared/page-header";
+import { PanelPage } from "@/components/shared/panel-page";
 import { toast } from "sonner";
 
-const passwordSchema = z
-  .object({
-    currentPassword: z.string().min(6),
-    newPassword: z.string().min(8),
-    confirmPassword: z.string(),
-  })
-  .refine((d) => d.newPassword === d.confirmPassword, {
-    message: "Passwords don't match",
-    path: ["confirmPassword"],
-  });
-
-type PasswordForm = z.infer<typeof passwordSchema>;
+type PasswordForm = {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+};
 
 export default function InvestorSecurityPage() {
   const { t } = useI18n();
@@ -46,6 +39,17 @@ export default function InvestorSecurityPage() {
   const [show2faSetup, setShow2faSetup] = useState(false);
   const [qrCode, setQrCode] = useState("");
   const [twoFaCode, setTwoFaCode] = useState("");
+
+  const passwordSchema = z
+    .object({
+      currentPassword: z.string().min(6, t("auth.passwordMin")),
+      newPassword: z.string().min(8, t("auth.passwordMin8")),
+      confirmPassword: z.string(),
+    })
+    .refine((d) => d.newPassword === d.confirmPassword, {
+      message: t("auth.passwordsMismatch"),
+      path: ["confirmPassword"],
+    });
 
   const {
     register,
@@ -60,7 +64,7 @@ export default function InvestorSecurityPage() {
     mutationFn: (data: PasswordForm) =>
       authApi.changePassword(data.currentPassword, data.newPassword),
     onSuccess: () => {
-      toast.success("Password changed");
+      toast.success(t("auth.passwordChanged"));
       reset();
     },
     onError: (error) => toast.error(getErrorMessage(error)),
@@ -78,7 +82,7 @@ export default function InvestorSecurityPage() {
   const confirm2faMutation = useMutation({
     mutationFn: () => authApi.confirm2fa(twoFaCode),
     onSuccess: () => {
-      toast.success("2FA enabled");
+      toast.success(t("auth.twoFaEnabledToast"));
       setShow2faSetup(false);
     },
     onError: (error) => toast.error(getErrorMessage(error)),
@@ -86,18 +90,16 @@ export default function InvestorSecurityPage() {
 
   const disable2faMutation = useMutation({
     mutationFn: () => authApi.disable2fa(twoFaCode),
-    onSuccess: () => toast.success("2FA disabled"),
+    onSuccess: () => toast.success(t("auth.twoFaDisabledToast")),
     onError: (error) => toast.error(getErrorMessage(error)),
   });
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
-      <PageHeader variant="minimal" title={t("nav.security")} />
-
-      <Card className="premium-card border-border bg-white shadow-none backdrop-blur-none">
+    <PanelPage maxWidth="form">
+      <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-slate-900">
-            <Key className="h-5 w-5 text-teal-800" /> Change password
+          <CardTitle className="flex items-center gap-2 text-foreground">
+            <Key className="h-5 w-5 text-primary" /> {t("auth.changePassword")}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -106,15 +108,15 @@ export default function InvestorSecurityPage() {
             className="space-y-4"
           >
             <div className="space-y-2">
-              <Label>Current password</Label>
+              <Label>{t("auth.currentPassword")}</Label>
               <Input type="password" {...register("currentPassword")} />
             </div>
             <div className="space-y-2">
-              <Label>New password</Label>
+              <Label>{t("auth.newPassword")}</Label>
               <Input type="password" {...register("newPassword")} />
             </div>
             <div className="space-y-2">
-              <Label>Confirm new password</Label>
+              <Label>{t("auth.confirmNewPassword")}</Label>
               <Input type="password" {...register("confirmPassword")} />
               {errors.confirmPassword && (
                 <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>
@@ -122,28 +124,28 @@ export default function InvestorSecurityPage() {
             </div>
             <Button
               type="submit"
-              className="bg-gradient-to-r from-teal-900 to-teal-700 hover:opacity-95"
+              variant="gradient"
               disabled={changePasswordMutation.isPending}
             >
-              Update password
+              {t("auth.updatePassword")}
             </Button>
           </form>
         </CardContent>
       </Card>
 
-      <Card className="premium-card border-border bg-white shadow-none backdrop-blur-none">
+      <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-slate-900">
-            <Smartphone className="h-5 w-5 text-teal-800" /> Two-factor authentication
+          <CardTitle className="flex items-center gap-2 text-foreground">
+            <Smartphone className="h-5 w-5 text-primary" /> {t("auth.twoFactorAuth")}
           </CardTitle>
-          <CardDescription>Add an extra layer of security to your account</CardDescription>
+          <CardDescription>{t("auth.twoFactorAuthDesc")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-medium text-slate-900">Authenticator app</p>
+              <p className="font-medium text-foreground">{t("auth.authenticatorApp")}</p>
               <p className="text-sm text-muted-foreground">
-                {user?.is2faEnabled ? "2FA is enabled" : "2FA is disabled"}
+                {user?.is2faEnabled ? t("auth.twoFaEnabled") : t("auth.twoFaDisabled")}
               </p>
             </div>
             <Switch checked={!!user?.is2faEnabled} disabled />
@@ -151,7 +153,7 @@ export default function InvestorSecurityPage() {
           {user?.is2faEnabled ? (
             <div className="space-y-2">
               <Input
-                placeholder="Enter 2FA code to disable"
+                placeholder={t("auth.enterCodeToDisable")}
                 value={twoFaCode}
                 onChange={(e) => setTwoFaCode(e.target.value)}
               />
@@ -160,16 +162,16 @@ export default function InvestorSecurityPage() {
                 onClick={() => disable2faMutation.mutate()}
                 disabled={disable2faMutation.isPending}
               >
-                Disable 2FA
+                {t("auth.disable2fa")}
               </Button>
             </div>
           ) : (
             <Button
-              className="bg-gradient-to-r from-teal-900 to-teal-700 hover:opacity-95"
+              variant="gradient"
               onClick={() => enable2faMutation.mutate()}
               disabled={enable2faMutation.isPending}
             >
-              <Shield className="h-4 w-4" /> Enable 2FA
+              <Shield className="h-4 w-4" /> {t("auth.enable2fa")}
             </Button>
           )}
         </CardContent>
@@ -178,32 +180,30 @@ export default function InvestorSecurityPage() {
       <Dialog open={show2faSetup} onOpenChange={setShow2faSetup}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Setup 2FA</DialogTitle>
-            <DialogDescription>
-              Scan the QR code with your authenticator app, then enter the code
-            </DialogDescription>
+            <DialogTitle>{t("auth.setup2fa")}</DialogTitle>
+            <DialogDescription>{t("auth.setup2faDesc")}</DialogDescription>
           </DialogHeader>
           {qrCode && (
             <div className="flex justify-center">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={qrCode} alt="2FA QR Code" className="h-48 w-48" />
+              <img src={qrCode} alt={t("auth.qrCodeAlt")} className="h-48 w-48" />
             </div>
           )}
           <Input
-            placeholder="Enter 6-digit code"
+            placeholder={t("auth.enter6DigitCode")}
             value={twoFaCode}
             onChange={(e) => setTwoFaCode(e.target.value)}
             maxLength={6}
           />
           <Button
-            className="bg-gradient-to-r from-teal-900 to-teal-700 hover:opacity-95"
+            variant="gradient"
             onClick={() => confirm2faMutation.mutate()}
             disabled={confirm2faMutation.isPending}
           >
-            Confirm setup
+            {t("auth.confirmSetup")}
           </Button>
         </DialogContent>
       </Dialog>
-    </div>
+    </PanelPage>
   );
 }

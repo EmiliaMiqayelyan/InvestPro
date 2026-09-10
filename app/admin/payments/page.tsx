@@ -10,6 +10,10 @@ import { cn } from "@/lib/utils";
 import { useI18n } from "@/hooks";
 import { useSetPageTitle } from "@/components/providers/page-title-provider";
 import { PageHeader } from "@/components/shared/page-header";
+import { PanelPage } from "@/components/shared/panel-page";
+import { PanelCard } from "@/components/shared/panel-card";
+import { EmptyState } from "@/components/shared/empty-state";
+import { PanelListSkeleton } from "@/components/shared/loading-skeleton";
 import type { MembershipSubscription } from "@/types";
 
 type PaymentRow = MembershipSubscription & {
@@ -29,7 +33,7 @@ export default function AdminPaymentsPage() {
   });
 
   return (
-    <div className="space-y-6">
+    <PanelPage>
       <PageHeader
         variant="minimal"
         title={t("admin.paymentsTitle")}
@@ -37,21 +41,18 @@ export default function AdminPaymentsPage() {
       />
 
       {isLoading ? (
-        <div className="premium-card h-40 animate-pulse bg-slate-100" />
+        <PanelListSkeleton />
       ) : payments.length === 0 ? (
-        <div className="premium-card flex flex-col items-center gap-3 p-12 text-center">
-          <CreditCard className="h-10 w-10 text-slate-300" />
-          <p className="font-medium text-slate-900">{t("admin.noPayments")}</p>
-        </div>
+        <EmptyState icon={CreditCard} title={t("admin.noPayments")} />
       ) : (
         <div className="space-y-3">
           {payments.map((sub) => (
-            <div
+            <PanelCard
               key={sub.id}
-              className="premium-card flex flex-wrap items-center justify-between gap-4 p-5"
+              className="flex flex-wrap items-center justify-between gap-4"
             >
               <div>
-                <p className="font-semibold text-slate-900">
+                <p className="font-semibold text-foreground">
                   {t("admin.planLabel", { plan: sub.planId })}
                 </p>
                 <p className="text-sm text-muted-foreground">
@@ -62,15 +63,15 @@ export default function AdminPaymentsPage() {
                 </p>
               </div>
               <div className="flex items-center gap-3">
-                <p className="font-semibold text-slate-900">{formatCurrency(sub.amount)}</p>
+                <p className="font-semibold text-foreground">{formatCurrency(sub.amount)}</p>
                 <Badge className={cn("border capitalize", STATUS_COLORS[sub.status])}>
                   {sub.status}
                 </Badge>
               </div>
-            </div>
+            </PanelCard>
           ))}
         </div>
       )}
-    </div>
+    </PanelPage>
   );
 }

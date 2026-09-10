@@ -17,6 +17,7 @@ import { useI18n } from "@/hooks";
 import { ROUTES } from "@/constants";
 import { formatCurrency } from "@/utils/format";
 import { Button } from "@/components/ui/button";
+import { PanelPage } from "@/components/shared/panel-page";
 import { hasActiveServiceAccess } from "@/lib/rbac";
 
 export default function InvestorDashboardPage() {
@@ -29,7 +30,7 @@ export default function InvestorDashboardPage() {
   const firstName = user?.firstName;
 
   return (
-    <div className="space-y-8">
+    <PanelPage className="space-y-8">
       {/* Welcome strip */}
       <div className="surface-card flex flex-wrap items-center justify-between gap-4 p-6 lg:p-8">
         <div>
@@ -106,6 +107,6 @@ export default function InvestorDashboardPage() {
           <Link href={ROUTES.INVESTOR_MILESTONES}>{t("nav.milestones")}</Link>
         </Button>
       </div>
-    </div>
+    </PanelPage>
   );
 }

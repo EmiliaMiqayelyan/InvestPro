@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Trash2 } from "lucide-react";
+import { Flag, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,6 +17,10 @@ import {
 import { useMilestones, useProjects, useI18n, useAuth } from "@/hooks";
 import { useSetPageTitle } from "@/components/providers/page-title-provider";
 import { PageHeader } from "@/components/shared/page-header";
+import { PanelPage } from "@/components/shared/panel-page";
+import { PanelCard } from "@/components/shared/panel-card";
+import { EmptyState } from "@/components/shared/empty-state";
+import { PanelListSkeleton } from "@/components/shared/loading-skeleton";
 import { milestonesApi } from "@/services/api";
 import { getErrorMessage } from "@/services/api/client";
 import { QUERY_KEYS, STATUS_COLORS, ROUTES } from "@/constants";
@@ -77,7 +81,7 @@ export default function InvestorMilestonesPage() {
   });
 
   return (
-    <div className="space-y-6">
+    <PanelPage>
       <PageHeader
         variant="minimal"
         title={t("milestones.title")}
@@ -93,20 +97,18 @@ export default function InvestorMilestonesPage() {
       {!hasAccess ? (
         <ServicePaywall />
       ) : isLoading ? (
-        <p className="text-sm text-muted-foreground">{t("common.loading")}</p>
+        <PanelListSkeleton />
       ) : plans.length === 0 ? (
-        <div className="premium-card p-10 text-center text-sm text-muted-foreground">
-          {t("milestones.empty")}
-        </div>
+        <EmptyState icon={Flag} title={t("milestones.empty")} />
       ) : (
         <div className="space-y-4">
           {plans.map((plan) => (
-            <div key={plan.id} className="premium-card space-y-4 p-5">
+            <PanelCard key={plan.id} className="space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <Link
                     href={`${ROUTES.INVESTOR_PROJECTS}/${plan.projectId}`}
-                    className="font-display text-lg font-semibold text-slate-900 hover:text-teal-800"
+                    className="font-display text-lg font-semibold text-foreground hover:text-primary"
                   >
                     {plan.projectTitle}
                   </Link>
@@ -120,7 +122,7 @@ export default function InvestorMilestonesPage() {
                 {plan.items.map((item) => (
                   <li
                     key={item.id}
-                    className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border/80 bg-slate-50/80 px-3 py-2 text-sm"
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border/80 bg-secondary/40 px-3 py-2 text-sm"
                   >
                     <span>{item.title}</span>
                     <span className="font-medium">{formatCurrency(item.amount)}</span>
@@ -138,7 +140,7 @@ export default function InvestorMilestonesPage() {
                   </Button>
                 </div>
               )}
-            </div>
+            </PanelCard>
           ))}
         </div>
       )}
@@ -235,6 +237,6 @@ export default function InvestorMilestonesPage() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </PanelPage>
   );
 }

@@ -3,12 +3,19 @@
 import Link from "next/link";
 import { Check, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ROUTES, MEMBERSHIP_FEATURES } from "@/constants";
+import { ROUTES } from "@/constants";
 import { useI18n } from "@/hooks";
+import type { TranslationKey } from "@/i18n";
+
+const FEATURE_KEYS = [
+  "membership.featureFullMaterials",
+  "membership.featureDocsTeamFinance",
+  "membership.featureMessaging",
+  "membership.featureOffers",
+] as const satisfies readonly TranslationKey[];
 
 export function ServicePaywall({ className }: { className?: string }) {
   const { t } = useI18n();
-  const features = MEMBERSHIP_FEATURES.service.slice(0, 4);
 
   return (
     <div className={className ?? "surface-card border-primary/20 bg-primary/5 p-6"}>
@@ -20,10 +27,10 @@ export function ServicePaywall({ className }: { className?: string }) {
           <p className="font-display font-semibold">{t("membership.paywallTitle")}</p>
           <p className="mt-1 text-sm text-muted-foreground">{t("membership.paywallBody")}</p>
           <ul className="mt-4 space-y-2">
-            {features.map((f) => (
-              <li key={f} className="flex items-center gap-2 text-sm">
+            {FEATURE_KEYS.map((key) => (
+              <li key={key} className="flex items-center gap-2 text-sm">
                 <Check className="h-3.5 w-3.5 text-primary" />
-                {f}
+                {t(key)}
               </li>
             ))}
           </ul>

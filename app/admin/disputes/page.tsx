@@ -15,6 +15,10 @@ import { cn } from "@/lib/utils";
 import { useI18n } from "@/hooks";
 import { useSetPageTitle } from "@/components/providers/page-title-provider";
 import { PageHeader } from "@/components/shared/page-header";
+import { PanelPage } from "@/components/shared/panel-page";
+import { PanelCard } from "@/components/shared/panel-card";
+import { EmptyState } from "@/components/shared/empty-state";
+import { PanelListSkeleton } from "@/components/shared/loading-skeleton";
 import type { Dispute } from "@/types";
 import { toast } from "sonner";
 
@@ -45,7 +49,7 @@ export default function AdminDisputesPage() {
   });
 
   return (
-    <div className="space-y-6">
+    <PanelPage>
       <PageHeader
         variant="minimal"
         title={t("admin.disputesTitle")}
@@ -53,19 +57,16 @@ export default function AdminDisputesPage() {
       />
 
       {isLoading ? (
-        <div className="premium-card h-40 animate-pulse bg-slate-100" />
+        <PanelListSkeleton />
       ) : disputes.length === 0 ? (
-        <div className="premium-card flex flex-col items-center gap-3 p-12 text-center">
-          <AlertTriangle className="h-10 w-10 text-slate-300" />
-          <p className="font-medium text-slate-900">{t("admin.noDisputes")}</p>
-        </div>
+        <EmptyState icon={AlertTriangle} title={t("admin.noDisputes")} />
       ) : (
         <div className="space-y-3">
           {disputes.map((d) => (
-            <div key={d.id} className="premium-card space-y-3 p-5">
+            <PanelCard key={d.id} className="space-y-3">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div>
-                  <p className="font-semibold text-slate-900">{d.subject}</p>
+                  <p className="font-semibold text-foreground">{d.subject}</p>
                   <p className="text-xs text-muted-foreground">
                     {d.reporterId}
                     {d.againstUserId ? ` · ${d.againstUserId}` : ""}
@@ -77,7 +78,7 @@ export default function AdminDisputesPage() {
                   {d.status}
                 </Badge>
               </div>
-              <p className="text-sm text-slate-700">{d.description}</p>
+              <p className="text-sm text-foreground">{d.description}</p>
               {d.resolution && (
                 <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
                   {d.resolution}
@@ -124,10 +125,10 @@ export default function AdminDisputesPage() {
                   )}
                 </div>
               )}
-            </div>
+            </PanelCard>
           ))}
         </div>
       )}
-    </div>
+    </PanelPage>
   );
 }

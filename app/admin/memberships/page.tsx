@@ -10,6 +10,10 @@ import { cn } from "@/lib/utils";
 import { useI18n } from "@/hooks";
 import { useSetPageTitle } from "@/components/providers/page-title-provider";
 import { PageHeader } from "@/components/shared/page-header";
+import { PanelPage } from "@/components/shared/panel-page";
+import { PanelCard } from "@/components/shared/panel-card";
+import { EmptyState } from "@/components/shared/empty-state";
+import { PanelListSkeleton } from "@/components/shared/loading-skeleton";
 import type { MembershipSubscription } from "@/types";
 
 type MembershipRow = MembershipSubscription & {
@@ -31,34 +35,31 @@ export default function AdminMembershipsPage() {
   const active = memberships.filter((m) => m.status === "active").length;
 
   return (
-    <div className="space-y-6">
+    <PanelPage>
       <PageHeader
         variant="minimal"
         title={t("admin.membershipsTitle")}
         description={t("admin.membershipsSub")}
       />
 
-      <div className="premium-card p-5">
+      <PanelCard>
         <p className="text-xs text-muted-foreground">{t("admin.activeMemberships")}</p>
-        <p className="mt-1 font-display text-2xl font-semibold">{active}</p>
-      </div>
+        <p className="mt-1 font-display text-2xl font-semibold text-foreground">{active}</p>
+      </PanelCard>
 
       {isLoading ? (
-        <div className="premium-card h-40 animate-pulse bg-slate-100" />
+        <PanelListSkeleton />
       ) : memberships.length === 0 ? (
-        <div className="premium-card flex flex-col items-center gap-3 p-12 text-center">
-          <CreditCard className="h-10 w-10 text-slate-300" />
-          <p className="font-medium text-slate-900">{t("admin.noMemberships")}</p>
-        </div>
+        <EmptyState icon={CreditCard} title={t("admin.noMemberships")} />
       ) : (
         <div className="space-y-3">
           {memberships.map((sub) => (
-            <div
+            <PanelCard
               key={sub.id}
-              className="premium-card flex flex-wrap items-center justify-between gap-4 p-5"
+              className="flex flex-wrap items-center justify-between gap-4"
             >
               <div>
-                <p className="font-semibold text-slate-900">
+                <p className="font-semibold text-foreground">
                   {t("admin.planLabel", { plan: sub.planId })}
                 </p>
                 <p className="text-sm text-muted-foreground">
@@ -69,15 +70,15 @@ export default function AdminMembershipsPage() {
                 </p>
               </div>
               <div className="flex items-center gap-3">
-                <p className="font-semibold text-slate-900">{formatCurrency(sub.amount)}</p>
+                <p className="font-semibold text-foreground">{formatCurrency(sub.amount)}</p>
                 <Badge className={cn("border capitalize", STATUS_COLORS[sub.status])}>
                   {sub.status}
                 </Badge>
               </div>
-            </div>
+            </PanelCard>
           ))}
         </div>
       )}
-    </div>
+    </PanelPage>
   );
 }

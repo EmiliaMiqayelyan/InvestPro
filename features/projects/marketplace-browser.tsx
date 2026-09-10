@@ -16,7 +16,10 @@ import {
 import { PROJECT_CATEGORIES, PROJECT_INDUSTRIES, PROJECT_STAGES, RISK_LEVELS, QUERY_KEYS } from "@/constants";
 import { useProjects } from "@/hooks/use-marketplace";
 import { useI18n } from "@/hooks";
+import { categoryLabel, industryLabel } from "@/i18n/localize";
 import { CardSkeleton } from "@/components/shared/loading-skeleton";
+import { EmptyState } from "@/components/shared/empty-state";
+import { SearchInput } from "@/components/shared/search-input";
 import { investorApi } from "@/services/api";
 import { useAuthStore } from "@/store";
 import { Label } from "@/components/ui/label";
@@ -47,7 +50,7 @@ export function MarketplaceBrowser({
   projectBasePath?: string;
   compact?: boolean;
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { user, isAuthenticated } = useAuthStore();
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
@@ -124,7 +127,7 @@ export function MarketplaceBrowser({
             <SelectItem value="all">{t("projects.allCategories")}</SelectItem>
             {PROJECT_CATEGORIES.map((cat) => (
               <SelectItem key={cat} value={cat}>
-                {cat}
+                {categoryLabel(locale, cat)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -140,7 +143,7 @@ export function MarketplaceBrowser({
             <SelectItem value="all">{t("projects.allIndustries")}</SelectItem>
             {PROJECT_INDUSTRIES.map((ind) => (
               <SelectItem key={ind} value={ind}>
-                {ind}
+                {industryLabel(locale, ind)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -220,15 +223,12 @@ export function MarketplaceBrowser({
 
   return (
     <div className="space-y-6">
-      <div className="relative max-w-xl">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          className="h-11 pl-10"
-          placeholder={t("projects.searchPlaceholder")}
-          value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
-        />
-      </div>
+      <SearchInput
+        className="max-w-xl"
+        value={searchInput}
+        onChange={setSearchInput}
+        placeholder={t("projects.searchPlaceholder")}
+      />
 
       <div className="surface-card p-4 sm:p-5">
         <div className="mb-4 flex items-center justify-between gap-2">
@@ -263,7 +263,7 @@ export function MarketplaceBrowser({
           <div className="flex items-center gap-2">
             <span className="hidden text-xs text-muted-foreground sm:inline">{t("projects.sortLabel")}</span>
             <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-[180px] bg-white">
+              <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder={t("projects.sortLabel")} />
               </SelectTrigger>
               <SelectContent>
@@ -282,14 +282,18 @@ export function MarketplaceBrowser({
             <CardSkeleton />
           </div>
         ) : projects.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-border bg-card px-6 py-10 text-center">
-            <p className="text-sm text-muted-foreground">{t("projects.noMatch")}</p>
-            {hasFilters ? (
-              <Button variant="outline" className="mt-4" onClick={clearFilters}>
-                {t("projects.clearFilters")}
-              </Button>
-            ) : null}
-          </div>
+          <EmptyState
+            icon={Search}
+            variant="dashed"
+            title={t("projects.noMatch")}
+            action={
+              hasFilters ? (
+                <Button variant="outline" onClick={clearFilters}>
+                  {t("projects.clearFilters")}
+                </Button>
+              ) : undefined
+            }
+          />
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
             {projects.map((project) => (

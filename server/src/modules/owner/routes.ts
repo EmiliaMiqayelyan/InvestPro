@@ -39,6 +39,14 @@ router.patch(
   })
 );
 
+router.delete(
+  "/projects/:id",
+  asyncHandler(async (req: AuthedRequest, res) => {
+    const auth = requireRole(req, ["project_owner"]);
+    return ok(res, await owner.deleteOwnerProject(auth, param(req, "id")), "Project deleted");
+  })
+);
+
 router.post(
   "/projects/:id/documents",
   asyncHandler(async (req: AuthedRequest, res) => {
@@ -48,12 +56,36 @@ router.post(
   })
 );
 
+router.delete(
+  "/projects/:id/documents/:docId",
+  asyncHandler(async (req: AuthedRequest, res) => {
+    const auth = requireRole(req, ["project_owner"]);
+    return ok(
+      res,
+      await owner.removeDocument(auth, param(req, "id"), param(req, "docId")),
+      "Document removed"
+    );
+  })
+);
+
 router.post(
   "/projects/:id/team",
   asyncHandler(async (req: AuthedRequest, res) => {
     const auth = requireRole(req, ["project_owner"]);
     const member = await owner.addTeamMember(auth, param(req, "id"), req.body);
     return ok(res, member, "Team member added", 201);
+  })
+);
+
+router.delete(
+  "/projects/:id/team/:memberId",
+  asyncHandler(async (req: AuthedRequest, res) => {
+    const auth = requireRole(req, ["project_owner"]);
+    return ok(
+      res,
+      await owner.removeTeamMember(auth, param(req, "id"), param(req, "memberId")),
+      "Team member removed"
+    );
   })
 );
 

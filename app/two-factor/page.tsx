@@ -14,17 +14,20 @@ import { ROUTES } from "@/constants";
 import { authApi } from "@/services/api";
 import { useAuthStore } from "@/store";
 import { getErrorMessage } from "@/services/api/client";
+import { useI18n } from "@/hooks";
 import { toast } from "sonner";
 
-const schema = z.object({
-  code: z.string().length(6, "Code must be 6 digits"),
-});
-
-type FormData = z.infer<typeof schema>;
+type FormData = {
+  code: string;
+};
 
 export default function TwoFactorPage() {
   const router = useRouter();
+  const { t } = useI18n();
   const { tempToken, login, setRequires2fa } = useAuthStore();
+  const schema = z.object({
+    code: z.string().length(6, t("auth.codeMustBe6")),
+  });
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
   });
@@ -36,7 +39,7 @@ export default function TwoFactorPage() {
       const { user, tokens } = response.data.data;
       login(user, tokens.accessToken, tokens.refreshToken);
       setRequires2fa(false);
-      toast.success("2FA verified successfully");
+      toast.success(t("auth.twoFactorVerified"));
       router.push(ROUTES.DASHBOARD);
     },
     onError: (error) => toast.error(getErrorMessage(error)),
@@ -49,13 +52,13 @@ export default function TwoFactorPage() {
           <div className="mx-auto mb-4 rounded-full bg-primary/10 p-3 w-fit">
             <Shield className="h-6 w-6 text-primary" />
           </div>
-          <CardTitle className="text-2xl">Two-Factor Authentication</CardTitle>
-          <CardDescription>Enter the 6-digit code from your authenticator app</CardDescription>
+          <CardTitle className="text-2xl">{t("auth.twoFactorTitle")}</CardTitle>
+          <CardDescription>{t("auth.twoFactorDesc")}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit((d) => mutation.mutate(d))} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="code">Authentication Code</Label>
+              <Label htmlFor="code">{t("auth.authCode")}</Label>
               <Input
                 id="code"
                 placeholder="000000"
@@ -68,7 +71,7 @@ export default function TwoFactorPage() {
               )}
             </div>
             <Button type="submit" variant="gradient" className="w-full" disabled={mutation.isPending}>
-              {mutation.isPending ? "Verifying..." : "Verify"}
+              {mutation.isPending ? t("common.verifying") : t("auth.verify")}
             </Button>
           </form>
         </CardContent>

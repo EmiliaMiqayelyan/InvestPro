@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Flag, ScrollText } from "lucide-react";
+import { Flag, ScrollText, Shield } from "lucide-react";
 import { adminMarketplaceApi } from "@/services/api";
 import { QUERY_KEYS } from "@/constants";
 import { formatDate, formatRelativeTime } from "@/utils/format";
@@ -10,6 +10,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useI18n } from "@/hooks";
 import { useSetPageTitle } from "@/components/providers/page-title-provider";
 import { PageHeader } from "@/components/shared/page-header";
+import { PanelPage } from "@/components/shared/panel-page";
+import { PanelCard } from "@/components/shared/panel-card";
+import { EmptyState } from "@/components/shared/empty-state";
+import { PanelListSkeleton } from "@/components/shared/loading-skeleton";
 
 export default function AdminSecurityPage() {
   const { t } = useI18n();
@@ -24,7 +28,7 @@ export default function AdminSecurityPage() {
   const pendingKyc = data?.pendingKyc ?? [];
 
   return (
-    <div className="space-y-6">
+    <PanelPage>
       <PageHeader
         variant="minimal"
         title={t("admin.securityTitle")}
@@ -32,10 +36,10 @@ export default function AdminSecurityPage() {
       />
 
       {isLoading ? (
-        <div className="premium-card h-40 animate-pulse bg-slate-100" />
+        <PanelListSkeleton />
       ) : (
         <Tabs defaultValue="logs">
-          <TabsList className="bg-slate-100">
+          <TabsList className="bg-muted">
             <TabsTrigger value="logs">
               {t("admin.activityLogs", { count: logs.length })}
             </TabsTrigger>
@@ -49,15 +53,12 @@ export default function AdminSecurityPage() {
 
           <TabsContent value="logs" className="mt-4 space-y-3">
             {logs.length === 0 ? (
-              <div className="premium-card flex flex-col items-center gap-3 p-12 text-center">
-                <ScrollText className="h-10 w-10 text-slate-300" />
-                <p className="font-medium text-slate-900">{t("admin.noActivityLogs")}</p>
-              </div>
+              <EmptyState icon={ScrollText} title={t("admin.noActivityLogs")} />
             ) : (
               logs.map((log) => (
-                <div key={log.id} className="premium-card p-4">
+                <PanelCard key={log.id} padding="sm">
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <p className="font-medium text-slate-900">{log.action}</p>
+                    <p className="font-medium text-foreground">{log.action}</p>
                     <span className="text-xs text-muted-foreground">
                       {formatRelativeTime(log.createdAt)}
                     </span>
@@ -66,45 +67,40 @@ export default function AdminSecurityPage() {
                     {log.entityType}
                     {log.entityId ? ` · ${log.entityId}` : ""} · {log.userId}
                   </p>
-                </div>
+                </PanelCard>
               ))
             )}
           </TabsContent>
 
           <TabsContent value="flagged" className="mt-4 space-y-3">
             {flagged.length === 0 ? (
-              <div className="premium-card flex flex-col items-center gap-3 p-12 text-center">
-                <Flag className="h-10 w-10 text-slate-300" />
-                <p className="font-medium text-slate-900">{t("admin.noFlaggedMessages")}</p>
-              </div>
+              <EmptyState icon={Flag} title={t("admin.noFlaggedMessages")} />
             ) : (
               flagged.map((msg) => (
-                <div key={msg.id} className="premium-card p-4">
+                <PanelCard key={msg.id} padding="sm">
                   <div className="mb-2 flex flex-wrap items-center gap-2">
                     <Badge className="border border-red-200 bg-red-50 text-red-700">
                       {t("admin.flagged")}
                     </Badge>
-                    <span className="text-sm font-medium text-slate-900">{msg.senderName}</span>
+                    <span className="text-sm font-medium text-foreground">{msg.senderName}</span>
                     <span className="text-xs text-muted-foreground">
                       {formatDate(msg.createdAt)}
                     </span>
                   </div>
-                  <p className="text-sm text-slate-700">{msg.content}</p>
-                </div>
+                  <p className="text-sm text-foreground">{msg.content}</p>
+                </PanelCard>
               ))
             )}
           </TabsContent>
 
           <TabsContent value="kyc" className="mt-4 space-y-3">
             {pendingKyc.length === 0 ? (
-              <div className="premium-card p-8 text-center text-sm text-muted-foreground">
-                {t("admin.noPendingKyc")}
-              </div>
+              <EmptyState icon={Shield} title={t("admin.noPendingKyc")} />
             ) : (
               pendingKyc.map((kyc) => (
-                <div key={kyc.id} className="premium-card p-4">
+                <PanelCard key={kyc.id} padding="sm">
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <p className="font-medium text-slate-900">
+                    <p className="font-medium text-foreground">
                       {t("admin.userLabel", { id: kyc.userId.slice(0, 8) })}
                     </p>
                     <Badge className="border border-amber-200 bg-amber-50 capitalize text-amber-700">
@@ -114,12 +110,12 @@ export default function AdminSecurityPage() {
                   <p className="mt-1 text-sm text-muted-foreground">
                     {t("admin.submitted", { date: formatDate(kyc.submittedAt) })}
                   </p>
-                </div>
+                </PanelCard>
               ))
             )}
           </TabsContent>
         </Tabs>
       )}
-    </div>
+    </PanelPage>
   );
 }

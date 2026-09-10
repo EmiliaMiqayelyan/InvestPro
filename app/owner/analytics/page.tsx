@@ -5,6 +5,9 @@ import { useOwnerProjects } from "@/hooks/use-marketplace";
 import { useI18n } from "@/hooks";
 import { useSetPageTitle } from "@/components/providers/page-title-provider";
 import { PageHeader } from "@/components/shared/page-header";
+import { PanelPage } from "@/components/shared/panel-page";
+import { EmptyState } from "@/components/shared/empty-state";
+import { PanelBlockSkeleton } from "@/components/shared/loading-skeleton";
 import { formatCurrency } from "@/utils/format";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,7 +36,7 @@ export default function OwnerAnalyticsPage() {
     projects.length > 0 ? Math.round(totals.progressSum / projects.length) : 0;
 
   return (
-    <div className="space-y-6">
+    <PanelPage>
       <PageHeader
         variant="minimal"
         title={t("nav.analytics")}
@@ -41,40 +44,43 @@ export default function OwnerAnalyticsPage() {
       />
 
       {isLoading ? (
-        <div className="premium-card h-40 animate-pulse bg-slate-100" />
+        <PanelBlockSkeleton height="h-40" />
       ) : projects.length === 0 ? (
-        <div className="premium-card flex flex-col items-center gap-3 p-12 text-center">
-          <BarChart3 className="h-10 w-10 text-slate-300" />
-          <p className="font-medium text-slate-900">{t("owner.analyticsEmpty")}</p>
-        </div>
+        <EmptyState icon={BarChart3} title={t("owner.analyticsEmpty")} />
       ) : (
         <>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <Card className="premium-card border-border bg-white shadow-none">
+            <Card>
               <CardContent className="p-5">
                 <p className="text-xs text-muted-foreground">{t("owner.analyticsTotalRaised")}</p>
-                <p className="mt-1 font-display text-2xl font-semibold">
+                <p className="mt-1 font-display text-2xl font-semibold text-foreground">
                   {formatCurrency(totals.raised)}
                 </p>
               </CardContent>
             </Card>
-            <Card className="premium-card border-border bg-white shadow-none">
+            <Card>
               <CardContent className="p-5">
                 <p className="text-xs text-muted-foreground">{t("owner.analyticsAvgProgress")}</p>
-                <p className="mt-1 font-display text-2xl font-semibold">{avgProgress}%</p>
+                <p className="mt-1 font-display text-2xl font-semibold text-foreground">
+                  {avgProgress}%
+                </p>
                 <Progress value={avgProgress} className="mt-3" />
               </CardContent>
             </Card>
-            <Card className="premium-card border-border bg-white shadow-none">
+            <Card>
               <CardContent className="p-5">
                 <p className="text-xs text-muted-foreground">{t("owner.analyticsActiveListings")}</p>
-                <p className="mt-1 font-display text-2xl font-semibold">{totals.active}</p>
+                <p className="mt-1 font-display text-2xl font-semibold text-foreground">
+                  {totals.active}
+                </p>
               </CardContent>
             </Card>
-            <Card className="premium-card border-border bg-white shadow-none">
+            <Card>
               <CardContent className="p-5">
                 <p className="text-xs text-muted-foreground">{t("owner.analyticsInvestors")}</p>
-                <p className="mt-1 font-display text-2xl font-semibold">{totals.investors}</p>
+                <p className="mt-1 font-display text-2xl font-semibold text-foreground">
+                  {totals.investors}
+                </p>
               </CardContent>
             </Card>
           </div>
@@ -88,27 +94,24 @@ export default function OwnerAnalyticsPage() {
                 )
               );
               return (
-                <Card
-                  key={project.id}
-                  className="premium-card border-border bg-white shadow-none backdrop-blur-none"
-                >
+                <Card key={project.id}>
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-base text-slate-900">{project.title}</CardTitle>
+                    <CardTitle className="text-base text-foreground">{project.title}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     <div className="flex flex-wrap justify-between gap-2 text-sm">
                       <span className="text-muted-foreground">
                         {t("owner.analyticsRaised")}: {formatCurrency(project.currentFunding)}
                       </span>
-                      <span className="font-medium text-slate-900">
+                      <span className="font-medium text-foreground">
                         {t("owner.analyticsGoal")} {formatCurrency(project.requiredInvestment)} ·{" "}
                         {progress}%
                       </span>
                     </div>
                     <Progress value={progress} />
-                    <div className="relative h-3 overflow-hidden rounded-full bg-slate-100">
+                    <div className="relative h-3 overflow-hidden rounded-full bg-muted">
                       <div
-                        className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-teal-800 to-teal-500 transition-all"
+                        className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-primary to-primary/60 transition-all"
                         style={{ width: `${progress}%` }}
                       />
                     </div>
@@ -117,11 +120,11 @@ export default function OwnerAnalyticsPage() {
                         <p className="text-xs text-muted-foreground">
                           {t("owner.analyticsInvestors")}
                         </p>
-                        <p className="font-semibold text-slate-900">{project.investorCount}</p>
+                        <p className="font-semibold text-foreground">{project.investorCount}</p>
                       </div>
                       <div>
                         <p className="text-xs text-muted-foreground">{t("owner.analyticsSaved")}</p>
-                        <p className="font-semibold text-slate-900">{project.savedCount}</p>
+                        <p className="font-semibold text-foreground">{project.savedCount}</p>
                       </div>
                       <div>
                         <p className="text-xs text-muted-foreground">{t("owner.analyticsRoi")}</p>
@@ -135,6 +138,6 @@ export default function OwnerAnalyticsPage() {
           </div>
         </>
       )}
-    </div>
+    </PanelPage>
   );
 }

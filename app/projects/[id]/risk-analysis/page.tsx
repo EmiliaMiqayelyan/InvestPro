@@ -21,7 +21,6 @@ import { formatCurrency, formatDate } from "@/utils/format";
 import {
   DILIGENCE_DISCLAIMER_EN,
   DILIGENCE_DISCLAIMER_HY,
-  formatRiskLevel,
 } from "@/features/security";
 import { cn } from "@/lib/utils";
 
@@ -128,7 +127,11 @@ export default function RiskAnalysisPage() {
               <div>
                 <p className="text-xs text-muted-foreground">{t("risk.level")}</p>
                 <Badge className={cn("mt-2 border capitalize", risk?.bg, risk?.color)}>
-                  {risk?.label ?? formatRiskLevel(report.level)}
+                  {report.level === "low"
+                    ? t("projects.lowRisk")
+                    : report.level === "high"
+                      ? t("projects.highRisk")
+                      : t("projects.mediumRisk")}
                 </Badge>
               </div>
               <div>

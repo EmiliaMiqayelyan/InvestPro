@@ -6,7 +6,9 @@ import { investorApi } from "@/services/api";
 import { QUERY_KEYS, ROUTES } from "@/constants";
 import { useI18n } from "@/hooks";
 import { useSetPageTitle } from "@/components/providers/page-title-provider";
-import { PageHeader } from "@/components/shared/page-header";
+import { PanelPage } from "@/components/shared/panel-page";
+import { EmptyState } from "@/components/shared/empty-state";
+import { CardSkeleton } from "@/components/shared/loading-skeleton";
 import { MarketplaceProjectCard } from "@/features/projects/project-card";
 
 export default function InvestorSavedPage() {
@@ -19,21 +21,19 @@ export default function InvestorSavedPage() {
   });
 
   return (
-    <div className="space-y-6">
-      <PageHeader variant="minimal" title={t("investor.savedProjects")} />
-
+    <PanelPage>
       {isLoading ? (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="premium-card h-64 animate-pulse bg-slate-100" />
+            <CardSkeleton key={i} />
           ))}
         </div>
       ) : projects.length === 0 ? (
-        <div className="premium-card flex flex-col items-center gap-3 p-12 text-center">
-          <Bookmark className="h-10 w-10 text-slate-300" />
-          <p className="font-medium text-slate-900">{t("common.noResults")}</p>
-          <p className="text-sm text-muted-foreground">{t("investor.browseProjects")}</p>
-        </div>
+        <EmptyState
+          icon={Bookmark}
+          title={t("common.noResults")}
+          description={t("investor.browseProjects")}
+        />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {projects.map((project) => (
@@ -46,6 +46,6 @@ export default function InvestorSavedPage() {
           ))}
         </div>
       )}
-    </div>
+    </PanelPage>
   );
 }

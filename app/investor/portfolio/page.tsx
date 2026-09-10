@@ -8,6 +8,10 @@ import { formatCurrency, formatDate } from "@/utils/format";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/shared/page-header";
+import { PanelPage } from "@/components/shared/panel-page";
+import { PanelCard } from "@/components/shared/panel-card";
+import { EmptyState } from "@/components/shared/empty-state";
+import { PanelBlockSkeleton } from "@/components/shared/loading-skeleton";
 import { useSetPageTitle } from "@/components/providers/page-title-provider";
 import { useI18n } from "@/hooks";
 import { cn } from "@/lib/utils";
@@ -34,7 +38,7 @@ export default function InvestorPortfolioPage() {
   ];
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <PanelPage maxWidth="content">
       <PageHeader
         variant="minimal"
         title={t("investor.portfolioTitle")}
@@ -42,22 +46,22 @@ export default function InvestorPortfolioPage() {
       />
 
       {isLoading ? (
-        <div className="premium-card h-32 animate-pulse bg-slate-100" />
+        <PanelBlockSkeleton height="h-32" />
       ) : (
         <>
           <div className="grid gap-4 sm:grid-cols-2">
             {metrics.map((m) => (
-              <Card key={m.label} className="premium-card border-border bg-white shadow-none">
+              <Card key={m.label}>
                 <CardContent className="p-5">
                   <p className="text-xs text-muted-foreground">{m.label}</p>
-                  <p className="mt-1 font-display text-2xl font-semibold text-slate-900">
+                  <p className="mt-1 font-display text-2xl font-semibold text-foreground">
                     {formatCurrency(m.value)}
                   </p>
                 </CardContent>
               </Card>
             ))}
           </div>
-          <div className="premium-card grid gap-4 p-5 sm:grid-cols-3">
+          <PanelCard className="grid gap-4 sm:grid-cols-3">
             <div>
               <p className="text-xs text-muted-foreground">{t("investor.activeInvestments")}</p>
               <p className="mt-1 font-display text-xl font-semibold">
@@ -76,12 +80,12 @@ export default function InvestorPortfolioPage() {
                 {portfolio?.roi ?? 0}%
               </p>
             </div>
-          </div>
+          </PanelCard>
           {(portfolio?.totalInvested ?? 0) === 0 && (
-            <div className="premium-card flex flex-col items-center gap-2 p-10 text-center">
-              <PieChart className="h-10 w-10 text-slate-300" />
-              <p className="text-sm text-muted-foreground">{t("investor.noPortfolio")}</p>
-            </div>
+            <EmptyState
+              icon={PieChart}
+              title={t("investor.noPortfolio")}
+            />
           )}
         </>
       )}
@@ -89,29 +93,31 @@ export default function InvestorPortfolioPage() {
       <div className="space-y-3">
         <h2 className="font-display text-lg font-semibold">{t("investor.returnsHistory")}</h2>
         {returns.length === 0 ? (
-          <div className="premium-card p-8 text-center text-sm text-muted-foreground">
-            {t("investor.noReturns")}
-          </div>
+          <EmptyState
+            icon={PieChart}
+            title={t("investor.noReturns")}
+          />
         ) : (
           returns.map((row) => (
-            <div
+            <PanelCard
               key={row.id}
-              className="premium-card flex flex-wrap items-center justify-between gap-3 p-4"
+              padding="sm"
+              className="flex flex-wrap items-center justify-between gap-3"
             >
               <div>
-                <p className="font-medium text-slate-900">{formatCurrency(row.netAmount)}</p>
+                <p className="font-medium text-foreground">{formatCurrency(row.netAmount)}</p>
                 <p className="text-xs text-muted-foreground">
                   {formatDate(row.createdAt)}
-                  {row.paidAt ? ` · paid ${formatDate(row.paidAt)}` : ""}
+                  {row.paidAt ? ` · ${t("investor.paidOn")} ${formatDate(row.paidAt)}` : ""}
                 </p>
               </div>
               <Badge className={cn("border capitalize", STATUS_COLORS[row.status] || STATUS_COLORS.pending)}>
                 {row.status}
               </Badge>
-            </div>
+            </PanelCard>
           ))
         )}
       </div>
-    </div>
+    </PanelPage>
   );
 }

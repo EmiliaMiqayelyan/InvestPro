@@ -34,7 +34,7 @@ export function StatCard({
 
   return (
     <Card className={cn("overflow-hidden", className)}>
-      <CardContent className="p-5 sm:p-6">
+      <CardContent className="p-5">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0 space-y-1.5">
             <p className="text-sm font-medium text-muted-foreground">{title}</p>

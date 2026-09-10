@@ -16,6 +16,8 @@ import { cn } from "@/lib/utils";
 import { useI18n } from "@/hooks";
 import { useSetPageTitle } from "@/components/providers/page-title-provider";
 import { PageHeader } from "@/components/shared/page-header";
+import { PanelPage } from "@/components/shared/panel-page";
+import { PanelBlockSkeleton } from "@/components/shared/loading-skeleton";
 import { toast } from "sonner";
 
 export default function InvestorKycPage() {
@@ -67,17 +69,17 @@ export default function InvestorKycPage() {
   ];
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <PanelPage maxWidth="form">
       <PageHeader
         variant="minimal"
         title={t("nav.verification")}
         description={t("investor.completeVerification")}
       />
 
-      <Card className="premium-card border-border bg-white shadow-none backdrop-blur-none">
+      <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-slate-900">
-            <Shield className="h-5 w-5 text-teal-800" />
+          <CardTitle className="flex items-center gap-2 text-foreground">
+            <Shield className="h-5 w-5 text-primary" />
             {t("investor.kycTimelineTitle")}
           </CardTitle>
         </CardHeader>
@@ -90,11 +92,11 @@ export default function InvestorKycPage() {
                 <Circle
                   className={cn(
                     "mt-0.5 h-4 w-4 shrink-0",
-                    step.active ? "text-amber-500" : "text-slate-300"
+                    step.active ? "text-amber-500" : "text-muted-foreground/40"
                   )}
                 />
               )}
-              <span className={cn(step.done ? "text-slate-900" : "text-muted-foreground")}>
+              <span className={cn(step.done ? "text-foreground" : "text-muted-foreground")}>
                 {step.label}
               </span>
             </div>
@@ -102,9 +104,9 @@ export default function InvestorKycPage() {
         </CardContent>
       </Card>
 
-      <Card className="premium-card border-border bg-white shadow-none backdrop-blur-none">
+      <Card>
         <CardHeader>
-          <CardTitle className="text-base text-slate-900">{t("investor.kycExamplesTitle")}</CardTitle>
+          <CardTitle className="text-base text-foreground">{t("investor.kycExamplesTitle")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2 text-sm text-muted-foreground">
           <p>• {t("investor.kycExampleId")}</p>
@@ -114,12 +116,12 @@ export default function InvestorKycPage() {
       </Card>
 
       {isLoading ? (
-        <div className="premium-card h-24 animate-pulse bg-slate-100" />
+        <PanelBlockSkeleton height="h-24" />
       ) : kyc ? (
-        <Card className="premium-card border-border bg-white shadow-none backdrop-blur-none">
+        <Card>
           <CardContent className="flex items-center justify-between p-6">
             <div>
-              <p className="font-medium text-slate-900">{t("investor.kycCurrentStatus")}</p>
+              <p className="font-medium text-foreground">{t("investor.kycCurrentStatus")}</p>
               {kyc.submittedAt && (
                 <p className="text-sm text-muted-foreground">
                   {formatDate(kyc.submittedAt)}
@@ -137,10 +139,10 @@ export default function InvestorKycPage() {
       ) : null}
 
       {canSubmit && (
-        <Card className="premium-card border-border bg-white shadow-none backdrop-blur-none">
+        <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-slate-900">
-              <FileCheck className="h-5 w-5 text-teal-800" /> {t("investor.kycSubmitDocs")}
+            <CardTitle className="flex items-center gap-2 text-foreground">
+              <FileCheck className="h-5 w-5 text-primary" /> {t("investor.kycSubmitDocs")}
             </CardTitle>
             <CardDescription>{t("investor.kycSubmitHint")}</CardDescription>
           </CardHeader>
@@ -170,7 +172,8 @@ export default function InvestorKycPage() {
               />
             </div>
             <Button
-              className="w-full bg-gradient-to-r from-teal-900 to-teal-700 hover:opacity-95"
+              className="w-full"
+              variant="gradient"
               onClick={() => {
                 if (!form.idDocumentUrl || !form.selfieUrl || !form.addressProofUrl) {
                   toast.error(t("common.required"));
@@ -185,6 +188,6 @@ export default function InvestorKycPage() {
           </CardContent>
         </Card>
       )}
-    </div>
+    </PanelPage>
   );
 }

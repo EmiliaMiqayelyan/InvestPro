@@ -6,6 +6,8 @@ import {
   MilestonePlanModel,
   UserModel,
   MessageModel,
+  SavedProjectModel,
+  InvestmentModel,
 } from "../../shared/database/associations";
 import { AppError } from "../../shared/errors/AppError";
 import { toProject, toUser, toConversation, toMessage } from "../../shared/utils/mappers";
@@ -24,6 +26,17 @@ import type { TokenPayload } from "../../shared/utils/jwt";
 import type { OwnerDashboardStats } from "../../shared/types";
 import { Op } from "sequelize";
 import { SEED_USER_IDS } from "../../shared/database/seed-ids";
+
+const OWNER_MUTABLE_STATUSES = new Set(["draft", "pending_review", "rejected"]);
+
+function assertOwnerCanMutateProject(auth: TokenPayload, row: ProjectModel) {
+  if (auth.role === "project_owner" && row.ownerId !== auth.sub) throw AppError.forbidden();
+  if (auth.role === "project_owner" && !OWNER_MUTABLE_STATUSES.has(row.status)) {
+    throw AppError.badRequest(
+      "Only draft, pending review, or rejected projects can be changed"
+    );
+  }
+}
 
 function reviewerDisplayName(user: User | undefined) {
   if (!user) return "Admin";
@@ -390,7 +403,7 @@ export async function patchOwnerProject(
 ) {
   const row = await ProjectModel.findByPk(id);
   if (!row) throw AppError.notFound("Project not found");
-  if (auth.role === "project_owner" && row.ownerId !== auth.sub) throw AppError.forbidden();
+  assertOwnerCanMutateProject(auth, row);
 
   const {
     status: _s,
@@ -415,6 +428,39 @@ export async function patchOwnerProject(
   return persistProject(project);
 }
 
+export async function deleteOwnerProject(auth: TokenPayload, id: string) {
+  const row = await ProjectModel.findByPk(id);
+  if (!row) throw AppError.notFound("Project not found");
+  if (row.ownerId !== auth.sub) throw AppError.forbidden();
+  if (!OWNER_MUTABLE_STATUSES.has(row.status)) {
+    throw AppError.badRequest(
+      "Only draft, pending review, or rejected projects can be deleted"
+    );
+  }
+
+  const investments = await InvestmentModel.count({ where: { projectId: id } });
+  if (investments > 0) {
+    throw AppError.badRequest("Cannot delete a project with investments");
+  }
+
+  const conversations = await ConversationModel.findAll({ where: { projectId: id } });
+  const conversationIds = conversations.map((c) => c.id);
+  if (conversationIds.length) {
+    await MessageModel.destroy({ where: { conversationId: { [Op.in]: conversationIds } } });
+    await ConversationModel.destroy({ where: { id: { [Op.in]: conversationIds } } });
+  }
+
+  await Promise.all([
+    OfferModel.destroy({ where: { projectId: id } }),
+    SavedProjectModel.destroy({ where: { projectId: id } }),
+    MilestonePlanModel.destroy({ where: { projectId: id } }),
+  ]);
+
+  await row.destroy();
+  await logActivity(auth.sub, "project_deleted", "project", id);
+  return { id };
+}
+
 export async function addDocument(
   auth: TokenPayload,
   projectId: string,
@@ -435,6 +481,21 @@ export async function addDocument(
   return doc;
 }
 
+export async function removeDocument(
+  auth: TokenPayload,
+  projectId: string,
+  documentId: string
+) {
+  const row = await ProjectModel.findByPk(projectId);
+  if (!row || row.ownerId !== auth.sub) throw AppError.notFound("Not found");
+  const docs = row.documents || [];
+  const next = docs.filter((d, index) => (d.id || String(index)) !== documentId);
+  if (next.length === docs.length) throw AppError.notFound("Document not found");
+  row.documents = next;
+  await row.save();
+  return { id: documentId };
+}
+
 export async function addTeamMember(
   auth: TokenPayload,
   projectId: string,
@@ -448,11 +509,27 @@ export async function addTeamMember(
   return member;
 }
 
+export async function removeTeamMember(
+  auth: TokenPayload,
+  projectId: string,
+  memberId: string
+) {
+  const row = await ProjectModel.findByPk(projectId);
+  if (!row || row.ownerId !== auth.sub) throw AppError.notFound("Not found");
+  const team = row.team || [];
+  const next = team.filter((m) => m.id !== memberId);
+  if (next.length === team.length) throw AppError.notFound("Team member not found");
+  row.team = next;
+  await row.save();
+  return { id: memberId };
+}
+
 export async function listOwnerDocuments(userId: string) {
   const projects = await ProjectModel.findAll({ where: { ownerId: userId } });
   return projects.flatMap((p) =>
     (p.documents || []).map((d, index) => ({
       ...d,
+      documentId: d.id || String(index),
       id: `${p.id}:${d.id || index}`,
       projectId: p.id,
       projectTitle: p.title,
