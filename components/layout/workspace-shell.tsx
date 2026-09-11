@@ -52,12 +52,12 @@ type NavGroup = {
 const INVESTOR_NAV: NavGroup[] = [
   {
     labelKey: "nav.groupOverview",
-    items: [{ href: ROUTES.INVESTOR_DASHBOARD, labelKey: "common.dashboard", icon: LayoutDashboard }],
+    items: [{ href: ROUTES.INVESTOR_DASHBOARD, labelKey: "nav.home", icon: LayoutDashboard }],
   },
   {
     labelKey: "nav.groupDiscover",
     items: [
-      { href: ROUTES.INVESTOR_PROJECTS, labelKey: "nav.marketplace", icon: Briefcase },
+      { href: ROUTES.INVESTOR_PROJECTS, labelKey: "nav.projects", icon: Briefcase },
       { href: ROUTES.INVESTOR_SAVED, labelKey: "nav.saved", icon: Bookmark },
     ],
   },
@@ -85,7 +85,7 @@ const INVESTOR_NAV: NavGroup[] = [
 const OWNER_NAV: NavGroup[] = [
   {
     labelKey: "nav.groupOverview",
-    items: [{ href: ROUTES.OWNER_DASHBOARD, labelKey: "common.dashboard", icon: LayoutDashboard }],
+    items: [{ href: ROUTES.OWNER_DASHBOARD, labelKey: "nav.home", icon: LayoutDashboard }],
   },
   {
     labelKey: "nav.groupProjects",
@@ -117,7 +117,7 @@ const OWNER_NAV: NavGroup[] = [
 const ADMIN_NAV: NavGroup[] = [
   {
     labelKey: "nav.groupOverview",
-    items: [{ href: ROUTES.ADMIN_DASHBOARD, labelKey: "common.dashboard", icon: LayoutDashboard }],
+    items: [{ href: ROUTES.ADMIN_DASHBOARD, labelKey: "nav.home", icon: LayoutDashboard }],
   },
   {
     labelKey: "nav.groupManage",

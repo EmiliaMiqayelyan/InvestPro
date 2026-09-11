@@ -23,6 +23,7 @@ import { PageHeader } from "@/components/shared/page-header";
 import { PanelPage } from "@/components/shared/panel-page";
 import { PanelBlockSkeleton } from "@/components/shared/loading-skeleton";
 import { formatCurrency } from "@/utils/format";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import type { TranslationKey } from "@/i18n";
 
@@ -81,16 +82,15 @@ export default function MembershipPage() {
   const features = isHy && plan?.featuresHy?.length ? plan.featuresHy : plan?.features || [];
 
   const pricingCard = (
-    <Card className="relative overflow-hidden surface-card">
-      <div className="absolute right-4 top-4">
-        <Badge variant="gold" className="gap-1">
-          <Sparkles className="h-3 w-3" />
-          {t("common.recommended")}
-        </Badge>
-      </div>
+    <Card
+      className={cn(
+        "overflow-hidden surface-card",
+        hasAccess && "border-teal-200/80 ring-1 ring-teal-100"
+      )}
+    >
       <CardContent className="p-8">
-        <div className="flex items-start justify-between gap-4 pr-24">
-          <div>
+        <div className="flex items-start justify-between gap-6">
+          <div className="min-w-0 flex-1">
             <h2 className="font-display text-2xl font-semibold text-foreground">
               {isHy && plan?.nameHy ? plan.nameHy : plan?.name}
             </h2>
@@ -98,39 +98,58 @@ export default function MembershipPage() {
               {isHy && plan?.descriptionHy ? plan.descriptionHy : plan?.description}
             </p>
           </div>
-          {hasAccess && <Badge variant="teal">{t("membership.current")}</Badge>}
+          {hasAccess ? (
+            <Badge variant="active" className="shrink-0 gap-1 whitespace-nowrap">
+              <Check className="h-3 w-3" />
+              {t("membership.current")}
+            </Badge>
+          ) : (
+            <Badge variant="gold" className="shrink-0 gap-1 whitespace-nowrap">
+              <Sparkles className="h-3 w-3" />
+              {t("common.recommended")}
+            </Badge>
+          )}
         </div>
         <p className="mt-6 font-display text-4xl font-semibold text-foreground">
-          {formatCurrency(plan?.price ?? 0)}
+          {formatCurrency(plan?.price ?? 0, "USD", isHy ? "hy-AM" : "en-US")}
           <span className="text-base font-normal text-muted-foreground">
             {t("membership.monthly")}
           </span>
         </p>
-        <p className="mt-6 text-sm font-medium text-foreground">{t("membership.unlocks")}</p>
-        <ul className="mt-3 space-y-2.5">
-          {features.map((f) => (
-            <li key={f} className="flex gap-2.5 text-sm text-foreground/80">
-              <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-              {f}
-            </li>
-          ))}
-        </ul>
-        <p className="mt-6 text-sm font-medium text-foreground">{t("membership.notIncludedTitle")}</p>
-        <ul className="mt-3 space-y-2">
-          {NOT_INCLUDED_KEYS.map((key) => (
-            <li key={key} className="text-sm text-muted-foreground">
-              • {t(key)}
-            </li>
-          ))}
-        </ul>
-        <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
-          {t("membership.refundPolicy")}
-        </p>
-        <p className="mt-2 text-xs text-muted-foreground">{t("membership.lockedWithout")}</p>
+        <div className="mt-8 grid gap-8 lg:grid-cols-2">
+          <div>
+            <p className="text-sm font-medium text-foreground">{t("membership.unlocks")}</p>
+            <ul className="mt-3 space-y-2.5">
+              {features.map((f) => (
+                <li key={f} className="flex gap-2.5 text-sm text-foreground/80">
+                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                  {f}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <p className="text-sm font-medium text-foreground">{t("membership.notIncludedTitle")}</p>
+            <ul className="mt-3 space-y-2">
+              {NOT_INCLUDED_KEYS.map((key) => (
+                <li key={key} className="text-sm text-muted-foreground">
+                  • {t(key)}
+                </li>
+              ))}
+            </ul>
+            <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
+              {t("membership.refundPolicy")}
+            </p>
+            <p className="mt-2 text-xs text-muted-foreground">{t("membership.lockedWithout")}</p>
+          </div>
+        </div>
         {hasAccess ? (
-          <p className="mt-8 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-primary">
+          <p className="mt-8 flex items-center gap-2 rounded-xl border border-teal-200 bg-teal-50 px-4 py-3 text-sm text-teal-800">
+            <Check className="h-4 w-4 shrink-0" />
             {t("membership.yourCurrent")}
-            {mine?.expiresAt ? ` · ${new Date(mine.expiresAt).toLocaleDateString()}` : ""}
+            {mine?.expiresAt
+              ? ` · ${new Date(mine.expiresAt).toLocaleDateString(isHy ? "hy-AM" : "en-US")}`
+              : ""}
           </p>
         ) : !isAuthenticated ? (
           <div className="mt-8 space-y-3">
@@ -168,7 +187,7 @@ export default function MembershipPage() {
         {isLoading || !plan ? (
           <PanelBlockSkeleton height="h-64" />
         ) : (
-          <div className="mx-auto max-w-lg">{pricingCard}</div>
+          <div className="w-full">{pricingCard}</div>
         )}
       </PanelPage>
     );

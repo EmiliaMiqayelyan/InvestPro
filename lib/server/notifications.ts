@@ -198,7 +198,7 @@ function draftsForEvent(event: NotificationEvent): NotificationDraft[] {
             ? "Create your first project and submit it for review. Investors will see it once it is published."
             : "Browse the marketplace, unlock full diligence with the service fee, then message owners and send offers.",
         href: home,
-        metadata: { role: event.role },
+        metadata: { template: event.role === "project_owner" ? "welcomeOwner" : "welcomeInvestor", role: event.role },
       };
       const adminDrafts: NotificationDraft[] = listUserIdsByRole("admin").map((userId) => ({
         userId,
@@ -206,7 +206,7 @@ function draftsForEvent(event: NotificationEvent): NotificationDraft[] {
         title: "New account registered",
         message: `${event.name} joined as ${event.role.replace("_", " ")} (${event.email}).`,
         href: hrefForRole("admin", "user_update"),
-        metadata: { userId: event.userId, role: event.role },
+        metadata: { template: "newAccountAdmin", userId: event.userId, role: event.role, name: event.name, email: event.email },
       }));
       return [welcome, ...adminDrafts];
     }
@@ -222,7 +222,15 @@ function draftsForEvent(event: NotificationEvent): NotificationDraft[] {
           href: hrefForRole("project_owner", "offer_received", { projectId: offer.projectId }),
           priority: "high",
           email: true,
-          metadata: { offerId: offer.id, projectId: offer.projectId, investorId: offer.investorId },
+          metadata: {
+            template: "offerReceived",
+            offerId: offer.id,
+            projectId: offer.projectId,
+            investorId: offer.investorId,
+            investorName: offer.investorName,
+            amount: offer.amount,
+            projectTitle: offer.projectTitle,
+          },
         },
       ];
     }
@@ -250,7 +258,19 @@ function draftsForEvent(event: NotificationEvent): NotificationDraft[] {
           href: hrefForRole("investor", "offer_updated", { projectId: offer.projectId }),
           priority: "high",
           email: true,
-          metadata: { offerId: offer.id, projectId: offer.projectId, status: offer.status },
+          metadata: {
+            template:
+              offer.status === "accepted"
+                ? "offerAccepted"
+                : offer.status === "rejected"
+                  ? "offerRejected"
+                  : "offerNegotiating",
+            offerId: offer.id,
+            projectId: offer.projectId,
+            status: offer.status,
+            amount: offer.amount,
+            projectTitle: offer.projectTitle,
+          },
         },
       ];
     }
@@ -274,9 +294,13 @@ function draftsForEvent(event: NotificationEvent): NotificationDraft[] {
             projectId: event.conversation.projectId,
           }),
           metadata: {
+            template: "newMessage",
             conversationId: event.conversation.id,
             projectId: event.conversation.projectId,
             senderId: event.message.senderId,
+            projectTitle: event.conversation.projectTitle,
+            senderName: event.message.senderName,
+            preview,
           },
         },
       ];
@@ -289,7 +313,7 @@ function draftsForEvent(event: NotificationEvent): NotificationDraft[] {
         title: "Service fee paid",
         message: `An investor activated platform access (${money(event.amount)}).`,
         href: hrefForRole("admin", "membership"),
-        metadata: { payerId: event.userId, amount: event.amount },
+        metadata: { template: "membershipPaidAdmin", payerId: event.userId, amount: event.amount },
       }));
       return [
         {
@@ -300,7 +324,7 @@ function draftsForEvent(event: NotificationEvent): NotificationDraft[] {
             "Full data rooms, messaging, offers, and milestone planning are unlocked. This is a platform fee, not investment capital.",
           href: hrefForRole("investor", "membership"),
           priority: "high",
-          metadata: { amount: event.amount },
+          metadata: { template: "membershipActive", amount: event.amount },
         },
         ...adminDrafts,
       ];
@@ -314,7 +338,7 @@ function draftsForEvent(event: NotificationEvent): NotificationDraft[] {
         message: `${event.name} submitted identity documents.`,
         href: hrefForRole("admin", "kyc_update"),
         priority: "high",
-        metadata: { userId: event.userId },
+        metadata: { template: "kycAwaitingAdmin", userId: event.userId, name: event.name },
       }));
       return [
         {
@@ -323,7 +347,7 @@ function draftsForEvent(event: NotificationEvent): NotificationDraft[] {
           title: "Verification submitted",
           message: "Your KYC documents are in review. We will notify you when the status changes.",
           href: hrefForRole("investor", "kyc_update"),
-          metadata: { status: "pending" },
+          metadata: { template: "kycSubmitted", status: "pending" },
         },
         ...adminDrafts,
       ];
@@ -338,7 +362,7 @@ function draftsForEvent(event: NotificationEvent): NotificationDraft[] {
         message: `«${project.title}» նախագիծը ուղարկվել է հաստատման։`,
         href: hrefForRole("admin", "project_update", { projectId: project.id }),
         priority: "high",
-        metadata: { projectId: project.id },
+        metadata: { template: "projectPendingAdmin", projectId: project.id, projectTitle: project.title },
       }));
       return [
         {
@@ -347,7 +371,7 @@ function draftsForEvent(event: NotificationEvent): NotificationDraft[] {
           title: "Project submitted for review",
           message: `“${project.title}” is in the review queue. Investors will see it after it is published.`,
           href: hrefForRole("project_owner", "project_update", { projectId: project.id }),
-          metadata: { projectId: project.id, status: project.status },
+          metadata: { template: "projectSubmittedOwner", projectId: project.id, status: project.status, projectTitle: project.title },
         },
         ...adminDrafts,
       ];
@@ -366,7 +390,7 @@ function draftsForEvent(event: NotificationEvent): NotificationDraft[] {
           href: hrefForRole("project_owner", "project_update", { projectId: project.id }),
           priority: "high",
           email: true,
-          metadata: { projectId: project.id, status },
+          metadata: { template: "projectPublishedOwner", projectId: project.id, status, projectTitle: project.title },
         });
         for (const investorId of listUserIdsByRole("investor")) {
           drafts.push({
@@ -375,7 +399,7 @@ function draftsForEvent(event: NotificationEvent): NotificationDraft[] {
             title: "New project on the marketplace",
             message: `“${project.title}” was just published. Open it to review the opportunity.`,
             href: hrefForRole("investor", "project_update", { projectId: project.id }),
-            metadata: { projectId: project.id, status },
+            metadata: { template: "projectPublishedInvestor", projectId: project.id, status, projectTitle: project.title },
           });
         }
       } else if (status === "rejected") {
@@ -390,7 +414,7 @@ function draftsForEvent(event: NotificationEvent): NotificationDraft[] {
           href: ROUTES.OWNER_MESSAGES,
           priority: "high",
           email: true,
-          metadata: { projectId: project.id, status, rejectionReason: reasonText },
+          metadata: { template: "projectRejected", projectId: project.id, status, rejectionReason: reasonText, projectTitle: project.title },
         });
       } else if (status === "funded") {
         drafts.push({
@@ -401,7 +425,7 @@ function draftsForEvent(event: NotificationEvent): NotificationDraft[] {
           href: hrefForRole("project_owner", "project_update", { projectId: project.id }),
           priority: "high",
           email: true,
-          metadata: { projectId: project.id, status },
+          metadata: { template: "projectFunded", projectId: project.id, status, projectTitle: project.title },
         });
       } else if (status === "closed") {
         drafts.push({
@@ -410,7 +434,7 @@ function draftsForEvent(event: NotificationEvent): NotificationDraft[] {
           title: "Project closed",
           message: `“${project.title}” is no longer open for new offers.`,
           href: hrefForRole("project_owner", "project_update", { projectId: project.id }),
-          metadata: { projectId: project.id, status },
+          metadata: { template: "projectClosed", projectId: project.id, status, projectTitle: project.title },
         });
       } else if (status === "pending_review") {
         const adminDrafts: NotificationDraft[] = listUserIdsByRole("admin").map((userId) => ({
@@ -420,7 +444,7 @@ function draftsForEvent(event: NotificationEvent): NotificationDraft[] {
           message: `«${project.title}» նախագիծը ուղարկվել է հաստատման։`,
           href: hrefForRole("admin", "project_update", { projectId: project.id }),
           priority: "high" as const,
-          metadata: { projectId: project.id },
+          metadata: { template: "projectPendingAdmin", projectId: project.id, projectTitle: project.title },
         }));
         drafts.push(...adminDrafts);
       }
@@ -438,7 +462,13 @@ function draftsForEvent(event: NotificationEvent): NotificationDraft[] {
           message: `${plan.investorName} proposed milestones for ${plan.projectTitle}.`,
           href: hrefForRole("project_owner", "milestone_update", { projectId: plan.projectId }),
           priority: "high",
-          metadata: { planId: plan.id, projectId: plan.projectId },
+          metadata: {
+            template: "milestoneCreated",
+            planId: plan.id,
+            projectId: plan.projectId,
+            investorName: plan.investorName,
+            projectTitle: plan.projectTitle,
+          },
         },
       ];
     }
@@ -454,7 +484,13 @@ function draftsForEvent(event: NotificationEvent): NotificationDraft[] {
           title: "Milestone plan updated",
           message: `The milestone plan for ${plan.projectTitle} is now ${plan.status.replace("_", " ")}.`,
           href: hrefForRole(recipientRole, "milestone_update", { projectId: plan.projectId }),
-          metadata: { planId: plan.id, projectId: plan.projectId, status: plan.status },
+          metadata: {
+            template: "milestoneUpdated",
+            planId: plan.id,
+            projectId: plan.projectId,
+            status: plan.status,
+            projectTitle: plan.projectTitle,
+          },
         },
       ];
     }
@@ -474,7 +510,7 @@ function draftsForEvent(event: NotificationEvent): NotificationDraft[] {
           message:
             "External contact info was stripped from your message. Keep conversations on-platform.",
           href: hrefForRole(senderRole, "security_alert"),
-          metadata: { conversationId: event.conversation.id },
+          metadata: { template: "contactBlocked", conversationId: event.conversation.id },
         },
         ...listUserIdsByRole("admin").map((userId) => ({
           userId,
@@ -484,9 +520,12 @@ function draftsForEvent(event: NotificationEvent): NotificationDraft[] {
           href: hrefForRole("admin", "security_alert"),
           priority: "high" as const,
           metadata: {
+            template: "flaggedChat",
             conversationId: event.conversation.id,
             senderId: event.senderId,
             recipientId,
+            senderName: event.senderName,
+            projectTitle: event.conversation.projectTitle,
           },
         })),
       ];
@@ -500,7 +539,7 @@ function draftsForEvent(event: NotificationEvent): NotificationDraft[] {
         message: event.complaint.subject,
         href: hrefForRole("admin", "complaint"),
         priority: "high",
-        metadata: { complaintId: event.complaint.id },
+        metadata: { template: "newComplaint", complaintId: event.complaint.id, subject: event.complaint.subject },
       }));
     }
 
@@ -511,7 +550,7 @@ function draftsForEvent(event: NotificationEvent): NotificationDraft[] {
         title: "Contact form message",
         message: `${event.name} (${event.email}) sent a public contact request.`,
         href: hrefForRole("admin", "general"),
-        metadata: { email: event.email },
+        metadata: { template: "contactForm", email: event.email, name: event.name },
       }));
     }
 
@@ -530,7 +569,7 @@ function draftsForEvent(event: NotificationEvent): NotificationDraft[] {
           message: `Your account role is now ${event.role.replace("_", " ")}. Sign in again if workspace links look stale.`,
           href,
           priority: "high",
-          metadata: { role: event.role },
+          metadata: { template: "roleChanged", role: event.role },
         },
       ];
     }

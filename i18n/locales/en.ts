@@ -55,16 +55,16 @@ export const en = {
     howItWorks: "How It Works",
     forInvestors: "Investors",
     forOwners: "Project Owners",
-    membership: "Service fee",
-    serviceFee: "Service fee",
+    membership: "Platform access",
+    serviceFee: "Platform access",
     about: "About Us",
     contact: "Contact",
     marketplace: "Project Marketplace",
-    myInvestments: "My Investments",
+    myInvestments: "Investments",
     milestones: "Milestones",
-    saved: "Saved",
+    saved: "Saved projects",
     messages: "Messages",
-    verification: "Verification",
+    verification: "Identity",
     profile: "Profile",
     security: "Security",
     wallet: "Wallet",
@@ -87,13 +87,14 @@ export const en = {
     terms: "Terms",
     faq: "FAQ",
     groupOverview: "Overview",
-    groupDiscover: "Discover",
-    groupEngage: "Engage",
+    groupDiscover: "Marketplace",
+    groupEngage: "Activity",
     groupAccount: "Account",
     groupProjects: "Projects",
     groupManage: "Manage",
     groupSystem: "System",
-    browseMarketplace: "Browse marketplace",
+    browseMarketplace: "All projects",
+    home: "Home",
   },
   footer: {
     tagline:
@@ -1409,6 +1410,168 @@ export const en = {
       complaint: "Complaint",
       user_update: "Account",
       general: "General",
+    },
+    milestoneStatus: {
+      draft: "draft",
+      proposed: "proposed",
+      negotiating: "negotiating",
+      agreed: "agreed",
+      active: "active",
+      completed: "completed",
+      cancelled: "cancelled",
+    },
+    templates: {
+      membershipActive: {
+        title: "Platform access is active",
+        body: "Full data rooms, messaging, offers, and milestone planning are unlocked. This is a platform fee, not investment capital.",
+      },
+      membershipPaidAdmin: {
+        title: "Service fee paid",
+        body: "An investor activated platform access ({amount}).",
+      },
+      welcomeInvestor: {
+        title: "Welcome, investor",
+        body: "Browse the marketplace, unlock full diligence with the service fee, then message owners and send offers.",
+      },
+      welcomeOwner: {
+        title: "Welcome, project owner",
+        body: "Create your first project and submit it for review. Investors will see it once it is published.",
+      },
+      newAccountAdmin: {
+        title: "New account registered",
+        body: "{name} joined as {role} ({email}).",
+      },
+      projectSubmittedOwner: {
+        title: "Project submitted for review",
+        body: "“{projectTitle}” is in the review queue. Investors will see it after it is published.",
+      },
+      projectPendingAdmin: {
+        title: "A new project is awaiting review",
+        body: "“{projectTitle}” has been submitted for approval.",
+      },
+      projectPublishedOwner: {
+        title: "Your project was approved",
+        body: "“{projectTitle}” passed review and is now available on the platform.",
+      },
+      projectPublishedInvestor: {
+        title: "New project on the marketplace",
+        body: "“{projectTitle}” was just published. Open it to review the opportunity.",
+      },
+      projectRejected: {
+        title: "Project rejected",
+        body: "“{projectTitle}” was not approved at this time. Check messages and resubmit.",
+        bodyWithReason: "“{projectTitle}” was rejected. Reason: {reason}",
+      },
+      projectFunded: {
+        title: "Project funded",
+        body: "“{projectTitle}” reached its funding goal.",
+      },
+      projectClosed: {
+        title: "Project closed",
+        body: "“{projectTitle}” is no longer open for new offers.",
+      },
+      offerReceived: {
+        title: "New investment offer",
+        body: "{investorName} offered {amount} on {projectTitle}.",
+      },
+      offerAccepted: {
+        title: "Offer accepted",
+        body: "The owner accepted your {amount} offer for {projectTitle}. The amount is now tracked in your investments.",
+      },
+      offerRejected: {
+        title: "Offer declined",
+        body: "The owner declined your {amount} offer for {projectTitle}. You can browse other projects or send a revised offer.",
+      },
+      offerNegotiating: {
+        title: "Offer in negotiation",
+        body: "The owner opened negotiation on your {amount} offer for {projectTitle}. Reply on-platform to agree terms.",
+      },
+      newMessage: {
+        title: "New message · {projectTitle}",
+        body: "{senderName}: {preview}",
+        attachment: "Sent an attachment",
+      },
+      kycSubmitted: {
+        title: "Verification submitted",
+        body: "Your KYC documents are in review. We will notify you when the status changes.",
+      },
+      kycAwaitingAdmin: {
+        title: "KYC awaiting review",
+        body: "{name} submitted identity documents.",
+      },
+      milestoneCreated: {
+        title: "New milestone plan",
+        body: "{investorName} proposed milestones for {projectTitle}.",
+      },
+      milestoneUpdated: {
+        title: "Milestone plan updated",
+        body: "The milestone plan for {projectTitle} is now {status}.",
+      },
+      contactBlocked: {
+        title: "Contact details removed",
+        body: "External contact info was stripped from your message. Keep conversations on-platform.",
+      },
+      flaggedChat: {
+        title: "Flagged chat message",
+        body: "{senderName} tried to share off-platform contact details on “{projectTitle}”.",
+      },
+      newComplaint: {
+        title: "New complaint",
+        body: "{subject}",
+      },
+      contactForm: {
+        title: "Contact form message",
+        body: "{name} ({email}) sent a public contact request.",
+      },
+      roleChanged: {
+        title: "Account role updated",
+        body: "Your account role is now {role}. Sign in again if workspace links look stale.",
+      },
+      emailVerified: {
+        title: "Email verified",
+        body: "Your email address has been verified successfully.",
+      },
+      walletDeposit: {
+        title: "Deposit received",
+        body: "Your wallet was credited with {amount}.",
+      },
+      withdrawalCreated: {
+        title: "Withdrawal requested",
+        body: "Your withdrawal of {amount} is pending approval.",
+      },
+      investmentFunded: {
+        title: "Investment funded",
+        body: "Your investment of {amount} has been funded successfully.",
+      },
+      returnAvailable: {
+        title: "Return available",
+        body: "A return of {amount} is available for your investment.",
+      },
+      disputeCreated: {
+        title: "New dispute filed",
+        body: "{subject}",
+      },
+      kybSubmitted: {
+        title: "KYB submission pending",
+        body: "{name} submitted KYB documents for review.",
+      },
+      kybApproved: {
+        title: "KYB approved",
+        body: "Your company verification (KYB) has been approved.",
+      },
+      kybRejected: {
+        title: "KYB rejected",
+        body: "Your KYB submission was rejected. Please resubmit.",
+        bodyWithReason: "Your KYB submission was rejected. {reason}",
+      },
+      listingsLive: {
+        title: "Your listings are live",
+        body: "Your projects are published. You will be notified when investors send offers or messages.",
+      },
+      moderationInboxLive: {
+        title: "Moderation inbox is live",
+        body: "You will get realtime alerts for new accounts, pending projects, KYC, complaints, and flagged chat.",
+      },
     },
   },
   roles: {

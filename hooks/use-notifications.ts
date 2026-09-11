@@ -8,6 +8,8 @@ import { API_BASE_URL, QUERY_KEYS } from "@/constants";
 import { notificationsApi } from "@/services/api";
 import { getAccessToken } from "@/services/api/client";
 import { useAuthStore } from "@/store";
+import { useI18n } from "@/hooks";
+import { getNotificationCopy } from "@/lib/notification-copy";
 import type { Notification } from "@/types";
 
 type StreamPayload = {
@@ -79,9 +81,14 @@ export function useMarkAllNotificationsRead() {
 export function useNotificationStream() {
   const queryClient = useQueryClient();
   const { isAuthenticated } = useAuthStore();
+  const { t, locale } = useI18n();
   const pathname = usePathname();
   const pathnameRef = useRef(pathname);
   pathnameRef.current = pathname;
+  const tRef = useRef(t);
+  tRef.current = t;
+  const localeRef = useRef(locale);
+  localeRef.current = locale;
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -99,8 +106,9 @@ export function useNotificationStream() {
       const onMessages = pathnameRef.current.includes("/messages");
       if (payload.notification.type === "message" && onMessages) return;
 
-      toast(payload.notification.title, {
-        description: payload.notification.message,
+      const copy = getNotificationCopy(payload.notification, tRef.current, localeRef.current);
+      toast(copy.title, {
+        description: copy.message,
         duration: payload.notification.priority === "high" ? 7000 : 4500,
       });
     };

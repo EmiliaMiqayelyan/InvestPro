@@ -57,16 +57,16 @@ export const hy: EnMessages = {
     howItWorks: "Ինչպե՞ս է աշխատում",
     forInvestors: "Ներդրողներ",
     forOwners: "Նախագծերի սեփականատերեր",
-    membership: "Ծառայավճար",
-    serviceFee: "Ծառայավճար",
+    membership: "Հարթակի մուտք",
+    serviceFee: "Հարթակի մուտք",
     about: "Մեր մասին",
     contact: "Կապ",
     marketplace: "Նախագծերի շուկա",
-    myInvestments: "Իմ ներդրումները",
+    myInvestments: "Ներդրումներ",
     milestones: "Նշաձողեր",
-    saved: "Պահված",
+    saved: "Պահված նախագծեր",
     messages: "Հաղորդագրություններ",
-    verification: "Ստուգում",
+    verification: "Նույնականացում",
     profile: "Պրոֆիլ",
     security: "Անվտանգություն",
     wallet: "Դրամապանակ",
@@ -88,14 +88,15 @@ export const hy: EnMessages = {
     privacy: "Գաղտնիություն",
     terms: "Պայմաններ",
     faq: "ՀՏՀ",
-    groupOverview: "Ամփոփ",
-    groupDiscover: "Բացահայտել",
-    groupEngage: "Համագործակցություն",
+    groupOverview: "Ակնարկ",
+    groupDiscover: "Շուկա",
+    groupEngage: "Գործունեություն",
     groupAccount: "Հաշիվ",
     groupProjects: "Նախագծեր",
     groupManage: "Կառավարում",
     groupSystem: "Համակարգ",
-    browseMarketplace: "Դիտել շուկան",
+    browseMarketplace: "Բոլոր նախագծերը",
+    home: "Գլխավոր էջ",
   },
   footer: {
     tagline:
@@ -1423,6 +1424,168 @@ export const hy: EnMessages = {
       complaint: "Բողոք",
       user_update: "Հաշիվ",
       general: "Ընդհանուր",
+    },
+    milestoneStatus: {
+      draft: "սևագիր",
+      proposed: "առաջարկված",
+      negotiating: "բանակցության մեջ",
+      agreed: "համաձայնեցված",
+      active: "ակտիվ",
+      completed: "ավարտված",
+      cancelled: "չեղարկված",
+    },
+    templates: {
+      membershipActive: {
+        title: "Հարթակի հասանելիությունն ակտիվ է",
+        body: "Լրիվ տվյալների սենյակները, հաղորդագրությունները, առաջարկները և նշաձողերի պլանավորումն այժմ բաց են։ Սա հարթակի վճար է, ոչ թե ներդրումային կապիտալ։",
+      },
+      membershipPaidAdmin: {
+        title: "Ծառայավճարը վճարված է",
+        body: "Ներդրողը ակտիվացրել է հարթակի հասանելիությունը ({amount})։",
+      },
+      welcomeInvestor: {
+        title: "Բարի գալուստ, ներդրող",
+        body: "Դիտեք շուկան, բացեք լրիվ ստուգումը ծառայավճարով, ապա շփվեք սեփականատերերի հետ և ուղարկեք առաջարկներ։",
+      },
+      welcomeOwner: {
+        title: "Բարի գալուստ, նախագծի սեփականատեր",
+        body: "Ստեղծեք ձեր առաջին նախագիծը և ուղարկեք այն վերանայման։ Ներդրողները կտեսնեն այն հրապարակումից հետո։",
+      },
+      newAccountAdmin: {
+        title: "Նոր հաշիվ է գրանցվել",
+        body: "{name}-ը միացել է որպես {role} ({email})։",
+      },
+      projectSubmittedOwner: {
+        title: "Նախագիծը ուղարկվել է վերանայման",
+        body: "«{projectTitle}» նախագիծը վերանայման հերթում է։ Ներդրողները կտեսնեն այն հրապարակումից հետո։",
+      },
+      projectPendingAdmin: {
+        title: "Նոր նախագիծ է սպասում ստուգման",
+        body: "«{projectTitle}» նախագիծը ուղարկվել է հաստատման։",
+      },
+      projectPublishedOwner: {
+        title: "Ձեր նախագիծը հաստատվել է",
+        body: "Ձեր «{projectTitle}» նախագիծը հաջողությամբ անցել է ստուգումը և այժմ հասանելի է հարթակում։",
+      },
+      projectPublishedInvestor: {
+        title: "Նոր նախագիծ շուկայում",
+        body: "«{projectTitle}» նախագիծը հենց նոր հրապարակվեց։ Բացեք այն հնարավորությունը ուսումնասիրելու համար։",
+      },
+      projectRejected: {
+        title: "Նախագիծը մերժվել է",
+        body: "«{projectTitle}» նախագիծը այս պահին չի հաստատվել։ Ստուգեք հաղորդագրությունները և կրկին ուղարկեք։",
+        bodyWithReason: "«{projectTitle}» նախագիծը մերժվել է։ Պատճառ՝ {reason}",
+      },
+      projectFunded: {
+        title: "Նախագիծը ֆինանսավորվել է",
+        body: "«{projectTitle}» նախագիծը հասել է ֆինանսավորման նպատակին։",
+      },
+      projectClosed: {
+        title: "Նախագիծը փակված է",
+        body: "«{projectTitle}» նախագիծն այլևս բաց չէ նոր առաջարկների համար։",
+      },
+      offerReceived: {
+        title: "Նոր ներդրումային առաջարկ",
+        body: "{investorName}-ը {amount} առաջարկ է արել «{projectTitle}» նախագծի համար։",
+      },
+      offerAccepted: {
+        title: "Առաջարկը ընդունվել է",
+        body: "Սեփականատերը ընդունել է ձեր {amount} առաջարկը «{projectTitle}» նախագծի համար։ Գումարը այժմ հետևվում է ձեր ներդրումներում։",
+      },
+      offerRejected: {
+        title: "Առաջարկը մերժվել է",
+        body: "Սեփականատերը մերժել է ձեր {amount} առաջարկը «{projectTitle}» նախագծի համար։ Կարող եք դիտել այլ նախագծեր կամ ուղարկել նոր առաջարկ։",
+      },
+      offerNegotiating: {
+        title: "Առաջարկը բանակցության մեջ է",
+        body: "Սեփականատերը բանակցություն է սկսել ձեր {amount} առաջարկի շուրջ «{projectTitle}» նախագծի համար։ Պատասխանեք հարթակում՝ պայմանները համաձայնեցնելու համար։",
+      },
+      newMessage: {
+        title: "Նոր հաղորդագրություն · {projectTitle}",
+        body: "{senderName}: {preview}",
+        attachment: "Կցված ֆայլ է ուղարկվել",
+      },
+      kycSubmitted: {
+        title: "Ստուգումը ուղարկվել է",
+        body: "Ձեր KYC փաստաթղթերը վերանայվում են։ Կտեղեկացնենք, երբ կարգավիճակը փոխվի։",
+      },
+      kycAwaitingAdmin: {
+        title: "KYC-ն սպասում է վերանայման",
+        body: "{name}-ը ուղարկել է ինքնության փաստաթղթեր։",
+      },
+      milestoneCreated: {
+        title: "Նոր նշաձողային պլան",
+        body: "{investorName}-ը նշաձողեր է առաջարկել «{projectTitle}» նախագծի համար։",
+      },
+      milestoneUpdated: {
+        title: "Նշաձողային պլանը թարմացվել է",
+        body: "«{projectTitle}» նախագծի նշաձողային պլանն այժմ {status} է։",
+      },
+      contactBlocked: {
+        title: "Կոնտակտային տվյալները հեռացվել են",
+        body: "Արտաքին կոնտակտային տվյալները հեռացվել են ձեր հաղորդագրությունից։ Զրույցները պահեք հարթակում։",
+      },
+      flaggedChat: {
+        title: "Նշված զրույց",
+        body: "{senderName}-ը փորձել է կիսվել հարթակից դուրս կոնտակտային տվյալներով «{projectTitle}» նախագծում։",
+      },
+      newComplaint: {
+        title: "Նոր բողոք",
+        body: "{subject}",
+      },
+      contactForm: {
+        title: "Կապի ձևի հաղորդագրություն",
+        body: "{name}-ը ({email}) ուղարկել է հանրային կապի հարցում։",
+      },
+      roleChanged: {
+        title: "Հաշվի դերը թարմացվել է",
+        body: "Ձեր հաշվի դերն այժմ {role} է։ Եթե աշխատանքային հղումները հնացած են, մուտք գործեք կրկին։",
+      },
+      emailVerified: {
+        title: "Էլ․ փոստը հաստատված է",
+        body: "Ձեր էլ․ փոստի հասցեն հաջողությամբ հաստատվել է։",
+      },
+      walletDeposit: {
+        title: "Ավանդը ստացվել է",
+        body: "Ձեր դրամապանակին գումարվել է {amount}։",
+      },
+      withdrawalCreated: {
+        title: "Ելքագրման հայտ",
+        body: "Ձեր {amount} ելքագրումը սպասում է հաստատման։",
+      },
+      investmentFunded: {
+        title: "Ներդրումը ֆինանսավորվել է",
+        body: "Ձեր {amount} ներդրումը հաջողությամբ ֆինանսավորվել է։",
+      },
+      returnAvailable: {
+        title: "Եկամուտը հասանելի է",
+        body: "Ձեր ներդրման համար հասանելի է {amount} եկամուտ։",
+      },
+      disputeCreated: {
+        title: "Նոր վեճ է ներկայացվել",
+        body: "{subject}",
+      },
+      kybSubmitted: {
+        title: "KYB հայտը սպասում է",
+        body: "{name}-ը ուղարկել է KYB փաստաթղթեր վերանայման։",
+      },
+      kybApproved: {
+        title: "KYB-ն հաստատվել է",
+        body: "Ձեր ընկերության ստուգումը (KYB) հաստատվել է։",
+      },
+      kybRejected: {
+        title: "KYB-ն մերժվել է",
+        body: "Ձեր KYB հայտը մերժվել է։ Խնդրում ենք կրկին ուղարկել։",
+        bodyWithReason: "Ձեր KYB հայտը մերժվել է։ {reason}",
+      },
+      listingsLive: {
+        title: "Ձեր հայտարարությունները հրապարակված են",
+        body: "Ձեր նախագծերը հրապարակված են։ Կտեղեկացվեք, երբ ներդրողները առաջարկ կամ հաղորդագրություն ուղարկեն։",
+      },
+      moderationInboxLive: {
+        title: "Մոդերացիայի մուտքարկղն ակտիվ է",
+        body: "Կստանաք իրական ժամանակի ահազանգեր նոր հաշիվների, սպասող նախագծերի, KYC-ի, բողոքների և նշված զրույցների համար։",
+      },
     },
   },
   roles: {

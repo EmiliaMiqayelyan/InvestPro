@@ -484,6 +484,7 @@ function initStore(): DevStore {
       isRead: false,
       href: "/investor/projects",
       priority: "high",
+      metadata: { template: "membershipActive" },
       createdAt: now,
     },
   ]);
@@ -497,6 +498,7 @@ function initStore(): DevStore {
         "Horizon Labs projects are published. You will be notified when investors send offers or messages.",
       isRead: false,
       href: "/owner/offers",
+      metadata: { template: "listingsLive" },
       createdAt: now,
     },
   ]);
@@ -510,6 +512,7 @@ function initStore(): DevStore {
         "You will get realtime alerts for new accounts, pending projects, KYC, complaints, and flagged chat.",
       isRead: false,
       href: "/admin/security",
+      metadata: { template: "moderationInboxLive" },
       createdAt: now,
     },
   ]);

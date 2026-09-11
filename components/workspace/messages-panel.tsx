@@ -23,7 +23,7 @@ function draftContainsContact(text: string): boolean {
 
 export function MessagesPanel() {
   const { user } = useAuth();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const queryClient = useQueryClient();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
@@ -121,7 +121,7 @@ export function MessagesPanel() {
                 <p className="text-xs text-muted-foreground">
                   {user?.role === "investor" ? selected.ownerName : selected.investorName}
                   {selected.lastMessageAt
-                    ? ` · ${formatRelativeTime(selected.lastMessageAt)}`
+                    ? ` · ${formatRelativeTime(selected.lastMessageAt, locale)}`
                     : ""}
                 </p>
               </div>

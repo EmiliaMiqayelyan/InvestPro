@@ -25,9 +25,10 @@ import {
 } from "@/hooks/use-notifications";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { formatRelativeTime } from "@/utils/format";
-import type { Notification, NotificationType } from "@/types";
+import { getNotificationCopy } from "@/lib/notification-copy";
 import type { TranslationKey } from "@/i18n";
+import type { Notification, NotificationType } from "@/types";
+import { formatRelativeTime } from "@/utils/format";
 
 const TYPE_META: Record<
   NotificationType,
@@ -95,7 +96,7 @@ const PANEL_GAP = 8;
 const VIEWPORT_PAD = 12;
 
 export function NotificationCenter() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -208,6 +209,7 @@ export function NotificationCenter() {
                 {items.map((item) => {
                   const meta = TYPE_META[item.type] || TYPE_META.general;
                   const Icon = meta.icon;
+                  const copy = getNotificationCopy(item, t, locale);
                   return (
                     <button
                       key={item.id}
@@ -228,18 +230,18 @@ export function NotificationCenter() {
                       </span>
                       <span className="min-w-0 flex-1">
                         <span className="flex items-start justify-between gap-2">
-                          <span className="text-sm font-medium text-foreground">{item.title}</span>
+                          <span className="text-sm font-medium text-foreground">{copy.title}</span>
                           {!item.isRead && (
                             <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-primary" />
                           )}
                         </span>
                         <span className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
-                          {item.message}
+                          {copy.message}
                         </span>
                         <span className="mt-1.5 flex items-center gap-2 text-[11px] text-muted-foreground">
                           <span>{t(meta.labelKey)}</span>
                           <span>·</span>
-                          <span>{formatRelativeTime(item.createdAt)}</span>
+                          <span>{formatRelativeTime(item.createdAt, locale)}</span>
                         </span>
                       </span>
                     </button>

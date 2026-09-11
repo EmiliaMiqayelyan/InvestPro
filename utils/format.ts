@@ -1,4 +1,6 @@
 import { format, formatDistanceToNow, parseISO } from "date-fns";
+import { enUS, hy } from "date-fns/locale";
+import type { Locale } from "@/i18n/config";
 
 export function formatCurrency(
   amount: number,
@@ -44,9 +46,9 @@ export function formatDate(date: string | Date, pattern = "MMM dd, yyyy"): strin
   return format(d, pattern);
 }
 
-export function formatRelativeTime(date: string | Date): string {
+export function formatRelativeTime(date: string | Date, locale: Locale = "en"): string {
   const d = typeof date === "string" ? parseISO(date) : date;
-  return formatDistanceToNow(d, { addSuffix: true });
+  return formatDistanceToNow(d, { addSuffix: true, locale: locale === "hy" ? hy : enUS });
 }
 
 export function calculateROI(amount: number, roiPercentage: number): number {

@@ -216,7 +216,7 @@ async function draftsForEvent(event: NotificationEvent): Promise<NotificationDra
             ? "Create your first project and submit it for review. Investors will see it once it is published."
             : "Browse the marketplace, unlock full diligence with the service fee, then message owners and send offers.",
         href: home,
-        metadata: { role: event.role },
+        metadata: { template: event.role === "project_owner" ? "welcomeOwner" : "welcomeInvestor", role: event.role },
       };
       const admins = await listUserIdsByRole("admin");
       return [
@@ -227,7 +227,7 @@ async function draftsForEvent(event: NotificationEvent): Promise<NotificationDra
           title: "New account registered",
           message: `${event.name} joined as ${event.role.replace("_", " ")} (${event.email}).`,
           href: hrefForRole("admin", "user_update"),
-          metadata: { userId: event.userId, role: event.role },
+          metadata: { template: "newAccountAdmin", userId: event.userId, role: event.role, name: event.name, email: event.email },
         })),
       ];
     }
@@ -242,7 +242,15 @@ async function draftsForEvent(event: NotificationEvent): Promise<NotificationDra
           href: hrefForRole("project_owner", "offer_received", { projectId: offer.projectId }),
           priority: "high",
           email: true,
-          metadata: { offerId: offer.id, projectId: offer.projectId, investorId: offer.investorId },
+          metadata: {
+            template: "offerReceived",
+            offerId: offer.id,
+            projectId: offer.projectId,
+            investorId: offer.investorId,
+            investorName: offer.investorName,
+            amount: offer.amount,
+            projectTitle: offer.projectTitle,
+          },
         },
       ];
     }
@@ -269,7 +277,19 @@ async function draftsForEvent(event: NotificationEvent): Promise<NotificationDra
           href: hrefForRole("investor", "offer_updated", { projectId: offer.projectId }),
           priority: "high",
           email: true,
-          metadata: { offerId: offer.id, projectId: offer.projectId, status: offer.status },
+          metadata: {
+            template:
+              offer.status === "accepted"
+                ? "offerAccepted"
+                : offer.status === "rejected"
+                  ? "offerRejected"
+                  : "offerNegotiating",
+            offerId: offer.id,
+            projectId: offer.projectId,
+            status: offer.status,
+            amount: offer.amount,
+            projectTitle: offer.projectTitle,
+          },
         },
       ];
     }
@@ -292,9 +312,13 @@ async function draftsForEvent(event: NotificationEvent): Promise<NotificationDra
             projectId: event.conversation.projectId,
           }),
           metadata: {
+            template: "newMessage",
             conversationId: event.conversation.id,
             projectId: event.conversation.projectId,
             senderId: event.message.senderId,
+            projectTitle: event.conversation.projectTitle,
+            senderName: event.message.senderName,
+            preview,
           },
         },
       ];
@@ -310,7 +334,7 @@ async function draftsForEvent(event: NotificationEvent): Promise<NotificationDra
             "Full data rooms, messaging, offers, and milestone planning are unlocked. This is a platform fee, not investment capital.",
           href: hrefForRole("investor", "membership"),
           priority: "high",
-          metadata: { amount: event.amount },
+          metadata: { template: "membershipActive", amount: event.amount },
         },
         ...admins.map((userId) => ({
           userId,
@@ -318,7 +342,7 @@ async function draftsForEvent(event: NotificationEvent): Promise<NotificationDra
           title: "Service fee paid",
           message: `An investor activated platform access (${money(event.amount)}).`,
           href: hrefForRole("admin", "membership"),
-          metadata: { payerId: event.userId, amount: event.amount },
+          metadata: { template: "membershipPaidAdmin", payerId: event.userId, amount: event.amount },
         })),
       ];
     }
@@ -331,7 +355,7 @@ async function draftsForEvent(event: NotificationEvent): Promise<NotificationDra
           title: "Verification submitted",
           message: "Your KYC documents are in review. We will notify you when the status changes.",
           href: hrefForRole("investor", "kyc_update"),
-          metadata: { status: "pending" },
+          metadata: { template: "kycSubmitted", status: "pending" },
         },
         ...admins.map((userId) => ({
           userId,
@@ -340,7 +364,7 @@ async function draftsForEvent(event: NotificationEvent): Promise<NotificationDra
           message: `${event.name} submitted identity documents.`,
           href: hrefForRole("admin", "kyc_update"),
           priority: "high" as const,
-          metadata: { userId: event.userId },
+          metadata: { template: "kycAwaitingAdmin", userId: event.userId, name: event.name },
         })),
       ];
     }
@@ -354,7 +378,7 @@ async function draftsForEvent(event: NotificationEvent): Promise<NotificationDra
           title: "Project submitted for review",
           message: `“${project.title}” is in the review queue. Investors will see it after it is published.`,
           href: hrefForRole("project_owner", "project_update", { projectId: project.id }),
-          metadata: { projectId: project.id, status: project.status },
+          metadata: { template: "projectSubmittedOwner", projectId: project.id, status: project.status, projectTitle: project.title },
         },
         ...admins.map((userId) => ({
           userId,
@@ -363,7 +387,7 @@ async function draftsForEvent(event: NotificationEvent): Promise<NotificationDra
           message: `«${project.title}» նախագիծը ուղարկվել է հաստատման։`,
           href: hrefForRole("admin", "project_update", { projectId: project.id }),
           priority: "high" as const,
-          metadata: { projectId: project.id },
+          metadata: { template: "projectPendingAdmin", projectId: project.id, projectTitle: project.title },
         })),
       ];
     }
@@ -379,7 +403,7 @@ async function draftsForEvent(event: NotificationEvent): Promise<NotificationDra
           href: hrefForRole("project_owner", "project_update", { projectId: project.id }),
           priority: "high",
           email: true,
-          metadata: { projectId: project.id, status },
+          metadata: { template: "projectPublishedOwner", projectId: project.id, status, projectTitle: project.title },
         });
         const investors = await listUserIdsByRole("investor");
         for (const investorId of investors) {
@@ -389,7 +413,7 @@ async function draftsForEvent(event: NotificationEvent): Promise<NotificationDra
             title: "New project on the marketplace",
             message: `“${project.title}” was just published. Open it to review the opportunity.`,
             href: hrefForRole("investor", "project_update", { projectId: project.id }),
-            metadata: { projectId: project.id, status },
+            metadata: { template: "projectPublishedInvestor", projectId: project.id, status, projectTitle: project.title },
           });
         }
       } else if (status === "rejected") {
@@ -404,7 +428,7 @@ async function draftsForEvent(event: NotificationEvent): Promise<NotificationDra
           href: ROUTES.OWNER_MESSAGES,
           priority: "high",
           email: true,
-          metadata: { projectId: project.id, status, rejectionReason: reasonText },
+          metadata: { template: "projectRejected", projectId: project.id, status, rejectionReason: reasonText, projectTitle: project.title },
         });
       } else if (status === "funded") {
         drafts.push({
@@ -415,7 +439,7 @@ async function draftsForEvent(event: NotificationEvent): Promise<NotificationDra
           href: hrefForRole("project_owner", "project_update", { projectId: project.id }),
           priority: "high",
           email: true,
-          metadata: { projectId: project.id, status },
+          metadata: { template: "projectFunded", projectId: project.id, status, projectTitle: project.title },
         });
       } else if (status === "closed") {
         drafts.push({
@@ -424,7 +448,7 @@ async function draftsForEvent(event: NotificationEvent): Promise<NotificationDra
           title: "Project closed",
           message: `“${project.title}” is no longer open for new offers.`,
           href: hrefForRole("project_owner", "project_update", { projectId: project.id }),
-          metadata: { projectId: project.id, status },
+          metadata: { template: "projectClosed", projectId: project.id, status, projectTitle: project.title },
         });
       } else if (status === "pending_review") {
         const admins = await listUserIdsByRole("admin");
@@ -436,7 +460,7 @@ async function draftsForEvent(event: NotificationEvent): Promise<NotificationDra
             message: `«${project.title}» նախագիծը ուղարկվել է հաստատման։`,
             href: hrefForRole("admin", "project_update", { projectId: project.id }),
             priority: "high" as const,
-            metadata: { projectId: project.id },
+            metadata: { template: "projectPendingAdmin", projectId: project.id, projectTitle: project.title },
           }))
         );
       }
@@ -452,7 +476,13 @@ async function draftsForEvent(event: NotificationEvent): Promise<NotificationDra
           message: `${plan.investorName} proposed milestones for ${plan.projectTitle}.`,
           href: hrefForRole("project_owner", "milestone_update", { projectId: plan.projectId }),
           priority: "high",
-          metadata: { planId: plan.id, projectId: plan.projectId },
+          metadata: {
+            template: "milestoneCreated",
+            planId: plan.id,
+            projectId: plan.projectId,
+            investorName: plan.investorName,
+            projectTitle: plan.projectTitle,
+          },
         },
       ];
     }
@@ -467,7 +497,13 @@ async function draftsForEvent(event: NotificationEvent): Promise<NotificationDra
           title: "Milestone plan updated",
           message: `The milestone plan for ${plan.projectTitle} is now ${plan.status.replace("_", " ")}.`,
           href: hrefForRole(recipientRole, "milestone_update", { projectId: plan.projectId }),
-          metadata: { planId: plan.id, projectId: plan.projectId, status: plan.status },
+          metadata: {
+            template: "milestoneUpdated",
+            planId: plan.id,
+            projectId: plan.projectId,
+            status: plan.status,
+            projectTitle: plan.projectTitle,
+          },
         },
       ];
     }
@@ -487,7 +523,7 @@ async function draftsForEvent(event: NotificationEvent): Promise<NotificationDra
           message:
             "External contact info was stripped from your message. Keep conversations on-platform.",
           href: hrefForRole(senderRole, "security_alert"),
-          metadata: { conversationId: event.conversation.id },
+          metadata: { template: "contactBlocked", conversationId: event.conversation.id },
         },
         ...admins.map((userId) => ({
           userId,
@@ -497,9 +533,12 @@ async function draftsForEvent(event: NotificationEvent): Promise<NotificationDra
           href: hrefForRole("admin", "security_alert"),
           priority: "high" as const,
           metadata: {
+            template: "flaggedChat",
             conversationId: event.conversation.id,
             senderId: event.senderId,
             recipientId,
+            senderName: event.senderName,
+            projectTitle: event.conversation.projectTitle,
           },
         })),
       ];
@@ -513,7 +552,7 @@ async function draftsForEvent(event: NotificationEvent): Promise<NotificationDra
         message: event.complaint.subject,
         href: hrefForRole("admin", "complaint"),
         priority: "high" as const,
-        metadata: { complaintId: event.complaint.id },
+        metadata: { template: "newComplaint", complaintId: event.complaint.id, subject: event.complaint.subject },
       }));
     }
     case "contact_form": {
@@ -524,7 +563,7 @@ async function draftsForEvent(event: NotificationEvent): Promise<NotificationDra
         title: "Contact form message",
         message: `${event.name} (${event.email}) sent a public contact request.`,
         href: hrefForRole("admin", "general"),
-        metadata: { email: event.email },
+        metadata: { template: "contactForm", email: event.email, name: event.name },
       }));
     }
     case "role_changed": {
@@ -542,7 +581,7 @@ async function draftsForEvent(event: NotificationEvent): Promise<NotificationDra
           message: `Your account role is now ${event.role.replace("_", " ")}. Sign in again if workspace links look stale.`,
           href,
           priority: "high",
-          metadata: { role: event.role },
+          metadata: { template: "roleChanged", role: event.role },
         },
       ];
     }
@@ -553,6 +592,7 @@ async function draftsForEvent(event: NotificationEvent): Promise<NotificationDra
         title: "Email verified",
         message: "Your email address has been verified successfully.",
         href: ROUTES.INVESTOR_DASHBOARD,
+        metadata: { template: "emailVerified" },
       }];
     case "wallet_deposit":
       return [{
@@ -562,6 +602,7 @@ async function draftsForEvent(event: NotificationEvent): Promise<NotificationDra
         message: `Your wallet was credited with ${money(event.amount)}.`,
         href: ROUTES.INVESTOR_DASHBOARD,
         email: true,
+        metadata: { template: "walletDeposit", amount: event.amount },
       }];
     case "withdrawal_created":
       return [{
@@ -570,6 +611,7 @@ async function draftsForEvent(event: NotificationEvent): Promise<NotificationDra
         title: "Withdrawal requested",
         message: `Your withdrawal of ${money(event.amount)} is pending approval.`,
         href: ROUTES.INVESTOR_DASHBOARD,
+        metadata: { template: "withdrawalCreated", amount: event.amount },
       }];
     case "investment_funded":
       return [{
@@ -580,7 +622,12 @@ async function draftsForEvent(event: NotificationEvent): Promise<NotificationDra
         href: ROUTES.INVESTOR_INVESTMENTS,
         priority: "high",
         email: true,
-        metadata: { investmentId: event.investmentId, projectId: event.projectId },
+        metadata: {
+          template: "investmentFunded",
+          investmentId: event.investmentId,
+          projectId: event.projectId,
+          amount: event.amount,
+        },
       }];
     case "return_available":
       return [{
@@ -590,6 +637,7 @@ async function draftsForEvent(event: NotificationEvent): Promise<NotificationDra
         message: `A return of ${money(event.amount)} is available for your investment.`,
         href: ROUTES.INVESTOR_INVESTMENTS,
         email: true,
+        metadata: { template: "returnAvailable", amount: event.amount },
       }];
     case "dispute_created": {
       const admins = await listUserIdsByRole("admin");
@@ -600,7 +648,7 @@ async function draftsForEvent(event: NotificationEvent): Promise<NotificationDra
         message: event.subject,
         href: ROUTES.ADMIN_COMPLAINTS,
         priority: "high" as const,
-        metadata: { disputeId: event.disputeId },
+        metadata: { template: "disputeCreated", disputeId: event.disputeId, subject: event.subject },
       }));
     }
     case "kyb_submitted": {
@@ -611,7 +659,7 @@ async function draftsForEvent(event: NotificationEvent): Promise<NotificationDra
         title: "KYB submission pending",
         message: `${event.name} submitted KYB documents for review.`,
         href: ROUTES.ADMIN_SECURITY,
-        metadata: { userId: event.userId },
+        metadata: { template: "kybSubmitted", userId: event.userId, name: event.name },
       }));
     }
     case "kyb_approved":
@@ -622,6 +670,7 @@ async function draftsForEvent(event: NotificationEvent): Promise<NotificationDra
         message: "Your company verification (KYB) has been approved.",
         href: ROUTES.OWNER_DASHBOARD,
         email: true,
+        metadata: { template: "kybApproved" },
       }];
     case "kyb_rejected":
       return [{
@@ -631,6 +680,7 @@ async function draftsForEvent(event: NotificationEvent): Promise<NotificationDra
         message: event.rejectionReason || "Your KYB submission was rejected. Please resubmit.",
         href: ROUTES.OWNER_DASHBOARD,
         priority: "high",
+        metadata: { template: "kybRejected", rejectionReason: event.rejectionReason || "" },
       }];
   }
 }
