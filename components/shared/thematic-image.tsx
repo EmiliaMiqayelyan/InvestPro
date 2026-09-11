@@ -7,7 +7,6 @@ type ThematicImageProps = {
   src: string;
   alt: string;
   className?: string;
-  /** dark gradient overlay for text-on-image */
   overlay?: "none" | "light" | "dark" | "bottom";
   priority?: boolean;
   sizes?: string;

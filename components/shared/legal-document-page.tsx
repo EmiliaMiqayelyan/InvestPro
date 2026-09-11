@@ -5,8 +5,39 @@ import { MarketingHeader, MarketingFooter } from "@/components/layout/marketing-
 import { PageHeroBanner } from "@/components/shared/page-hero-banner";
 import { SUPPORT_EMAIL, ROUTES } from "@/constants";
 import { useI18n } from "@/hooks";
+import { cn } from "@/lib/utils";
 
-type Section = { title: string; body: string };
+export type LegalSection = {
+  title: string;
+  body?: string;
+  items?: string[];
+  after?: string;
+  emailLabel?: string;
+};
+
+function LegalText({ text, className }: { text: string; className?: string }) {
+  const parts = text.split("{email}");
+
+  return (
+    <p className={cn("mt-3 text-sm leading-relaxed text-muted-foreground whitespace-pre-line", className)}>
+      {parts.length === 1
+        ? text
+        : parts.map((part, index) => (
+            <span key={index}>
+              {part}
+              {index < parts.length - 1 && (
+                <a
+                  href={`mailto:${SUPPORT_EMAIL}`}
+                  className="font-medium text-foreground underline-offset-4 hover:underline"
+                >
+                  {SUPPORT_EMAIL}
+                </a>
+              )}
+            </span>
+          ))}
+    </p>
+  );
+}
 
 export function LegalDocumentPage({
   eyebrow,
@@ -19,7 +50,7 @@ export function LegalDocumentPage({
   title: string;
   subtitle: string;
   updated: string;
-  sections: Section[];
+  sections: LegalSection[];
 }) {
   const { t } = useI18n();
 
@@ -40,9 +71,26 @@ export function LegalDocumentPage({
               <h2 className="font-display text-xl font-semibold text-foreground">
                 {section.title}
               </h2>
-              <p className="mt-3 text-sm leading-relaxed text-muted-foreground whitespace-pre-line">
-                {section.body.replace("{email}", SUPPORT_EMAIL)}
-              </p>
+              {section.body && <LegalText text={section.body} />}
+              {section.items && section.items.length > 0 && (
+                <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-relaxed text-muted-foreground">
+                  {section.items.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              )}
+              {section.after && <LegalText text={section.after} />}
+              {section.emailLabel && (
+                <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                  <span className="font-medium text-foreground">{section.emailLabel} </span>
+                  <a
+                    href={`mailto:${SUPPORT_EMAIL}`}
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    {SUPPORT_EMAIL}
+                  </a>
+                </p>
+              )}
             </section>
           ))}
         </div>
@@ -51,7 +99,12 @@ export function LegalDocumentPage({
             {t("nav.contact")}
           </Link>
           {" · "}
-          {SUPPORT_EMAIL}
+          <a
+            href={`mailto:${SUPPORT_EMAIL}`}
+            className="text-foreground underline-offset-4 hover:underline"
+          >
+            {SUPPORT_EMAIL}
+          </a>
         </p>
       </article>
       <MarketingFooter />

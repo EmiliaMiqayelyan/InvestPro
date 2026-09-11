@@ -12,7 +12,6 @@ import { AuthShell } from "@/components/layout/auth-shell";
 import { PlatformLogo } from "@/components/shared/platform-logo";
 import { ROUTES } from "@/constants";
 import { useAuth, useI18n } from "@/hooks";
-import { cn } from "@/lib/utils";
 
 type LoginForm = { email: string; password: string };
 
@@ -35,35 +34,60 @@ export default function LoginPage() {
     resolver: zodResolver(loginSchema),
   });
 
+  const highlights = [
+    { title: t("loginPage.investorTitle"), body: t("loginPage.investorBody") },
+    { title: t("loginPage.ownerTitle"), body: t("loginPage.ownerBody") },
+  ];
+
   return (
-    <AuthShell title={t("auth.welcomeBack")} subtitle={t("auth.signInToAccount")}>
+    <AuthShell
+      title={t("loginPage.heroTitle")}
+      subtitle={t("loginPage.heroSub")}
+      highlightsTitle={t("loginPage.rolesTitle")}
+      highlights={highlights}
+    >
       <Card className="border-border shadow-soft">
-        <CardHeader className="text-center lg:hidden">
-          <Link href={ROUTES.HOME} className="inline-flex justify-center"><PlatformLogo /></Link>
-        </CardHeader>
-        <CardHeader className="hidden lg:block">
-          <CardTitle className="font-display text-xl">{t("auth.welcomeBack")}</CardTitle>
-          <CardDescription>{t("auth.signInToAccount")}</CardDescription>
+        <CardHeader className="text-center">
+          <Link href={ROUTES.HOME} className="mb-2 inline-flex justify-center lg:hidden">
+            <PlatformLogo />
+          </Link>
+          <CardTitle className="font-display text-xl">{t("loginPage.eyebrow")}</CardTitle>
+          <CardDescription>{t("loginPage.heroSub")}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit((data) => login(data))} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">{t("auth.email")}</Label>
-              <Input id="email" type="email" placeholder="you@example.com" {...register("email")} />
+              <Label htmlFor="email">{t("loginPage.email")}</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder={t("loginPage.emailPlaceholder")}
+                {...register("email")}
+              />
               {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
             </div>
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">{t("auth.password")}</Label>
-                <Link href={ROUTES.FORGOT_PASSWORD} className="text-xs text-primary hover:underline">{t("auth.forgotPassword")}</Link>
-              </div>
+              <Label htmlFor="password">{t("loginPage.password")}</Label>
               <Input id="password" type="password" {...register("password")} />
               {errors.password && <p className="text-sm text-destructive">{errors.password.message}</p>}
             </div>
             <Button type="submit" className="w-full" disabled={isLoggingIn}>
-              {isLoggingIn ? t("auth.signingIn") : t("common.signIn")}
+              {isLoggingIn ? t("auth.signingIn") : t("loginPage.logIn")}
             </Button>
+            <p className="text-center">
+              <Link href={ROUTES.FORGOT_PASSWORD} className="text-sm font-medium text-primary hover:underline">
+                {t("loginPage.forgot")}
+              </Link>
+            </p>
           </form>
+
+          <div className="mt-6 border-t border-border pt-6 text-center">
+            <p className="font-medium">{t("loginPage.noAccountTitle")}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{t("loginPage.noAccountBody")}</p>
+            <Button variant="outline" className="mt-4 w-full" asChild>
+              <Link href={ROUTES.REGISTER}>{t("loginPage.createAccount")}</Link>
+            </Button>
+          </div>
 
           <div className="mt-6 rounded-xl border border-border bg-secondary/50 p-3">
             <p className="mb-2 text-xs font-medium text-muted-foreground">{t("auth.demoAccounts")}</p>
@@ -84,11 +108,6 @@ export default function LoginPage() {
               ))}
             </div>
           </div>
-
-          <p className="mt-6 text-center text-sm text-muted-foreground">
-            {t("auth.noAccount")}{" "}
-            <Link href={ROUTES.REGISTER} className="font-medium text-primary hover:underline">{t("auth.signUp")}</Link>
-          </p>
         </CardContent>
       </Card>
     </AuthShell>

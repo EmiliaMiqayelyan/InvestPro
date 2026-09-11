@@ -13,14 +13,14 @@ export default function HowItWorksPage() {
   const { t } = useI18n();
 
   const ownerSteps = [
-    t("howItWorksPage.ownersS1"),
-    t("howItWorksPage.ownersS2"),
-    t("howItWorksPage.ownersS3"),
+    { title: t("howItWorksPage.ownersS1Title"), body: t("howItWorksPage.ownersS1Body") },
+    { title: t("howItWorksPage.ownersS2Title"), body: t("howItWorksPage.ownersS2Body") },
+    { title: t("howItWorksPage.ownersS3Title"), body: t("howItWorksPage.ownersS3Body") },
   ];
   const investorSteps = [
-    t("howItWorksPage.investorsS1"),
-    t("howItWorksPage.investorsS2"),
-    t("howItWorksPage.investorsS3"),
+    { title: t("howItWorksPage.investorsS1Title"), body: t("howItWorksPage.investorsS1Body") },
+    { title: t("howItWorksPage.investorsS2Title"), body: t("howItWorksPage.investorsS2Body") },
+    { title: t("howItWorksPage.investorsS3Title"), body: t("howItWorksPage.investorsS3Body") },
   ];
 
   return (
@@ -38,13 +38,16 @@ export default function HowItWorksPage() {
             <h2 className="font-display text-2xl font-semibold">
               {t("howItWorksPage.ownersTitle")}
             </h2>
-            <ol className="mt-6 space-y-5">
+            <ol className="mt-6 space-y-6">
               {ownerSteps.map((step, i) => (
-                <li key={step} className="flex gap-4">
+                <li key={step.title} className="flex items-center gap-4">
                   <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
                     {i + 1}
                   </span>
-                  <p className="pt-1 text-sm leading-relaxed text-muted-foreground">{step}</p>
+                  <div className="min-w-0 pt-0.5">
+                    <h3 className="font-semibold">{step.title}</h3>
+                    <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{step.body}</p>
+                  </div>
                 </li>
               ))}
             </ol>
@@ -53,20 +56,23 @@ export default function HowItWorksPage() {
             <h2 className="font-display text-2xl font-semibold">
               {t("howItWorksPage.investorsTitle")}
             </h2>
-            <ol className="mt-6 space-y-5">
+            <ol className="mt-6 space-y-6">
               {investorSteps.map((step, i) => (
-                <li key={step} className="flex gap-4">
+                <li key={step.title} className="flex items-center gap-4">
                   <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
                     {i + 1}
                   </span>
-                  <p className="pt-1 text-sm leading-relaxed text-muted-foreground">{step}</p>
+                  <div className="min-w-0 pt-0.5">
+                    <h3 className="font-semibold">{step.title}</h3>
+                    <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{step.body}</p>
+                  </div>
                 </li>
               ))}
             </ol>
           </div>
         </div>
       </section>
-      <CtaBand title={t("landing.howCtaTitle")} description={t("landing.howCtaSub")}>
+      <CtaBand title={t("howItWorksPage.ctaTitle")} description={t("howItWorksPage.ctaBody")}>
         <Button size="lg" variant="onImage" className="shrink-0" asChild>
           <Link href={`${ROUTES.REGISTER}?role=project_owner`}>
             {t("howItWorksPage.ctaOwners")}

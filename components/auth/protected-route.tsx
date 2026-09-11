@@ -9,9 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  /** Shorthand for allowedRoles={["admin"]}. */
   requireAdmin?: boolean;
-  /** Roles allowed to view this route. Omit to allow any authenticated user. */
   allowedRoles?: UserRole[];
 }
 

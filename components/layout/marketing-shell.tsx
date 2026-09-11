@@ -98,7 +98,6 @@ export function MarketingHeader() {
         </div>
       </div>
 
-      {/* Compact / tablet nav row */}
       <nav className="hidden border-t border-border/50 xl:hidden lg:block">
         <div className="container-header section-pad flex gap-1 overflow-x-auto py-2.5 scrollbar-none">
           {NAV.map((item) => (

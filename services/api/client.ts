@@ -1,5 +1,7 @@
 import axios, { type AxiosError, type AxiosInstance, type InternalAxiosRequestConfig } from "axios";
 import { API_BASE_URL } from "@/constants";
+import { translate } from "@/i18n";
+import { useLocaleStore } from "@/store/locale-store";
 import type { ApiError } from "@/types";
 
 const TOKEN_KEY = "access_token";
@@ -101,16 +103,25 @@ apiClient.interceptors.response.use(
   }
 );
 
+function tError(key: "common.unavailable" | "common.error"): string {
+  return translate(useLocaleStore.getState().locale, key);
+}
+
 export function getErrorMessage(error: unknown): string {
   if (axios.isAxiosError(error)) {
-    if (error.code === "ERR_NETWORK" || !error.response) {
-      return "Unable to connect to the server. Make sure the API is running.";
-    }
     const apiError = error.response?.data as ApiError | undefined;
-    return apiError?.message || error.message || "An unexpected error occurred";
+    if (
+      error.code === "ERR_NETWORK" ||
+      !error.response ||
+      error.response.status === 503 ||
+      apiError?.code === "BACKEND_UNAVAILABLE"
+    ) {
+      return tError("common.unavailable");
+    }
+    return apiError?.message || error.message || tError("common.error");
   }
-  if (error instanceof Error) return error.message;
-  return "An unexpected error occurred";
+  if (error instanceof Error) return error.message || tError("common.error");
+  return tError("common.error");
 }
 
 export default apiClient;

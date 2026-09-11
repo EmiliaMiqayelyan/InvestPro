@@ -38,9 +38,14 @@ export function useAuth() {
     mutationFn: (data: RegisterData) => authApi.register(data),
     onSuccess: (response) => {
       const { user, tokens } = response.data.data;
+      if (!user || !tokens?.accessToken || !tokens.refreshToken) {
+        toast.success(translate(useLocaleStore.getState().locale, "auth.registerSuccess"));
+        window.location.assign(ROUTES.LOGIN);
+        return;
+      }
       login(user, tokens.accessToken, tokens.refreshToken);
-      toast.success(translate(useLocaleStore.getState().locale, "auth.registerSuccess"));
-      router.push(getRoleHome(user.role));
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.AUTH] });
+      window.location.assign(ROUTES.REGISTER_SUCCESS);
     },
     onError: (error) => toast.error(getErrorMessage(error)),
   });

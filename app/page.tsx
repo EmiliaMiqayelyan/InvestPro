@@ -5,18 +5,16 @@ import Image from "next/image";
 import {
   ArrowRight,
   ArrowUpRight,
+  Briefcase,
+  Check,
   FileText,
-  Handshake,
   MessageSquare,
-  Scale,
   Shield,
-  ShieldCheck,
-  Trophy,
 } from "lucide-react";
 import { MarketingHeader, MarketingFooter } from "@/components/layout/marketing-shell";
 import { FeaturedProjectsSlider } from "@/features/projects";
 import { CtaBand } from "@/components/shared/cta-band";
-import { ImageCard } from "@/components/shared/image-card";
+import { EmptyState } from "@/components/shared/empty-state";
 import { ImageSplitSection } from "@/components/shared/image-split-section";
 import { Button } from "@/components/ui/button";
 import {
@@ -37,10 +35,23 @@ export default function HomePage() {
   const featured = projectsPage?.data?.slice(0, 8) ?? [];
 
   const steps = [
-    { num: "1", title: t("landing.howStep1Title"), desc: t("landing.howStep1Desc") },
-    { num: "2", title: t("landing.howStep2Title"), desc: t("landing.howStep2Desc") },
-    { num: "3", title: t("landing.howStep3Title"), desc: t("landing.howStep3Desc") },
-    { num: "4", title: t("landing.howStep4Title"), desc: t("landing.howStep4Desc") },
+    { num: "01", title: t("landing.howStep1Title"), desc: t("landing.howStep1Desc") },
+    { num: "02", title: t("landing.howStep2Title"), desc: t("landing.howStep2Desc") },
+    { num: "03", title: t("landing.howStep3Title"), desc: t("landing.howStep3Desc") },
+  ];
+
+  const investorBenefits = [
+    t("landing.investorPoints.p1"),
+    t("landing.investorPoints.p2"),
+    t("landing.investorPoints.p3"),
+    t("landing.investorPoints.p4"),
+  ];
+
+  const ownerBenefits = [
+    t("landing.ownerPoints.p1"),
+    t("landing.ownerPoints.p2"),
+    t("landing.ownerPoints.p3"),
+    t("landing.ownerPoints.p4"),
   ];
 
   const faqs = [
@@ -73,14 +84,11 @@ export default function HomePage() {
         />
 
         <div className="on-image relative flex min-h-[calc(100dvh-4rem)] flex-col">
-          <div className="container-wide section-pad flex flex-1 flex-col justify-end pb-10 pt-24 sm:pb-12 sm:pt-28 lg:pb-14">
+          <div className="container-wide section-pad flex flex-1 flex-col justify-end pb-14 pt-24 sm:pb-16 sm:pt-28 lg:pb-20">
             <div className="w-full max-w-2xl animate-slide-up text-left lg:max-w-3xl">
-              <p className="text-sm font-semibold tracking-[0.18em] text-white/90 uppercase">
-                InvestIN
-              </p>
               <h1
                 className={cn(
-                  "mt-4 font-display text-[2rem] font-bold uppercase leading-[1.12] tracking-wide text-white drop-shadow-sm sm:text-4xl md:text-5xl lg:text-[3.35rem]",
+                  "font-display text-[2rem] font-bold uppercase leading-[1.12] tracking-wide text-white drop-shadow-sm sm:text-4xl md:text-5xl lg:text-[3.35rem]",
                   isHy && "leading-[1.22] tracking-normal"
                 )}
               >
@@ -116,31 +124,11 @@ export default function HomePage() {
                   className="h-11 shrink-0 rounded-full border border-white/85 bg-transparent px-6 text-sm font-medium text-white hover:bg-white/10 hover:text-white"
                   asChild
                 >
-                  <Link href={ROUTES.HOW_IT_WORKS}>{t("landing.heroHowItWorks")}</Link>
+                  <Link href={`${ROUTES.REGISTER}?role=investor`}>
+                    {t("landing.joinAsInvestor")}
+                  </Link>
                 </Button>
               </div>
-            </div>
-          </div>
-
-          <div className="border-t border-white/10 bg-black/45 backdrop-blur-md">
-            <div className="container-wide section-pad">
-              <ul className="grid grid-cols-2 gap-x-4 gap-y-4 py-4 sm:grid-cols-4 sm:gap-6 sm:py-5">
-                {[
-                  { icon: Trophy, label: t("landing.heroFeature1") },
-                  { icon: FileText, label: t("landing.heroFeature2") },
-                  { icon: ShieldCheck, label: t("landing.heroFeature3") },
-                  { icon: Scale, label: t("landing.heroFeature4") },
-                ].map((item) => (
-                  <li key={item.label} className="flex items-center gap-3 text-white">
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/35">
-                      <item.icon className="h-4 w-4" strokeWidth={1.6} />
-                    </span>
-                    <span className="text-xs font-medium leading-snug sm:text-sm">
-                      {item.label}
-                    </span>
-                  </li>
-                ))}
-              </ul>
             </div>
           </div>
         </div>
@@ -155,14 +143,14 @@ export default function HomePage() {
           bordered
           compact
         >
-          <p className="eyebrow">{t("landing.howItWorks")}</p>
-          <h2 className="copy-tight mt-2 font-display text-2xl font-semibold sm:text-3xl">
-            {t("landing.howItWorksSub")}
+          <h2 className="copy-tight font-display text-2xl font-semibold sm:text-3xl">
+            {t("landing.howItWorksTitle")}
           </h2>
+          <p className="mt-3 text-muted-foreground leading-relaxed">{t("landing.howItWorksSub")}</p>
           <div className="mt-8 space-y-5">
             {steps.map((step) => (
-              <div key={step.num} className="flex gap-4">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
+              <div key={step.num} className="flex items-center gap-4">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
                   {step.num}
                 </span>
                 <div className="min-w-0">
@@ -172,67 +160,65 @@ export default function HomePage() {
               </div>
             ))}
           </div>
-          <Button className="mt-8" variant="outline" asChild>
-            <Link href={ROUTES.HOW_IT_WORKS}>
-              {t("common.learnMore")}
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
         </ImageSplitSection>
       </div>
 
-      <section className="py-14 lg:py-16">
-        <div className="container-wide section-pad">
-          <div className="mx-auto copy-measure text-center">
-            <h2 className="font-display text-2xl font-semibold sm:text-3xl">
-              {t("landing.twoSidesTitle")}
-            </h2>
-          </div>
-          <div className="mx-auto mt-8 grid max-w-5xl gap-5 sm:grid-cols-2">
-            <ImageCard
-              variant="overlay"
-              imageSrc={THEMATIC_IMAGES.sections.investors}
-              imageAlt="Investor reviewing opportunities"
-              title={t("landing.investorHeadline")}
-              description={t("landing.investorSub")}
-              href={ROUTES.FOR_INVESTORS}
-              ctaLabel={t("landing.browseProjects")}
-            />
-            <ImageCard
-              variant="overlay"
-              imageSrc={THEMATIC_IMAGES.sections.owners}
-              imageAlt="Project owners collaborating"
-              title={t("landing.ownerHeadline")}
-              description={t("landing.ownerSub")}
-              href={ROUTES.FOR_OWNERS}
-              ctaLabel={t("landing.publishProject")}
-            />
-          </div>
-        </div>
-      </section>
+      <ImageSplitSection
+        imageSrc={THEMATIC_IMAGES.sections.investors}
+        imageAlt="Investor reviewing opportunities"
+        imagePosition="left"
+        imageAspect="compact"
+        compact
+      >
+        <p className="eyebrow">{t("landing.forInvestors")}</p>
+        <h2 className="copy-tight mt-2 font-display text-2xl font-semibold sm:text-3xl">
+          {t("landing.investorHeadline")}
+        </h2>
+        <p className="mt-3 text-muted-foreground leading-relaxed">{t("landing.investorSub")}</p>
+        <ul className="mt-6 space-y-3">
+          {investorBenefits.map((item) => (
+            <li key={item} className="flex items-center gap-3 text-sm leading-relaxed">
+              <Check className="h-4 w-4 shrink-0 text-primary" strokeWidth={2.2} />
+              <span>{item}</span>
+            </li>
+          ))}
+        </ul>
+        <Button className="mt-8" asChild>
+          <Link href={`${ROUTES.REGISTER}?role=investor`}>
+            {t("landing.joinAsInvestor")}
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </Button>
+      </ImageSplitSection>
 
-      {!isPending && featured.length > 0 && (
-        <section className="border-y border-border bg-secondary/30 py-14 lg:py-16">
-          <div className="container-wide section-pad">
-            <div className="flex flex-wrap items-end justify-between gap-4">
-              <div className="min-w-0">
-                <h2 className="font-display text-2xl font-semibold sm:text-3xl">
-                  {t("landing.featuredProjects")}
-                </h2>
-                <p className="mt-2 text-muted-foreground">{t("landing.featuredSub")}</p>
-              </div>
-              <Button variant="outline" className="shrink-0" asChild>
-                <Link href={ROUTES.PROJECTS}>
-                  {t("common.viewAll")} <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-            </div>
-            <div className="mt-8">
-              <FeaturedProjectsSlider projects={featured} />
-            </div>
-          </div>
-        </section>
-      )}
+      <ImageSplitSection
+        imageSrc={THEMATIC_IMAGES.sections.owners}
+        imageAlt="Project owners collaborating"
+        imagePosition="right"
+        imageAspect="compact"
+        bordered
+        compact
+      >
+        <p className="eyebrow">{t("landing.forOwners")}</p>
+        <h2 className="copy-tight mt-2 font-display text-2xl font-semibold sm:text-3xl">
+          {t("landing.ownerHeadline")}
+        </h2>
+        <p className="mt-3 text-muted-foreground leading-relaxed">{t("landing.ownerSub")}</p>
+        <ul className="mt-6 space-y-3">
+          {ownerBenefits.map((item) => (
+            <li key={item} className="flex items-center gap-3 text-sm leading-relaxed">
+              <Check className="h-4 w-4 shrink-0 text-primary" strokeWidth={2.2} />
+              <span>{item}</span>
+            </li>
+          ))}
+        </ul>
+        <Button className="mt-8" asChild>
+          <Link href={`${ROUTES.REGISTER}?role=project_owner`}>
+            {t("landing.publishProject")}
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </Button>
+      </ImageSplitSection>
 
       <ImageSplitSection
         imageSrc={THEMATIC_IMAGES.sections.security}
@@ -241,10 +227,10 @@ export default function HomePage() {
         imageAspect="compact"
         compact
       >
-        <p className="eyebrow">{t("landing.securityTitle")}</p>
-        <h2 className="copy-tight mt-2 font-display text-2xl font-semibold sm:text-3xl">
-          {t("landing.securitySub")}
+        <h2 className="copy-tight font-display text-2xl font-semibold sm:text-3xl">
+          {t("landing.securityTitle")}
         </h2>
+        <p className="mt-3 text-muted-foreground leading-relaxed">{t("landing.securitySub")}</p>
         <ul className="mt-8 space-y-4">
           {[
             {
@@ -253,22 +239,17 @@ export default function HomePage() {
               desc: t("landing.verificationFirstDesc"),
             },
             {
+              icon: FileText,
+              title: t("landing.accessControls"),
+              desc: t("landing.accessControlsDesc"),
+            },
+            {
               icon: MessageSquare,
               title: t("landing.onPlatformOnly"),
               desc: t("landing.onPlatformOnlyDesc"),
             },
-            {
-              icon: FileText,
-              title: t("landing.informedDecision"),
-              desc: t("landing.informedDecisionDesc"),
-            },
-            {
-              icon: Handshake,
-              title: t("landing.accessControls"),
-              desc: t("landing.accessControlsDesc"),
-            },
           ].map((item) => (
-            <li key={item.title} className="flex gap-3">
+            <li key={item.title} className="flex items-center gap-3">
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
                 <item.icon className="h-4 w-4 text-primary" />
               </div>
@@ -281,11 +262,39 @@ export default function HomePage() {
         </ul>
       </ImageSplitSection>
 
+      <section className="border-y border-border bg-secondary/30 py-14 lg:py-16">
+        <div className="container-wide section-pad">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div className="min-w-0">
+              <h2 className="font-display text-2xl font-semibold sm:text-3xl">
+                {t("landing.featuredProjects")}
+              </h2>
+              <p className="mt-2 text-muted-foreground">{t("landing.featuredSub")}</p>
+            </div>
+            <Button variant="outline" className="shrink-0" asChild>
+              <Link href={ROUTES.PROJECTS}>
+                {t("landing.viewAllProjects")} <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+          <div className="mt-8">
+            {featured.length > 0 ? (
+              <FeaturedProjectsSlider projects={featured} />
+            ) : !isPending ? (
+              <EmptyState icon={Briefcase} title={t("landing.featuredEmpty")} variant="dashed" />
+            ) : null}
+          </div>
+        </div>
+      </section>
+
       <section id="faq" className="py-14 lg:py-16">
         <div className="container-wide section-pad">
-          <h2 className="mx-auto copy-measure text-center font-display text-2xl font-semibold sm:text-3xl">
-            {t("landing.faqSub")}
-          </h2>
+          <div className="mx-auto copy-measure text-center">
+            <h2 className="font-display text-2xl font-semibold sm:text-3xl">
+              {t("landing.faq")}
+            </h2>
+            <p className="mt-3 text-muted-foreground">{t("landing.faqSub")}</p>
+          </div>
           <Accordion type="single" collapsible className="mx-auto mt-8 max-w-4xl space-y-2">
             {faqs.map((faq, i) => (
               <AccordionItem
@@ -302,20 +311,15 @@ export default function HomePage() {
               </AccordionItem>
             ))}
           </Accordion>
-          <div className="mt-8 text-center">
-            <Button variant="outline" asChild>
-              <Link href={ROUTES.FAQ}>{t("nav.faq")}</Link>
-            </Button>
-          </div>
         </div>
       </section>
 
       <CtaBand title={t("landing.contactCta")} description={t("landing.contactCtaHelp")}>
         <Button size="lg" variant="onImage" className="shrink-0" asChild>
-          <Link href={ROUTES.CONTACT}>{t("landing.contactUs")}</Link>
+          <Link href={ROUTES.REGISTER}>{t("landing.createAccount")}</Link>
         </Button>
         <Button size="lg" variant="onImageOutline" className="shrink-0" asChild>
-          <Link href={ROUTES.REGISTER}>{t("landing.createAccount")}</Link>
+          <Link href={ROUTES.CONTACT}>{t("landing.contactUs")}</Link>
         </Button>
       </CtaBand>
 

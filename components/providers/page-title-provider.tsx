@@ -70,7 +70,6 @@ export function usePageTitle() {
   return ctx;
 }
 
-/** Call from page components to set workspace header title + breadcrumbs */
 export function useSetPageTitle(
   title: string,
   breadcrumbs: BreadcrumbItem[] = EMPTY_BREADCRUMBS

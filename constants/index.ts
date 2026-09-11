@@ -17,6 +17,7 @@ export const ROUTES = {
   PROJECTS: "/projects",
   LOGIN: "/login",
   REGISTER: "/register",
+  REGISTER_SUCCESS: "/register/success",
   FORGOT_PASSWORD: "/forgot-password",
   VERIFY_EMAIL: "/verify-email",
   TWO_FACTOR: "/two-factor",
@@ -214,7 +215,6 @@ export const QUERY_KEYS = {
   ACTIVITY_LOGS: "activity-logs",
 } as const;
 
-/** Project statuses an owner may edit or delete (not live marketplace listings). */
 export const OWNER_MUTABLE_PROJECT_STATUSES = [
   "draft",
   "pending_review",

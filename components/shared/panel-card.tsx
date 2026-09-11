@@ -14,10 +14,6 @@ const paddingClass = {
   lg: "p-6",
 } as const;
 
-/**
- * Standard surface for list rows, form sections, and detail blocks in panels.
- * Prefer this over raw `premium-card` / `bg-white` overrides.
- */
 export function PanelCard({
   className,
   padding = "md",

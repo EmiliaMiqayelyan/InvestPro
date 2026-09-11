@@ -11,11 +11,6 @@ type PageHeroBannerProps = {
   height?: "md" | "lg" | "full";
 };
 
-/**
- * Marketing page hero — color gradient only (no background photography).
- * Prefer putting CTAs in the page body (not as children) when they need
- * default button contrast outside the dark band.
- */
 export function PageHeroBanner({
   eyebrow,
   title,

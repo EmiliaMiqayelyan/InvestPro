@@ -2,21 +2,21 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, Bookmark, BookmarkCheck } from "lucide-react";
+import { ArrowRight, Bookmark, BookmarkCheck, Check, Lock } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Project } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
 import { formatCompactCurrency } from "@/utils/format";
 import { useI18n } from "@/hooks/use-i18n";
-import { projectText } from "@/i18n/localize";
+import { projectText, stageLabel } from "@/i18n/localize";
 import { useAuthStore } from "@/store";
 import { projectsApi } from "@/services/api";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/services/api/client";
 import { ROUTES } from "@/constants";
+import { canAccessFullProject } from "@/lib/rbac";
 
 type MarketplaceProject = Project & { teamSize?: number };
 
@@ -36,6 +36,8 @@ export function MarketplaceProjectCard({
   const [saving, setSaving] = useState(false);
   const [imgFailed, setImgFailed] = useState(false);
   const detailHref = `${basePath}/${project.id}`;
+  const detailsLocked = !canAccessFullProject(user);
+  const isVerified = project.status === "published" || project.status === "funded";
 
   useEffect(() => {
     setSaved(!!savedByMe);
@@ -46,15 +48,13 @@ export function MarketplaceProjectCard({
 
   const title = projectText(project, "title", locale);
   const description = projectText(project, "description", locale);
-  const category = projectText(project, "category", locale);
+  const industry = projectText(project, "industry", locale);
+  const location = projectText(project, "location", locale);
   const progress = Math.min(
     100,
     Math.round((project.currentFunding / Math.max(project.requiredInvestment, 1)) * 100)
   );
   const imageSrc = !imgFailed && project.image ? project.image : null;
-
-  const riskVariant =
-    project.riskLevel === "low" ? "default" : project.riskLevel === "high" ? "destructive" : "outline";
 
   const toggleSaved = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -97,31 +97,63 @@ export function MarketplaceProjectCard({
             </span>
           </div>
         )}
-        <Badge variant={riskVariant} className="absolute left-3 top-3">
-          {project.riskLevel === "low"
-            ? t("projects.lowRisk")
-            : project.riskLevel === "high"
-              ? t("projects.highRisk")
-              : t("projects.mediumRisk")}
-        </Badge>
+        {isVerified && (
+          <Badge className="absolute left-3 top-3 gap-1 border-0 bg-emerald-700/95 text-white hover:bg-emerald-700/95">
+            <Check className="h-3 w-3" strokeWidth={3} />
+            {t("projects.verifiedProject")}
+          </Badge>
+        )}
+        {detailsLocked && (
+          <span className="absolute bottom-3 left-3 right-3 inline-flex items-center gap-1.5 rounded-full bg-black/70 px-3 py-1.5 text-[11px] font-medium text-white backdrop-blur-sm">
+            <Lock className="h-3 w-3 shrink-0" />
+            {t("projects.unlockFullDetails")}
+          </span>
+        )}
       </Link>
 
       <div className="flex flex-1 flex-col p-4 sm:p-5">
-        <p className="text-xs font-medium text-muted-foreground">{category}</p>
-        <h3 className="mt-1 line-clamp-2 font-display text-base font-semibold leading-snug sm:text-lg">
+        <h3 className="line-clamp-2 font-display text-base font-semibold leading-snug sm:text-lg">
           <Link href={detailHref} className="transition hover:text-primary">
             {title}
           </Link>
         </h3>
-        <p className="mt-2 line-clamp-2 flex-1 text-sm leading-relaxed text-muted-foreground">
+        <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
           {description}
         </p>
 
+        <dl className="mt-4 grid grid-cols-2 gap-x-3 gap-y-2 text-xs">
+          {industry ? (
+            <div className="min-w-0">
+              <dt className="text-muted-foreground">{t("projects.industry")}</dt>
+              <dd className="mt-0.5 truncate font-medium">{industry}</dd>
+            </div>
+          ) : null}
+          {location ? (
+            <div className="min-w-0">
+              <dt className="text-muted-foreground">{t("projects.location")}</dt>
+              <dd className="mt-0.5 truncate font-medium">{location}</dd>
+            </div>
+          ) : null}
+          <div className="min-w-0">
+            <dt className="text-muted-foreground">{t("projects.projectStage")}</dt>
+            <dd className="mt-0.5 truncate font-medium">{stageLabel(locale, project.stage)}</dd>
+          </div>
+          {project.ownerName ? (
+            <div className="min-w-0">
+              <dt className="text-muted-foreground">{t("projects.projectOwner")}</dt>
+              <dd className="mt-0.5 truncate font-medium">{project.ownerName}</dd>
+            </div>
+          ) : null}
+        </dl>
+
         <div className="mt-4 space-y-2">
           <div className="flex items-baseline justify-between gap-2">
-            <span className="font-display text-lg font-semibold tabular-nums sm:text-xl">
-              {formatCompactCurrency(project.requiredInvestment)}
-            </span>
+            <div className="min-w-0">
+              <p className="text-xs text-muted-foreground">{t("projects.fundingRequirement")}</p>
+              <p className="font-display text-lg font-semibold tabular-nums sm:text-xl">
+                {formatCompactCurrency(project.requiredInvestment)}
+              </p>
+            </div>
             <span className="text-sm font-medium text-primary">{progress}%</span>
           </div>
           <div className="h-1.5 overflow-hidden rounded-full bg-secondary">

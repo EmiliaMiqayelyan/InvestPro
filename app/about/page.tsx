@@ -5,32 +5,28 @@ import {
   ArrowRight,
   Building2,
   Check,
-  FileSearch,
-  FolderOpen,
+  Eye,
+  FileCheck,
+  Lock,
   MessageSquareLock,
   ShieldCheck,
+  Sparkles,
   Users,
 } from "lucide-react";
 import { MarketingHeader, MarketingFooter } from "@/components/layout/marketing-shell";
 import { CtaBand } from "@/components/shared/cta-band";
 import { PageHeroBanner } from "@/components/shared/page-hero-banner";
-import { ImageSplitSection } from "@/components/shared/image-split-section";
-import { SectionHeading } from "@/components/shared/section-heading";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/constants";
-import { THEMATIC_IMAGES } from "@/constants/thematic-images";
 import { useI18n } from "@/hooks";
 
 export default function AboutPage() {
   const { t } = useI18n();
 
-  const ownerFeatures = [
-    t("about.ownersF1"),
-    t("about.ownersF2"),
-    t("about.ownersF3"),
-    t("about.ownersF4"),
-    t("about.ownersF5"),
-    t("about.ownersF6"),
+  const securityItems = [
+    { icon: FileCheck, title: t("about.security1Title"), body: t("about.security1Body") },
+    { icon: Lock, title: t("about.security2Title"), body: t("about.security2Body") },
+    { icon: MessageSquareLock, title: t("about.security3Title"), body: t("about.security3Body") },
   ];
 
   const investorFeatures = [
@@ -39,36 +35,26 @@ export default function AboutPage() {
     t("about.investorsF3"),
     t("about.investorsF4"),
     t("about.investorsF5"),
-    t("about.investorsF6"),
-    t("about.investorsF7"),
   ];
 
-  const whyItems = [
-    { n: "01", title: t("about.why1Title"), body: t("about.why1Body") },
-    { n: "02", title: t("about.why2Title"), body: t("about.why2Body") },
-    { n: "03", title: t("about.why3Title"), body: t("about.why3Body") },
-    { n: "04", title: t("about.why4Title"), body: t("about.why4Body") },
+  const ownerFeatures = [
+    t("about.ownersF1"),
+    t("about.ownersF2"),
+    t("about.ownersF3"),
+    t("about.ownersF4"),
+    t("about.ownersF5"),
   ];
 
-  const trustItems = [
-    { icon: ShieldCheck, title: t("about.trust1Title"), body: t("about.trust1Body") },
-    { icon: FolderOpen, title: t("about.trust2Title"), body: t("about.trust2Body") },
-    { icon: MessageSquareLock, title: t("about.trust3Title"), body: t("about.trust3Body") },
-    { icon: FileSearch, title: t("about.trust4Title"), body: t("about.trust4Body") },
-  ];
-
-  const journey = [
-    t("about.journey1"),
-    t("about.journey2"),
-    t("about.journey3"),
-    t("about.journey4"),
-    t("about.journey5"),
+  const principles = [
+    { icon: Eye, title: t("about.p1Title"), body: t("about.p1Body") },
+    { icon: ShieldCheck, title: t("about.p2Title"), body: t("about.p2Body") },
+    { icon: Sparkles, title: t("about.p3Title"), body: t("about.p3Body") },
+    { icon: Users, title: t("about.p4Title"), body: t("about.p4Body") },
   ];
 
   return (
     <div className="min-h-screen bg-background">
       <MarketingHeader />
-
       <PageHeroBanner
         eyebrow={t("about.eyebrow")}
         title={t("about.heroTitle")}
@@ -76,185 +62,115 @@ export default function AboutPage() {
         height="md"
       />
 
-      <ImageSplitSection
-        imageSrc={THEMATIC_IMAGES.sections.mission}
-        imageAlt="Platform mission and vision"
-        imagePosition="right"
-        bordered
-        compact
-      >
-        <h2 className="font-display text-3xl font-semibold">{t("about.missionTitle")}</h2>
+      <section className="container-narrow section-pad py-14 lg:py-20">
+        <h2 className="font-display text-2xl font-semibold sm:text-3xl">
+          {t("about.missionTitle")}
+        </h2>
         <div className="mt-6 space-y-4 text-muted-foreground leading-relaxed">
           <p>{t("about.missionP1")}</p>
           <p>{t("about.missionP2")}</p>
         </div>
-      </ImageSplitSection>
+      </section>
 
-      <section className="border-b border-border py-16">
-        <div className="container-narrow section-pad space-y-10">
-          <div>
-            <h2 className="font-display text-2xl font-semibold">{t("about.whatWeAreTitle")}</h2>
-            <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-              {t("about.whatWeAreBody")}
-            </p>
-            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-              {t("about.whatWeAreNotBody")}
-            </p>
-          </div>
-          <div className="grid gap-8 sm:grid-cols-2">
-            <div className="border-t border-border pt-6">
-              <h3 className="font-display text-lg font-semibold">{t("about.jurisdictionTitle")}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                {t("about.jurisdictionBody")}
-              </p>
-            </div>
-            <div className="border-t border-border pt-6">
-              <h3 className="font-display text-lg font-semibold">{t("about.credibilityTitle")}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                {t("about.credibilityBody")}
-              </p>
-            </div>
+      <section className="border-y border-border bg-secondary/30">
+        <div className="container-narrow section-pad py-14 lg:py-20">
+          <h2 className="font-display text-2xl font-semibold sm:text-3xl">
+            {t("about.problemTitle")}
+          </h2>
+          <div className="mt-6 space-y-4 text-muted-foreground leading-relaxed">
+            <p>{t("about.problemP1")}</p>
+            <p>{t("about.problemP2")}</p>
           </div>
         </div>
       </section>
 
-      <section className="border-b border-border bg-secondary/30 py-20">
-        <div className="container-wide section-pad">
-          <SectionHeading title={t("about.ecoTitle")} description={t("about.ecoSub")} />
-          <div className="mt-12 grid gap-6 lg:grid-cols-2">
-            <article className="surface-card flex flex-col p-7 md:p-8">
-              <div className="flex items-center gap-2 text-primary">
-                <Building2 className="h-4 w-4" />
-                <p className="text-xs font-medium uppercase tracking-wider">{t("about.ownersLabel")}</p>
-              </div>
-              <h3 className="mt-4 font-display text-2xl font-semibold">{t("about.ownersTitle")}</h3>
-              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{t("about.ownersBody")}</p>
-              <ul className="mt-6 flex-1 space-y-2.5">
-                {ownerFeatures.map((item) => (
-                  <li key={item} className="flex gap-2.5 text-sm">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <Button className="mt-8 w-full sm:w-auto" asChild>
-                <Link href={`${ROUTES.REGISTER}?role=project_owner`}>
-                  {t("about.ownersCta")}
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-            </article>
-
-            <article className="surface-card flex flex-col p-7 md:p-8">
-              <div className="flex items-center gap-2 text-primary">
-                <Users className="h-4 w-4" />
-                <p className="text-xs font-medium uppercase tracking-wider">{t("about.investorsLabel")}</p>
-              </div>
-              <h3 className="mt-4 font-display text-2xl font-semibold">{t("about.investorsTitle")}</h3>
-              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{t("about.investorsBody")}</p>
-              <ul className="mt-6 flex-1 space-y-2.5">
-                {investorFeatures.map((item) => (
-                  <li key={item} className="flex gap-2.5 text-sm">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <Button className="mt-8 w-full sm:w-auto" variant="outline" asChild>
-                <Link href={ROUTES.PROJECTS}>
-                  {t("about.investorsCta")}
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <section className="border-y border-border bg-secondary/30 py-20">
-        <div className="container-narrow section-pad">
-          <SectionHeading title={t("about.whyTitle")} />
-          <div className="mt-12 grid gap-8 sm:grid-cols-2">
-            {whyItems.map((item) => (
-              <div key={item.n} className="border-t border-border pt-6">
-                <p className="text-xs font-medium tracking-wider text-primary">{item.n}</p>
-                <h3 className="mt-3 font-display text-xl font-semibold">{item.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{item.body}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <ImageSplitSection
-        imageSrc={THEMATIC_IMAGES.sections.security}
-        imageAlt="Trust, verification, and secure collaboration"
-        imagePosition="left"
-        compact
-      >
-        <SectionHeading title={t("about.trustTitle")} description={t("about.trustSub")} />
-        <div className="mt-8 grid gap-4 sm:grid-cols-2">
-          {trustItems.map((item) => (
-            <div key={item.title} className="surface-card p-5">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
-                <item.icon className="h-4 w-4" />
-              </div>
-              <h3 className="mt-4 font-display text-lg font-semibold">{item.title}</h3>
+      <section className="container-wide section-pad py-14 lg:py-20">
+        <h2 className="font-display text-2xl font-semibold sm:text-3xl">
+          {t("about.securityTitle")}
+        </h2>
+        <div className="mt-10 grid gap-8 md:grid-cols-3">
+          {securityItems.map((item) => (
+            <div key={item.title} className="min-w-0 border-t border-border pt-6">
+              <item.icon className="h-5 w-5 text-primary" />
+              <h3 className="mt-4 font-display text-xl font-semibold">{item.title}</h3>
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{item.body}</p>
             </div>
           ))}
         </div>
-        <p className="mt-8 border-l-2 border-primary/30 pl-4 text-sm leading-relaxed text-muted-foreground">
-          {t("about.trustNote")}
-        </p>
-      </ImageSplitSection>
+      </section>
 
-      <ImageSplitSection
-        imageSrc={THEMATIC_IMAGES.sections.innovation}
-        imageAlt="What makes InvestIN different"
-        imagePosition="right"
-        bordered
-        compact
-      >
-        <h2 className="font-display text-3xl font-semibold">{t("about.differentTitle")}</h2>
-        <div className="mt-6 space-y-4 text-muted-foreground leading-relaxed">
-          <p>{t("about.differentP1")}</p>
-          <p>{t("about.differentP2")}</p>
-          <p>{t("about.differentP3")}</p>
-        </div>
-      </ImageSplitSection>
-
-      <section className="border-b border-border py-20">
-        <div className="container-narrow section-pad">
-          <SectionHeading title={t("about.journeyTitle")} />
-          <ol className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-5">
-            {journey.map((label, index) => (
-              <li key={label} className="relative">
-                <p className="text-xs font-medium tracking-wider text-primary">
-                  {String(index + 1).padStart(2, "0")}
-                </p>
-                <p className="mt-3 font-display text-base font-semibold leading-snug">{label}</p>
-              </li>
-            ))}
-          </ol>
-          <p className="mt-10 text-sm text-muted-foreground">{t("about.journeyNote")}</p>
+      <section className="border-y border-border bg-secondary/30">
+        <div className="container-wide section-pad py-14 lg:py-20">
+          <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 text-primary">
+                <Users className="h-4 w-4" />
+                <h2 className="font-display text-2xl font-semibold text-foreground">
+                  {t("about.investorsTitle")}
+                </h2>
+              </div>
+              <p className="mt-3 font-medium">{t("about.investorsSub")}</p>
+              <ul className="mt-6 space-y-2.5">
+                {investorFeatures.map((item) => (
+                  <li key={item} className="flex items-center gap-2.5 text-sm leading-relaxed">
+                    <Check className="h-4 w-4 shrink-0 text-primary" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="min-w-0 border-t border-border pt-12 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-16">
+              <div className="flex items-center gap-2 text-primary">
+                <Building2 className="h-4 w-4" />
+                <h2 className="font-display text-2xl font-semibold text-foreground">
+                  {t("about.ownersTitle")}
+                </h2>
+              </div>
+              <p className="mt-3 font-medium">{t("about.ownersSub")}</p>
+              <ul className="mt-6 space-y-2.5">
+                {ownerFeatures.map((item) => (
+                  <li key={item} className="flex items-center gap-2.5 text-sm leading-relaxed">
+                    <Check className="h-4 w-4 shrink-0 text-primary" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
         </div>
       </section>
 
-      <CtaBand title={t("about.ctaTitle")} description={t("about.ctaSub")}>
+      <section className="container-wide section-pad py-14 lg:py-20">
+        <h2 className="font-display text-2xl font-semibold sm:text-3xl">
+          {t("about.principlesTitle")}
+        </h2>
+        <div className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          {principles.map((item) => (
+            <div key={item.title} className="min-w-0 border-t border-border pt-6">
+              <item.icon className="h-5 w-5 text-primary" />
+              <h3 className="mt-4 font-display text-xl font-semibold">{item.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{item.body}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <CtaBand title={t("about.ctaTitle")} description={t("about.ctaBody")}>
         <Button size="lg" variant="onImage" className="shrink-0" asChild>
           <Link href={ROUTES.PROJECTS}>
-            {t("landing.exploreProjects")}
+            {t("about.ctaProjects")}
             <ArrowRight className="h-4 w-4" />
           </Link>
         </Button>
         <Button size="lg" variant="onImageOutline" className="shrink-0" asChild>
           <Link href={`${ROUTES.REGISTER}?role=project_owner`}>
-            {t("landing.publishProject")}
+            {t("about.ctaSubmit")}
           </Link>
         </Button>
+        <Button size="lg" variant="onImageOutline" className="shrink-0" asChild>
+          <Link href={ROUTES.CONTACT}>{t("about.ctaContact")}</Link>
+        </Button>
       </CtaBand>
-
       <MarketingFooter />
     </div>
   );

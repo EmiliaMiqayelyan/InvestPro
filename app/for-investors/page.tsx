@@ -26,7 +26,17 @@ export default function ForInvestorsPage() {
         title={t("forInvestorsPage.heroTitle")}
         description={t("forInvestorsPage.heroSub")}
         height="md"
-      />
+      >
+        <Button size="lg" variant="onImage" className="shrink-0" asChild>
+          <Link href={`${ROUTES.REGISTER}?role=investor`}>
+            {t("forInvestorsPage.cta")}
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </Button>
+        <Button size="lg" variant="onImageOutline" className="shrink-0" asChild>
+          <Link href={ROUTES.PROJECTS}>{t("forInvestorsPage.browse")}</Link>
+        </Button>
+      </PageHeroBanner>
       <section className="container-wide section-pad py-10 lg:py-14">
         <div className="grid gap-8 sm:grid-cols-2">
           {blocks.map((b) => (
@@ -38,7 +48,7 @@ export default function ForInvestorsPage() {
           ))}
         </div>
       </section>
-      <CtaBand title={t("landing.forInvestorsCta")} description={t("forInvestorsPage.heroSub")}>
+      <CtaBand title={t("forInvestorsPage.ctaTitle")} description={t("forInvestorsPage.ctaBody")}>
         <Button size="lg" variant="onImage" className="shrink-0" asChild>
           <Link href={`${ROUTES.REGISTER}?role=investor`}>
             {t("forInvestorsPage.cta")}

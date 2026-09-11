@@ -35,7 +35,7 @@ function FilterField({
 }) {
   return (
     <div className="space-y-1.5">
-      <Label htmlFor={htmlFor} className="text-xs font-medium text-muted-foreground">
+      <Label htmlFor={htmlFor} className="block min-h-[2.25rem] text-xs font-medium leading-snug text-muted-foreground">
         {label}
       </Label>
       {children}
@@ -117,7 +117,7 @@ export function MarketplaceBrowser({
   };
 
   const filters = (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       <FilterField label={t("projects.category")}>
         <Select value={category} onValueChange={setCategory}>
           <SelectTrigger className="w-full">

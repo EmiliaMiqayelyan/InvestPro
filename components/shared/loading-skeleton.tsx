@@ -48,7 +48,6 @@ export function StatsSkeleton({ count = 4 }: { count?: number }) {
   );
 }
 
-/** Compact loading block for panel list pages. */
 export function PanelListSkeleton({
   rows = 3,
   className,

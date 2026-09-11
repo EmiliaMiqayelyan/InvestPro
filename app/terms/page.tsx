@@ -19,6 +19,14 @@ export default function TermsPage() {
         { title: t("terms.s5Title"), body: t("terms.s5Body") },
         { title: t("terms.s6Title"), body: t("terms.s6Body") },
         { title: t("terms.s7Title"), body: t("terms.s7Body") },
+        { title: t("terms.s8Title"), body: t("terms.s8Body") },
+        { title: t("terms.s9Title"), body: t("terms.s9Body") },
+        { title: t("terms.s10Title"), body: t("terms.s10Body") },
+        {
+          title: t("terms.s11Title"),
+          body: t("terms.s11Body"),
+          emailLabel: t("terms.emailLabel"),
+        },
       ]}
     />
   );

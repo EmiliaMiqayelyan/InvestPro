@@ -10,9 +10,6 @@ type CtaBandProps = {
   align?: "center" | "start";
 };
 
-/**
- * Bottom-of-page CTA band — gradient + geometric decorators (no photography).
- */
 export function CtaBand({
   title,
   description,
@@ -36,7 +33,6 @@ export function CtaBand({
         className="pointer-events-none absolute -bottom-28 -left-16 h-64 w-64 rounded-full bg-emerald-400/10 blur-3xl"
         aria-hidden
       />
-      {/* Geometric frame accents */}
       <div
         className="pointer-events-none absolute left-6 top-6 h-16 w-16 border-l border-t border-white/20 sm:left-10 sm:top-10 sm:h-20 sm:w-20"
         aria-hidden

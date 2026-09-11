@@ -65,8 +65,7 @@ async function proxy(req: NextRequest, context: RouteContext) {
     return NextResponse.json(
       {
         success: false,
-        message:
-          "API backend is unavailable. Start the Express server (npm run server:dev) or check BACKEND_URL.",
+        message: "Doesn't work",
         code: "BACKEND_UNAVAILABLE",
       },
       { status: 503 }

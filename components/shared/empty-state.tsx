@@ -7,7 +7,6 @@ interface EmptyStateProps {
   description?: string;
   action?: React.ReactNode;
   className?: string;
-  /** `panel` matches list/form empty blocks; `dashed` is for marketing-style empties. */
   variant?: "panel" | "dashed";
 }
 

@@ -4,7 +4,6 @@ import { cn } from "@/lib/utils";
 import { Breadcrumbs, type BreadcrumbItem } from "./breadcrumbs";
 
 type PageHeaderProps = {
-  /** Kept for a11y / marketing variants. In panel `minimal`, shell header owns the H1. */
   title: string;
   description?: string;
   breadcrumbs?: BreadcrumbItem[];
@@ -21,7 +20,6 @@ export function PageHeader({
   variant = "default",
   className,
 }: PageHeaderProps) {
-  // Panel pages: WorkspaceShell already renders the page title — avoid duplicate H1.
   if (variant === "minimal") {
     const hasBreadcrumbs = Boolean(breadcrumbs && breadcrumbs.length > 0);
     if (!description && !actions && !hasBreadcrumbs) {
