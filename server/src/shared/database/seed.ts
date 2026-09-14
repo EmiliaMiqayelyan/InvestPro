@@ -258,7 +258,7 @@ function seedProjects(
       locationHy: p.locationHy,
       stage: p.stage,
       timeline: "18–36 months to next milestone",
-      timelineHy: "18–36 ամիս մինչև հաջորդ նշաձող",
+      timelineHy: "18–36 ամիս մինչև հաջորդ փուլ",
       image: p.image,
       requiredInvestment: p.requiredInvestment,
       minInvestment: p.minInvestment,

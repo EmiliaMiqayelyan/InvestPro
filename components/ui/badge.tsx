@@ -10,7 +10,7 @@ export function Badge({ className, variant = "default", ...props }: BadgeProps) 
     variant in STATUS_COLORS
       ? STATUS_COLORS[variant]
       : variant === "outline"
-        ? "border border-border text-foreground bg-transparent"
+        ? "border border-border text-foreground bg-card"
         : variant === "destructive"
           ? "bg-destructive/10 text-destructive border border-destructive/20"
           : variant === "gold"

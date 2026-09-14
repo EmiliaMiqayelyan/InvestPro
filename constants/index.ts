@@ -134,9 +134,24 @@ export const TEAM_ROLES = [
 ] as const;
 
 export const RISK_LEVELS = [
-  { value: "low", label: "Low Risk", color: "text-emerald-600", bg: "bg-emerald-50 border-emerald-200" },
-  { value: "medium", label: "Medium Risk", color: "text-amber-600", bg: "bg-amber-50 border-amber-200" },
-  { value: "high", label: "High Risk", color: "text-red-600", bg: "bg-red-50 border-red-200" },
+  {
+    value: "low",
+    label: "Low Risk",
+    color: "text-white",
+    bg: "bg-emerald-700 hover:bg-emerald-700",
+  },
+  {
+    value: "medium",
+    label: "Medium Risk",
+    color: "text-white",
+    bg: "bg-amber-600 hover:bg-amber-600",
+  },
+  {
+    value: "high",
+    label: "High Risk",
+    color: "text-white",
+    bg: "bg-red-700 hover:bg-red-700",
+  },
 ] as const;
 
 export const STATUS_COLORS: Record<string, string> = {

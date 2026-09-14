@@ -7,6 +7,20 @@ function iso(d: Date | string | null | undefined): string | undefined {
   return d instanceof Date ? d.toISOString() : String(d);
 }
 
+/** Normalize JSON columns that may arrive as arrays, objects, or double-encoded strings. */
+export function asArray<T>(value: unknown): T[] {
+  if (Array.isArray(value)) return value as T[];
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value) as unknown;
+      return Array.isArray(parsed) ? (parsed as T[]) : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
+
 export function toUser(row: UserModel): User {
   return {
     id: row.id,
@@ -65,14 +79,14 @@ export function toProject(row: ProjectModel): Project {
     businessModel: row.businessModel,
     businessModelHy: row.businessModelHy ?? undefined,
     budgetBreakdown: row.budgetBreakdown ?? undefined,
-    phases: row.phases || [],
+    phases: asArray(row.phases),
     riskLevel: row.riskLevel,
     status: row.status,
     investorCount: row.investorCount,
     savedCount: row.savedCount,
-    team: row.team || [],
-    documents: row.documents || [],
-    updates: row.updates || [],
+    team: asArray(row.team),
+    documents: asArray(row.documents),
+    updates: asArray(row.updates),
     startDate: row.startDate ?? undefined,
     endDate: row.endDate ?? undefined,
     submittedAt: iso(row.submittedAt),

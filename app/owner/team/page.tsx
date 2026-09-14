@@ -26,13 +26,14 @@ export default function OwnerTeamPage() {
   const queryClient = useQueryClient();
   const { data: projects = [], isLoading } = useOwnerProjects();
 
-  const team: TeamRow[] = projects.flatMap((p) =>
-    (p.team || []).map((member) => ({
+  const team: TeamRow[] = projects.flatMap((p) => {
+    const members = Array.isArray(p.team) ? p.team : [];
+    return members.map((member) => ({
       ...member,
       projectTitle: p.title,
       projectId: p.id,
-    }))
-  );
+    }));
+  });
 
   const removeMutation = useMutation({
     mutationFn: ({ projectId, memberId }: { projectId: string; memberId: string }) =>

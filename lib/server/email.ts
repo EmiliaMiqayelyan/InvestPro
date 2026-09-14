@@ -27,7 +27,7 @@ export async function sendEmail(payload: EmailPayload): Promise<{ ok: boolean }>
 export async function sendServiceFeeReceipt(to: string, amount: number) {
   return sendEmail({
     to,
-    subject: "InvestIN — Platform service fee receipt / Ծառայավճարի անդորրագիր",
+    subject: "InvestIN — Platform service fee receipt / Անդամակցության անդորրագիր",
     text: `Your platform service access is active. Amount: $${amount}. This is a platform fee, not investment capital.`,
   });
 }

@@ -504,7 +504,8 @@ export async function addTeamMember(
   const row = await ProjectModel.findByPk(projectId);
   if (!row || row.ownerId !== auth.sub) throw AppError.notFound("Not found");
   const member: TeamMember = { ...body, id: uuidv4() };
-  row.team = [...(row.team || []), member];
+  const existing = Array.isArray(row.team) ? row.team : [];
+  row.team = [...existing, member];
   await row.save();
   return member;
 }
@@ -516,7 +517,7 @@ export async function removeTeamMember(
 ) {
   const row = await ProjectModel.findByPk(projectId);
   if (!row || row.ownerId !== auth.sub) throw AppError.notFound("Not found");
-  const team = row.team || [];
+  const team = Array.isArray(row.team) ? row.team : [];
   const next = team.filter((m) => m.id !== memberId);
   if (next.length === team.length) throw AppError.notFound("Team member not found");
   row.team = next;
@@ -526,15 +527,16 @@ export async function removeTeamMember(
 
 export async function listOwnerDocuments(userId: string) {
   const projects = await ProjectModel.findAll({ where: { ownerId: userId } });
-  return projects.flatMap((p) =>
-    (p.documents || []).map((d, index) => ({
+  return projects.flatMap((p) => {
+    const docs = Array.isArray(p.documents) ? p.documents : [];
+    return docs.map((d, index) => ({
       ...d,
       documentId: d.id || String(index),
       id: `${p.id}:${d.id || index}`,
       projectId: p.id,
       projectTitle: p.title,
-    }))
-  );
+    }));
+  });
 }
 
 export async function resubmitProject(auth: TokenPayload, id: string) {

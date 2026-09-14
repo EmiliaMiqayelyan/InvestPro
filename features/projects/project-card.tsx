@@ -15,8 +15,9 @@ import { useAuthStore } from "@/store";
 import { projectsApi } from "@/services/api";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/services/api/client";
-import { ROUTES } from "@/constants";
+import { RISK_LEVELS, ROUTES } from "@/constants";
 import { canAccessFullProject } from "@/lib/rbac";
+import { cn } from "@/lib/utils";
 
 type MarketplaceProject = Project & { teamSize?: number };
 
@@ -55,6 +56,13 @@ export function MarketplaceProjectCard({
     Math.round((project.currentFunding / Math.max(project.requiredInvestment, 1)) * 100)
   );
   const imageSrc = !imgFailed && project.image ? project.image : null;
+  const risk = RISK_LEVELS.find((r) => r.value === project.riskLevel);
+  const riskLabel =
+    project.riskLevel === "low"
+      ? t("projects.lowRisk")
+      : project.riskLevel === "high"
+        ? t("projects.highRisk")
+        : t("projects.mediumRisk");
 
   const toggleSaved = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -97,12 +105,26 @@ export function MarketplaceProjectCard({
             </span>
           </div>
         )}
-        {isVerified && (
-          <Badge className="absolute left-3 top-3 gap-1 border-0 bg-emerald-700/95 text-white hover:bg-emerald-700/95">
-            <Check className="h-3 w-3" strokeWidth={3} />
-            {t("projects.verifiedProject")}
-          </Badge>
-        )}
+        <div className="absolute left-3 top-3 flex flex-col items-start gap-1.5">
+          {risk ? (
+            <Badge
+              className={cn(
+                "border-0 shadow-sm",
+                risk.bg,
+                risk.color,
+                "hover:opacity-100"
+              )}
+            >
+              {riskLabel}
+            </Badge>
+          ) : null}
+          {isVerified ? (
+            <Badge className="gap-1 border-0 bg-slate-950/80 text-white shadow-sm backdrop-blur-sm hover:bg-slate-950/80">
+              <Check className="h-3 w-3" strokeWidth={3} />
+              {t("projects.verifiedProject")}
+            </Badge>
+          ) : null}
+        </div>
         {detailsLocked && (
           <span className="absolute bottom-3 left-3 right-3 inline-flex items-center gap-1.5 rounded-full bg-black/70 px-3 py-1.5 text-[11px] font-medium text-white backdrop-blur-sm">
             <Lock className="h-3 w-3 shrink-0" />

@@ -24,7 +24,7 @@ const armenian = Noto_Sans_Armenian({
 });
 
 export const metadata: Metadata = {
-  title: `${PLATFORM_NAME} — Investment Marketplace | Ներդրումային շուկա`,
+  title: `${PLATFORM_NAME} / Investment Marketplace | Ներդրումային շուկա`,
   description:
     "Connect innovative projects with trusted investors. / Կապեք նորարար նախագծերը վստահելի ներդրողների հետ։",
   applicationName: PLATFORM_NAME,
