@@ -14,6 +14,7 @@ import {
   TEAM_ROLES,
 } from "@/constants";
 import { getErrorMessage } from "@/services/api/client";
+import { createId } from "@/utils/id";
 import { useI18n } from "@/hooks";
 import {
   categoryLabel,
@@ -146,7 +147,7 @@ export default function OwnerCreateProjectPage() {
         });
         const stored = uploaded.data.data;
         preparedDocs.push({
-          id: crypto.randomUUID(),
+          id: createId(),
           name: stored?.name || name,
           category: d.category,
           url: stored?.url || `#${name}`,
@@ -170,7 +171,7 @@ export default function OwnerCreateProjectPage() {
         phases: phases
           .filter((p) => p.title.trim())
           .map((p, i) => ({
-            id: crypto.randomUUID(),
+            id: createId(),
             title: p.title.trim(),
             titleHy: p.titleHy.trim() || undefined,
             description: p.description.trim(),
@@ -187,7 +188,7 @@ export default function OwnerCreateProjectPage() {
         team: team
           .filter((m) => m.name.trim())
           .map((m) => ({
-            id: crypto.randomUUID(),
+            id: createId(),
             ...m,
           })),
       });

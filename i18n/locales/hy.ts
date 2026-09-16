@@ -1164,9 +1164,11 @@ export const hy: EnMessages = {
     addTeamMember: "Ավելացնել թիմի անդամ",
     addDocument: "Ավելացնել փաստաթուղթ",
     uploadDocument: "Վերբեռնել փաստաթուղթ",
+    saveDocument: "Պահել փաստաթուղթ",
+    saveDocumentHint: "Ընտրեք նախագիծ և ֆայլ, ապա սեղմեք «Պահել փաստաթուղթ».",
     documentsPageSub: "Վերբեռնեք և կառավարեք նախագծի փաստաթղթերը",
     documentsUploadHint:
-      "Ընտրեք նախագիծ, կատեգորիա և վերբեռնեք ֆայլ (PDF, Office կամ նկար)։",
+      "Ընտրեք նախագիծ և կատեգորիա, կցեք ֆայլ, ապա պահեք այն նախագծում։",
     documentsCreateHint:
       "Յուրաքանչյուր տողում կցեք ֆայլ։ Կարող եք նաև փոխել անունը և կատեգորիան։",
     docProject: "Նախագիծ",
@@ -1181,7 +1183,7 @@ export const hy: EnMessages = {
     docFileTypes: "PDF, DOC, XLS, PPT, PNG, JPG",
     docProjectRequired: "Ընտրեք նախագիծ",
     docFileRequired: "Ընտրեք վերբեռնման ֆայլ",
-    docUploadedToast: "Փաստաթուղթը վերբեռնված է",
+    docUploadedToast: "Փաստաթուղթը պահված է",
     descriptionRequired: "Կարճ նկարագրությունը պարտադիր է",
     locationRequired: "Տեղանքը պարտադիր է",
     amountRequired: "Պահանջվող ներդրումը պետք է մեծ լինի զրոյից",

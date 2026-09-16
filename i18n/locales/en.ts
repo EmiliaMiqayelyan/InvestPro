@@ -1152,9 +1152,11 @@ export const en = {
     addTeamMember: "Add team member",
     addDocument: "Add document",
     uploadDocument: "Upload document",
+    saveDocument: "Save document",
+    saveDocumentHint: "Select a project and a file, then click Save document.",
     documentsPageSub: "Upload and manage project documents",
     documentsUploadHint:
-      "Choose a project, pick a category, and upload a file (PDF, Office, or image).",
+      "Select a project and category, choose a file, then save it to the project.",
     documentsCreateHint:
       "Attach a file on each row. You can also set the display name and category.",
     docProject: "Project",
@@ -1169,7 +1171,7 @@ export const en = {
     docFileTypes: "PDF, DOC, XLS, PPT, PNG, JPG",
     docProjectRequired: "Select a project",
     docFileRequired: "Choose a file to upload",
-    docUploadedToast: "Document uploaded",
+    docUploadedToast: "Document saved",
     descriptionRequired: "Short description is required",
     locationRequired: "Location is required",
     amountRequired: "Required investment must be greater than zero",

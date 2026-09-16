@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { FileText, Trash2, Upload } from "lucide-react";
+import { FileText, Trash2, Upload, Save } from "lucide-react";
 import { toast } from "sonner";
 import { ownerApi, uploadsApi } from "@/services/api";
 import { getErrorMessage } from "@/services/api/client";
@@ -211,10 +211,18 @@ export default function OwnerDocumentsPage() {
           />
         </div>
 
-        <Button disabled={!canUpload} onClick={() => uploadMutation.mutate()}>
-          <Upload className="h-4 w-4" />
-          {uploadMutation.isPending ? t("common.loading") : t("owner.uploadDocument")}
+        <Button
+          type="button"
+          className="w-full sm:w-auto"
+          disabled={!canUpload}
+          onClick={() => uploadMutation.mutate()}
+        >
+          <Save className="h-4 w-4" />
+          {uploadMutation.isPending ? t("common.saving") : t("owner.saveDocument")}
         </Button>
+        {!projectId || !file ? (
+          <p className="text-xs text-muted-foreground">{t("owner.saveDocumentHint")}</p>
+        ) : null}
       </PanelCard>
 
       {isLoading ? (
