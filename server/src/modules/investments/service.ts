@@ -139,19 +139,19 @@ export async function fundInvestmentById(
       { transaction: t }
     );
 
+    // Project currentFunding / investorCount already updated when the offer was accepted.
     const project = await ProjectModel.findByPk(investment.projectId, { transaction: t });
     if (project) {
-      project.currentFunding += investment.amount;
-      project.investorCount += 1;
       if (
         project.currentFunding >= project.requiredInvestment &&
         ["published", "funding"].includes(project.status)
       ) {
         project.status = "funded";
+        await project.save({ transaction: t });
       } else if (project.status === "published") {
         project.status = "funding";
+        await project.save({ transaction: t });
       }
-      await project.save({ transaction: t });
     }
 
     return { investment, deal, project };

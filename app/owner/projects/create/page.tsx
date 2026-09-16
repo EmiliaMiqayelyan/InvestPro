@@ -3,8 +3,8 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
-import { Plus, Trash2 } from "lucide-react";
-import { ownerApi } from "@/services/api";
+import { Plus, Trash2, Upload } from "lucide-react";
+import { ownerApi, uploadsApi } from "@/services/api";
 import {
   ROUTES,
   PROJECT_CATEGORIES,
@@ -42,7 +42,12 @@ import type { ProjectStage, TeamRole, DocumentCategory } from "@/types";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-type DocDraft = { name: string; category: DocumentCategory };
+type DocDraft = {
+  name: string;
+  category: DocumentCategory;
+  file?: File | null;
+  url?: string;
+};
 type TeamDraft = {
   name: string;
   position: string;
@@ -112,7 +117,7 @@ export default function OwnerCreateProjectPage() {
   });
   const [phases, setPhases] = useState<PhaseDraft[]>([emptyPhase(0)]);
   const [documents, setDocuments] = useState<DocDraft[]>([
-    { name: "", category: "pitch_deck" },
+    { name: "", category: "pitch_deck", file: null },
   ]);
   const [team, setTeam] = useState<TeamDraft[]>([emptyTeam()]);
 
@@ -126,8 +131,30 @@ export default function OwnerCreateProjectPage() {
       Math.max(financial.requiredInvestment * 0.05, 1);
 
   const createMutation = useMutation({
-    mutationFn: () =>
-      ownerApi.createProject({
+    mutationFn: async () => {
+      const preparedDocs = [];
+      for (const d of documents) {
+        if (!d.file && !d.name.trim()) continue;
+        if (!d.file) {
+          throw new Error(t("owner.docFileRequired"));
+        }
+        const name = d.name.trim() || d.file.name;
+        const uploaded = await uploadsApi.create({
+          name,
+          size: d.file.size,
+          category: d.category,
+        });
+        const stored = uploaded.data.data;
+        preparedDocs.push({
+          id: crypto.randomUUID(),
+          name: stored?.name || name,
+          category: d.category,
+          url: stored?.url || `#${name}`,
+          uploadedAt: new Date().toISOString(),
+        });
+      }
+
+      return ownerApi.createProject({
         title: basic.title,
         titleHy: basic.titleHy || undefined,
         description: basic.description,
@@ -156,22 +183,15 @@ export default function OwnerCreateProjectPage() {
             sortOrder: p.sortOrder ?? i,
             status: "planned" as const,
           })),
-        documents: documents
-          .filter((d) => d.name.trim())
-          .map((d) => ({
-            id: crypto.randomUUID(),
-            name: d.name,
-            category: d.category,
-            url: `#${d.name}`,
-            uploadedAt: new Date().toISOString(),
-          })),
+        documents: preparedDocs,
         team: team
           .filter((m) => m.name.trim())
           .map((m) => ({
             id: crypto.randomUUID(),
             ...m,
           })),
-      }),
+      });
+    },
     onSuccess: () => {
       toast.success(t("owner.projectCreated"));
       router.push(ROUTES.OWNER_PROJECTS);
@@ -185,6 +205,32 @@ export default function OwnerCreateProjectPage() {
     if (!basic.title.trim()) {
       toast.error(t("owner.titleRequired"));
       setTab("basic");
+      return;
+    }
+    if (!basic.description.trim()) {
+      toast.error(t("owner.descriptionRequired"));
+      setTab("basic");
+      return;
+    }
+    if (!basic.location.trim()) {
+      toast.error(t("owner.locationRequired"));
+      setTab("basic");
+      return;
+    }
+    if (!financial.requiredInvestment || financial.requiredInvestment <= 0) {
+      toast.error(t("owner.amountRequired"));
+      setTab("finance");
+      return;
+    }
+    if (!team.some((m) => m.name.trim())) {
+      toast.error(t("owner.teamRequired"));
+      setTab("team");
+      return;
+    }
+    const incompleteDoc = documents.find((d) => d.file || d.name.trim());
+    if (incompleteDoc && !incompleteDoc.file) {
+      toast.error(t("owner.docFileRequired"));
+      setTab("documents");
       return;
     }
     if (budgetMismatch) {
@@ -233,8 +279,12 @@ export default function OwnerCreateProjectPage() {
             <CardContent className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label>{t("owner.titleLabel")}</Label>
+                  <Label>
+                    {t("owner.titleLabel")}
+                    <span className="text-destructive"> *</span>
+                  </Label>
                   <Input
+                    required
                     value={basic.title}
                     onChange={(e) => setBasic({ ...basic, title: e.target.value })}
                   />
@@ -249,8 +299,12 @@ export default function OwnerCreateProjectPage() {
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label>{t("owner.shortDescription")}</Label>
+                  <Label>
+                    {t("owner.shortDescription")}
+                    <span className="text-destructive"> *</span>
+                  </Label>
                   <Textarea
+                    required
                     value={basic.description}
                     onChange={(e) => setBasic({ ...basic, description: e.target.value })}
                   />
@@ -311,8 +365,12 @@ export default function OwnerCreateProjectPage() {
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label>{t("projects.location")}</Label>
+                  <Label>
+                    {t("projects.location")}
+                    <span className="text-destructive"> *</span>
+                  </Label>
                   <Input
+                    required
                     value={basic.location}
                     onChange={(e) => setBasic({ ...basic, location: e.target.value })}
                   />
@@ -387,7 +445,10 @@ export default function OwnerCreateProjectPage() {
                   </div>
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div className="space-y-2">
-                      <Label>{t("owner.name")}</Label>
+                      <Label>
+                        {t("owner.name")}
+                        <span className="text-destructive"> *</span>
+                      </Label>
                       <Input
                         value={member.name}
                         onChange={(e) => {
@@ -483,55 +544,108 @@ export default function OwnerCreateProjectPage() {
               <CardTitle className="text-foreground">{t("owner.documentation")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">{t("owner.documentsHint")}</p>
+              <p className="text-sm text-muted-foreground">{t("owner.documentsCreateHint")}</p>
               {documents.map((doc, index) => (
                 <div
                   key={index}
-                  className="flex flex-wrap items-end gap-3 rounded-xl border border-border p-3"
+                  className="space-y-3 rounded-xl border border-border p-4"
                 >
-                  <div className="min-w-[180px] flex-1 space-y-2">
-                    <Label>{t("owner.name")}</Label>
-                    <Input
-                      value={doc.name}
-                      onChange={(e) => {
-                        const next = [...documents];
-                        next[index] = { ...doc, name: e.target.value };
-                        setDocuments(next);
-                      }}
-                      placeholder={t("owner.docNamePlaceholder")}
-                    />
-                  </div>
-                  <div className="w-44 space-y-2">
-                    <Label>{t("owner.category")}</Label>
-                    <Select
-                      value={doc.category}
-                      onValueChange={(v) => {
-                        const next = [...documents];
-                        next[index] = { ...doc, category: v as DocumentCategory };
-                        setDocuments(next);
-                      }}
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <p className="text-sm font-medium text-foreground">
+                      {t("owner.addDocument")} {index + 1}
+                    </p>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setDocuments(documents.filter((_, i) => i !== index))}
+                      disabled={documents.length === 1}
+                      aria-label={t("common.remove")}
                     >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {DOCUMENT_CATEGORIES.map((c) => (
-                          <SelectItem key={c.value} value={c.value}>
-                            {docCategoryLabel(locale, c.value)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
                   </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setDocuments(documents.filter((_, i) => i !== index))}
-                    disabled={documents.length === 1}
-                  >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
+
+                  <div className="rounded-xl border border-dashed border-primary/30 bg-primary/5 p-4">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-foreground">
+                          {t("owner.docFile")}
+                          <span className="text-destructive"> *</span>
+                        </p>
+                        <p className="mt-1 truncate text-sm text-muted-foreground">
+                          {doc.file
+                            ? t("owner.docFileAttached", { name: doc.file.name })
+                            : t("owner.docChooseFile")}
+                        </p>
+                        <p className="mt-0.5 text-xs text-muted-foreground">
+                          {t("owner.docFileTypes")}
+                        </p>
+                      </div>
+                      <label className="inline-flex shrink-0 cursor-pointer">
+                        <span className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground shadow-sm transition hover:bg-primary/90">
+                          <Upload className="h-4 w-4" />
+                          {doc.file ? t("owner.docChangeFile") : t("owner.docAttachFile")}
+                        </span>
+                        <input
+                          type="file"
+                          className="sr-only"
+                          accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg,.webp,application/pdf"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0] ?? null;
+                            const next = [...documents];
+                            next[index] = {
+                              ...doc,
+                              file,
+                              name: doc.name.trim() || file?.name || "",
+                            };
+                            setDocuments(next);
+                            e.target.value = "";
+                          }}
+                        />
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label>{t("owner.docDisplayName")}</Label>
+                      <Input
+                        value={doc.name}
+                        onChange={(e) => {
+                          const next = [...documents];
+                          next[index] = { ...doc, name: e.target.value };
+                          setDocuments(next);
+                        }}
+                        placeholder={t("owner.docNamePlaceholder")}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>
+                        {t("owner.category")}
+                        <span className="text-destructive"> *</span>
+                      </Label>
+                      <Select
+                        value={doc.category}
+                        onValueChange={(v) => {
+                          const next = [...documents];
+                          next[index] = { ...doc, category: v as DocumentCategory };
+                          setDocuments(next);
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {DOCUMENT_CATEGORIES.map((c) => (
+                            <SelectItem key={c.value} value={c.value}>
+                              {docCategoryLabel(locale, c.value)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
                 </div>
               ))}
               <Button
@@ -539,7 +653,10 @@ export default function OwnerCreateProjectPage() {
                 variant="outline"
                 className="border-primary/30 text-primary hover:bg-primary/5"
                 onClick={() =>
-                  setDocuments([...documents, { name: "", category: "finance_plan" }])
+                  setDocuments([
+                    ...documents,
+                    { name: "", category: "finance_plan", file: null },
+                  ])
                 }
               >
                 <Plus className="h-4 w-4" /> {t("owner.addDocument")}
@@ -549,7 +666,14 @@ export default function OwnerCreateProjectPage() {
                   type="button"
                   variant="outline"
                   className="border-primary/30 text-primary hover:bg-primary/5"
-                  onClick={() => goNext("finance")}
+                  onClick={() => {
+                    const missing = documents.some((d) => !d.file);
+                    if (missing) {
+                      toast.error(t("owner.docFileRequired"));
+                      return;
+                    }
+                    goNext("finance");
+                  }}
                 >
                   {t("owner.continueToFinance")}
                 </Button>
@@ -566,9 +690,14 @@ export default function OwnerCreateProjectPage() {
             <CardContent className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-3">
                 <div className="space-y-2">
-                  <Label>{t("owner.requiredAmount")}</Label>
+                  <Label>
+                    {t("owner.requiredAmount")}
+                    <span className="text-destructive"> *</span>
+                  </Label>
                   <Input
                     type="number"
+                    required
+                    min={1}
                     value={financial.requiredInvestment}
                     onChange={(e) =>
                       setFinancial({ ...financial, requiredInvestment: +e.target.value })
@@ -805,7 +934,7 @@ export default function OwnerCreateProjectPage() {
                 </p>
                 <p>
                   <span className="text-muted-foreground">{t("owner.tabDocuments")}:</span>{" "}
-                  {documents.filter((d) => d.name.trim()).length}
+                  {documents.filter((d) => d.file || d.name.trim()).length}
                 </p>
                 <p>
                   <span className="text-muted-foreground">{t("owner.requiredAmount")}:</span>{" "}

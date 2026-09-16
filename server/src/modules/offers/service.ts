@@ -47,6 +47,12 @@ export async function createOffer(
   const investor = await UserModel.findByPk(auth.sub);
   if (!investor) throw AppError.notFound("User not found");
 
+  const { getSystemSettings } = await import("../admin/service");
+  const settings = await getSystemSettings();
+  if (settings.kycRequired && auth.role !== "admin" && investor.kycStatus !== "approved") {
+    throw AppError.forbidden("KYC verification required to send offers");
+  }
+
   const offer = await OfferModel.create({
     id: uuidv4(),
     projectId: projectRow.id,
@@ -104,6 +110,10 @@ export async function patchOffer(
     await offer.save({ transaction: t });
 
     if (body.status === "accepted") {
+      const project = await ProjectModel.findByPk(offer.projectId, { transaction: t });
+      const roiPct = project?.expectedRoi && project.expectedRoi > 0 ? project.expectedRoi : 15;
+      const expectedReturn = Math.round(offer.amount * (1 + roiPct / 100) * 100) / 100;
+
       await InvestmentModel.create(
         {
           id: uuidv4(),
@@ -112,7 +122,7 @@ export async function patchOffer(
           investorId: offer.investorId,
           amount: offer.amount,
           status: "payment_pending",
-          expectedReturn: Math.round(offer.amount * 1.15 * 100) / 100,
+          expectedReturn,
           platformFee: 0,
           totalAmount: null,
           investmentTerm: null,
@@ -123,7 +133,8 @@ export async function patchOffer(
         { transaction: t }
       );
 
-      const project = await ProjectModel.findByPk(offer.projectId, { transaction: t });
+      // Accepted offers count as marketplace commitments (capital stays off-platform).
+      // Wallet fund must not increment these again.
       if (project) {
         project.currentFunding += offer.amount;
         project.investorCount += 1;

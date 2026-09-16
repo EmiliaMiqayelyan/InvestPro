@@ -23,11 +23,10 @@ export function PlatformLogo({
     <span className={cn("inline-flex items-center gap-2.5", className)}>
       <Image
         src="/brand/logo.png"
-        alt=""
+        alt={t("common.platformName")}
         width={iconSize}
         height={iconSize}
         className="shrink-0 rounded-lg shadow-sm"
-        aria-hidden
         priority
       />
       {showText && (

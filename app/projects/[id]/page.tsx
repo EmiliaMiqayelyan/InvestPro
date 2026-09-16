@@ -157,7 +157,11 @@ export default function ProjectDetailPage() {
       setQuestions("");
       setNotes("");
     } catch (error) {
-      toast.error(getErrorMessage(error));
+      const message = getErrorMessage(error);
+      toast.error(message);
+      if (/kyc/i.test(message)) {
+        router.push(ROUTES.INVESTOR_KYC);
+      }
     } finally {
       setBusy(null);
     }
@@ -200,7 +204,9 @@ export default function ProjectDetailPage() {
     Math.round((project.currentFunding / Math.max(project.requiredInvestment, 1)) * 100)
   );
   const remainingFunding = Math.max(0, project.requiredInvestment - project.currentFunding);
-  const phases = [...(project.phases || [])].sort((a, b) => a.sortOrder - b.sortOrder);
+  const phases = [...(Array.isArray(project.phases) ? project.phases : [])].sort(
+    (a, b) => a.sortOrder - b.sortOrder
+  );
 
   const verification = (() => {
     switch (project.status) {
@@ -265,13 +271,18 @@ export default function ProjectDetailPage() {
               )}
               <Badge variant="outline">{category}</Badge>
               {risk && (
-                <Badge className={cn("border", risk.bg, risk.color)}>
+                <span
+                  className={cn(
+                    "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold text-white",
+                    risk.bg
+                  )}
+                >
                   {project.riskLevel === "low"
                     ? t("projects.lowRisk")
                     : project.riskLevel === "high"
                       ? t("projects.highRisk")
                       : t("projects.mediumRisk")}
-                </Badge>
+                </span>
               )}
             </div>
             <h1 className="mt-4 font-display text-3xl font-semibold text-slate-900 md:text-4xl">

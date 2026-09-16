@@ -485,6 +485,9 @@ const handlers: Record<string, Handler> = {
       return fail(`Minimum investment is ${project.minInvestment}`, 400);
     }
     const investor = getStore().users.get(auth!.sub)!;
+    if (investor.kycStatus !== "approved") {
+      return fail("KYC verification required to send offers", 403);
+    }
     const offer: InvestmentOffer = {
       id: crypto.randomUUID(),
       projectId: project.id,
@@ -534,6 +537,8 @@ const handlers: Record<string, Handler> = {
     getStore().offers.set(offer.id, offer);
 
     if (body.status === "accepted") {
+      const project = getStore().projects.get(offer.projectId);
+      const roiPct = project?.expectedRoi && project.expectedRoi > 0 ? project.expectedRoi : 15;
       const investments = getStore().investments.get(offer.investorId) || [];
       investments.push({
         id: crypto.randomUUID(),
@@ -541,11 +546,10 @@ const handlers: Record<string, Handler> = {
         projectId: offer.projectId,
         amount: offer.amount,
         status: "active",
-        expectedReturn: offer.amount * 1.15,
+        expectedReturn: Math.round(offer.amount * (1 + roiPct / 100) * 100) / 100,
         createdAt: new Date().toISOString(),
       });
       getStore().investments.set(offer.investorId, investments);
-      const project = getStore().projects.get(offer.projectId);
       if (project) {
         project.currentFunding += offer.amount;
         project.investorCount += 1;
@@ -693,12 +697,8 @@ const handlers: Record<string, Handler> = {
     const project = store.projects.get(params.id);
     if (!project) return fail("Project not found", 404);
     if (project.ownerId !== auth!.sub) return fail("Forbidden", 403);
-    if (
-      project.status !== "draft" &&
-      project.status !== "pending_review" &&
-      project.status !== "rejected"
-    ) {
-      return fail("Only draft, pending review, or rejected projects can be deleted", 400);
+    if (project.status === "funded") {
+      return fail("Funded projects cannot be deleted", 400);
     }
     const hasInvestments = Array.from(store.investments.values()).some((list) =>
       list.some((inv) => inv.projectId === params.id)

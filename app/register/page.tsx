@@ -42,6 +42,7 @@ type RegisterForm = {
 type OwnerRegisterFormValues = {
   name: string;
   email: string;
+  companyName: string;
   password: string;
   confirmPassword: string;
 };
@@ -146,6 +147,7 @@ function OwnerRegisterForm() {
         .object({
           name: z.string().trim().min(2, t("registerOwnerPage.nameRequired")),
           email: z.string().email(t("auth.invalidEmail")),
+          companyName: z.string().trim().min(2, t("auth.companyRequired")),
           password: z.string().min(8, t("auth.passwordMin8")),
           confirmPassword: z.string(),
         })
@@ -177,6 +179,7 @@ function OwnerRegisterForm() {
       email: data.email,
       password: data.password,
       role: "project_owner",
+      companyName: data.companyName.trim(),
     });
   };
 
@@ -211,6 +214,18 @@ function OwnerRegisterForm() {
               {...register("email")}
             />
             {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="companyName">{t("auth.companyName")}</Label>
+            <Input
+              id="companyName"
+              className="bg-white"
+              placeholder={t("auth.companyPlaceholder")}
+              {...register("companyName")}
+            />
+            {errors.companyName && (
+              <p className="text-sm text-destructive">{errors.companyName.message}</p>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="password">{t("registerOwnerPage.password")}</Label>

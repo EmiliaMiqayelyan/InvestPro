@@ -264,7 +264,7 @@ const SETTINGS_KEY = "platform";
 
 const DEFAULT_SETTINGS = {
   platformName: "InvestIN",
-  supportEmail: "support@investin.com",
+  supportEmail: "hello@investin.am",
   maintenanceMode: false,
   kycRequired: true,
   contactBlocking: true,

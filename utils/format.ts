@@ -1,4 +1,4 @@
-import { format, formatDistanceToNow, parseISO } from "date-fns";
+import { format, formatDistanceToNow, isValid, parseISO } from "date-fns";
 import { enUS, hy } from "date-fns/locale";
 import type { Locale } from "@/i18n/config";
 
@@ -41,13 +41,34 @@ export function formatPercent(value: number): string {
   return `${value.toFixed(0)}%`;
 }
 
-export function formatDate(date: string | Date, pattern = "MMM dd, yyyy"): string {
-  const d = typeof date === "string" ? parseISO(date) : date;
+function toValidDate(date: string | Date | null | undefined): Date | null {
+  if (!date) return null;
+  if (date instanceof Date) return isValid(date) ? date : null;
+  const trimmed = date.trim();
+  if (!trimmed) return null;
+
+  const parsed = parseISO(trimmed);
+  if (isValid(parsed)) return parsed;
+
+  const fallback = new Date(trimmed);
+  return isValid(fallback) ? fallback : null;
+}
+
+export function formatDate(
+  date: string | Date | null | undefined,
+  pattern = "MMM dd, yyyy"
+): string {
+  const d = toValidDate(date);
+  if (!d) return "—";
   return format(d, pattern);
 }
 
-export function formatRelativeTime(date: string | Date, locale: Locale = "en"): string {
-  const d = typeof date === "string" ? parseISO(date) : date;
+export function formatRelativeTime(
+  date: string | Date | null | undefined,
+  locale: Locale = "en"
+): string {
+  const d = toValidDate(date);
+  if (!d) return "—";
   return formatDistanceToNow(d, { addSuffix: true, locale: locale === "hy" ? hy : enUS });
 }
 

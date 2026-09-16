@@ -15,6 +15,10 @@ import { useAuth, useI18n } from "@/hooks";
 
 type LoginForm = { email: string; password: string };
 
+const SHOW_DEMO =
+  process.env.NODE_ENV === "development" ||
+  process.env.NEXT_PUBLIC_SHOW_DEMO === "true";
+
 const DEMO_ACCOUNTS = [
   { roleKey: "auth.demoInvestor" as const, email: "investor@investpro.com", password: "investor123" },
   { roleKey: "auth.demoOwner" as const, email: "owner@investpro.com", password: "owner123" },
@@ -27,7 +31,7 @@ export default function LoginPage() {
 
   const loginSchema = z.object({
     email: z.string().email(t("auth.invalidEmail")),
-    password: z.string().min(6, t("auth.passwordMin")),
+    password: z.string().min(8, t("auth.passwordMin8")),
   });
 
   const { register, handleSubmit, setValue, formState: { errors } } = useForm<LoginForm>({
@@ -89,25 +93,27 @@ export default function LoginPage() {
             </Button>
           </div>
 
-          <div className="mt-6 rounded-xl border border-border bg-secondary/50 p-3">
-            <p className="mb-2 text-xs font-medium text-muted-foreground">{t("auth.demoAccounts")}</p>
-            <div className="space-y-1.5">
-              {DEMO_ACCOUNTS.map((account) => (
-                <button
-                  key={account.email}
-                  type="button"
-                  className="flex w-full items-center justify-between rounded-lg bg-card px-3 py-2 text-left text-xs transition hover:bg-secondary"
-                  onClick={() => {
-                    setValue("email", account.email, { shouldDirty: true, shouldValidate: true });
-                    setValue("password", account.password, { shouldDirty: true, shouldValidate: true });
-                  }}
-                >
-                  <span className="font-medium">{t(account.roleKey)}</span>
-                  <span className="text-muted-foreground">{account.email}</span>
-                </button>
-              ))}
+          {SHOW_DEMO ? (
+            <div className="mt-6 rounded-xl border border-border bg-secondary/50 p-3">
+              <p className="mb-2 text-xs font-medium text-muted-foreground">{t("auth.demoAccounts")}</p>
+              <div className="space-y-1.5">
+                {DEMO_ACCOUNTS.map((account) => (
+                  <button
+                    key={account.email}
+                    type="button"
+                    className="flex w-full items-center justify-between rounded-lg bg-card px-3 py-2 text-left text-xs transition hover:bg-secondary"
+                    onClick={() => {
+                      setValue("email", account.email, { shouldDirty: true, shouldValidate: true });
+                      setValue("password", account.password, { shouldDirty: true, shouldValidate: true });
+                    }}
+                  >
+                    <span className="font-medium">{t(account.roleKey)}</span>
+                    <span className="text-muted-foreground">{account.email}</span>
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          ) : null}
         </CardContent>
       </Card>
     </AuthShell>

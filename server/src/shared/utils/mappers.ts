@@ -1,4 +1,4 @@
-import type { User, Project, MembershipSubscription, InvestmentOffer, Conversation, ChatMessage, Notification, KycSubmission, MilestonePlan, InvestorInvestment, Complaint, ActivityLog } from "../types";
+import type { User, Project, MembershipSubscription, InvestmentOffer, Conversation, ChatMessage, Notification, KycSubmission, MilestonePlan, InvestorInvestment, Complaint, ActivityLog, ProjectReviewEntry } from "../types";
 import { normalizeMembershipTier } from "./rbac";
 import type { UserModel, ProjectModel, SubscriptionModel, OfferModel, ConversationModel, MessageModel, NotificationModel, KycSubmissionModel, MilestonePlanModel, InvestmentModel, ComplaintModel, ActivityLogModel } from "../database/associations";
 
@@ -19,6 +19,23 @@ export function asArray<T>(value: unknown): T[] {
     }
   }
   return [];
+}
+
+function normalizeReviewHistory(
+  projectId: string,
+  value: unknown
+): ProjectReviewEntry[] | undefined {
+  const rows = asArray<Partial<ProjectReviewEntry>>(value);
+  if (!rows.length) return undefined;
+  return rows.map((entry, index) => ({
+    id: entry.id || `legacy-${projectId}-${index}`,
+    projectId: entry.projectId || projectId,
+    reviewerId: entry.reviewerId,
+    reviewerName: entry.reviewerName,
+    decision: entry.decision || "submitted",
+    reason: entry.reason,
+    createdAt: entry.createdAt || new Date(0).toISOString(),
+  }));
 }
 
 export function toUser(row: UserModel): User {
@@ -78,7 +95,10 @@ export function toProject(row: ProjectModel): Project {
     investmentPlanHy: row.investmentPlanHy ?? undefined,
     businessModel: row.businessModel,
     businessModelHy: row.businessModelHy ?? undefined,
-    budgetBreakdown: row.budgetBreakdown ?? undefined,
+    budgetBreakdown: (() => {
+      const items = asArray<{ label: string; labelHy?: string; percent: number }>(row.budgetBreakdown);
+      return items.length ? items : undefined;
+    })(),
     phases: asArray(row.phases),
     riskLevel: row.riskLevel,
     status: row.status,
@@ -95,7 +115,7 @@ export function toProject(row: ProjectModel): Project {
     rejectedAt: iso(row.rejectedAt),
     rejectedBy: row.rejectedBy ?? undefined,
     rejectionReason: row.rejectionReason ?? undefined,
-    reviewHistory: row.reviewHistory ?? undefined,
+    reviewHistory: normalizeReviewHistory(row.id, row.reviewHistory),
     createdAt: iso(row.createdAt)!,
     updatedAt: iso(row.updatedAt)!,
   };

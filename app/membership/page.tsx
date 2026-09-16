@@ -1,6 +1,10 @@
-import { redirect } from "next/navigation";
-import { ROUTES } from "@/constants";
+import { Suspense } from "react";
+import MembershipPage from "./membership-content";
 
 export default function MembershipRoute() {
-  redirect(ROUTES.INVESTOR_MEMBERSHIP);
+  return (
+    <Suspense fallback={<div className="p-6 text-sm text-muted-foreground">…</div>}>
+      <MembershipPage />
+    </Suspense>
+  );
 }

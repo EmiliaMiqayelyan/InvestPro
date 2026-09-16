@@ -1,6 +1,7 @@
 "use client";
 
-import { Users } from "lucide-react";
+import { useState } from "react";
+import { Trash2, Users } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useOwnerProjects } from "@/hooks/use-marketplace";
@@ -10,6 +11,7 @@ import { PanelPage } from "@/components/shared/panel-page";
 import { PanelCard } from "@/components/shared/panel-card";
 import { EmptyState } from "@/components/shared/empty-state";
 import { PanelBlockSkeleton } from "@/components/shared/loading-skeleton";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { ownerApi } from "@/services/api";
 import { getErrorMessage } from "@/services/api/client";
 import { QUERY_KEYS } from "@/constants";
@@ -19,12 +21,14 @@ import { Button } from "@/components/ui/button";
 import type { TeamMember } from "@/types";
 
 type TeamRow = TeamMember & { projectTitle: string; projectId: string };
+type PendingRemove = { projectId: string; memberId: string; name: string };
 
 export default function OwnerTeamPage() {
   const { t, locale } = useI18n();
   useSetPageTitle(t("nav.team"));
   const queryClient = useQueryClient();
   const { data: projects = [], isLoading } = useOwnerProjects();
+  const [pendingRemove, setPendingRemove] = useState<PendingRemove | null>(null);
 
   const team: TeamRow[] = projects.flatMap((p) => {
     const members = Array.isArray(p.team) ? p.team : [];
@@ -40,6 +44,7 @@ export default function OwnerTeamPage() {
       ownerApi.removeTeamMember(projectId, memberId),
     onSuccess: () => {
       toast.success(t("ownerReview.removedToast"));
+      setPendingRemove(null);
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.OWNER_PROJECTS] });
     },
     onError: (error) => toast.error(getErrorMessage(error)),
@@ -62,34 +67,55 @@ export default function OwnerTeamPage() {
                     <p className="font-semibold text-foreground">{member.name}</p>
                     <p className="text-sm text-muted-foreground">{member.position}</p>
                   </div>
-                  <Badge className="border border-primary/20 bg-primary/10 text-primary">
-                    {roleLabel}
-                  </Badge>
+                  <div className="flex items-center gap-1">
+                    <Badge className="border border-primary/20 bg-primary/10 text-primary">
+                      {roleLabel}
+                    </Badge>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-9 w-9 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                      disabled={removeMutation.isPending}
+                      aria-label={t("ownerReview.removeMember")}
+                      onClick={() =>
+                        setPendingRemove({
+                          projectId: member.projectId,
+                          memberId: member.id,
+                          name: member.name,
+                        })
+                      }
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
                 <p className="mb-2 text-xs text-muted-foreground">{member.projectTitle}</p>
-                <p className="mb-3 line-clamp-3 text-sm text-muted-foreground">
+                <p className="line-clamp-3 text-sm text-muted-foreground">
                   {member.biography || member.experience || "—"}
                 </p>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="text-destructive hover:text-destructive"
-                  disabled={removeMutation.isPending}
-                  onClick={() => {
-                    if (!window.confirm(t("ownerReview.removeMemberConfirm"))) return;
-                    removeMutation.mutate({
-                      projectId: member.projectId,
-                      memberId: member.id,
-                    });
-                  }}
-                >
-                  {t("ownerReview.removeMember")}
-                </Button>
               </PanelCard>
             );
           })}
         </div>
       )}
+
+      <ConfirmDialog
+        open={Boolean(pendingRemove)}
+        onOpenChange={(open) => {
+          if (!open) setPendingRemove(null);
+        }}
+        title={t("ownerReview.removeMemberConfirm")}
+        description={pendingRemove?.name}
+        confirmLabel={t("ownerReview.removeMember")}
+        loading={removeMutation.isPending}
+        onConfirm={() => {
+          if (!pendingRemove) return;
+          removeMutation.mutate({
+            projectId: pendingRemove.projectId,
+            memberId: pendingRemove.memberId,
+          });
+        }}
+      />
     </PanelPage>
   );
 }

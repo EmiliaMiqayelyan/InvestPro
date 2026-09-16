@@ -302,14 +302,17 @@ export default function AdminProjectReviewPage() {
         <div className="space-y-4">
           <Field label={t("admin.projections")} value={projections} />
           <Field label={t("admin.investmentPlan")} value={investmentPlan} />
-          {project.budgetBreakdown?.length ? (
+          {Array.isArray(project.budgetBreakdown) && project.budgetBreakdown.length ? (
             <div>
               <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 {t("admin.budgetBreakdown")}
               </p>
               <ul className="mt-2 space-y-1 text-sm text-foreground">
-                {project.budgetBreakdown.map((item) => (
-                  <li key={item.label} className="flex justify-between gap-4 border-b border-border/50 py-1.5">
+                {project.budgetBreakdown.map((item, index) => (
+                  <li
+                    key={`${item.label}-${index}`}
+                    className="flex justify-between gap-4 border-b border-border/50 py-1.5"
+                  >
                     <span>{locale === "hy" && item.labelHy ? item.labelHy : item.label}</span>
                     <span className="tabular-nums font-medium">{item.percent}%</span>
                   </li>
@@ -317,7 +320,7 @@ export default function AdminProjectReviewPage() {
               </ul>
             </div>
           ) : null}
-          {project.phases?.length ? (
+          {Array.isArray(project.phases) && project.phases.length ? (
             <div className="space-y-3">
               <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 {t("projects.phases")}
@@ -465,8 +468,11 @@ export default function AdminProjectReviewPage() {
               {t("admin.warnings")}
             </p>
             <ul className="space-y-2 text-sm text-foreground">
-              {risk.warningIndicators.map((w) => (
-                <li key={w.label} className="rounded-lg border border-amber-100 bg-amber-50/60 px-3 py-2">
+              {risk.warningIndicators.map((w, index) => (
+                <li
+                  key={`${w.label}-${index}`}
+                  className="rounded-lg border border-amber-100 bg-amber-50/60 px-3 py-2"
+                >
                   <span className="font-medium">
                     {locale === "hy" && w.labelHy ? w.labelHy : w.label}
                   </span>
@@ -485,8 +491,8 @@ export default function AdminProjectReviewPage() {
               {(locale === "hy" && risk.missingDocumentsHy?.length
                 ? risk.missingDocumentsHy
                 : risk.missingDocuments
-              ).map((item) => (
-                <li key={item}>{item}</li>
+              ).map((item, index) => (
+                <li key={`${item}-${index}`}>{item}</li>
               ))}
             </ul>
           </div>
@@ -519,8 +525,11 @@ export default function AdminProjectReviewPage() {
           <p className="text-sm text-muted-foreground">{t("admin.noHistory")}</p>
         ) : (
           <ol className="space-y-3">
-            {[...history].reverse().map((entry) => (
-              <li key={entry.id} className="rounded-xl border border-border/70 px-4 py-3">
+            {[...history].reverse().map((entry, index) => (
+              <li
+                key={`${entry.id || "entry"}-${entry.decision}-${entry.createdAt || index}-${index}`}
+                className="rounded-xl border border-border/70 px-4 py-3"
+              >
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="text-sm font-medium text-foreground">
                     {decisionLabel(t, entry.decision)}

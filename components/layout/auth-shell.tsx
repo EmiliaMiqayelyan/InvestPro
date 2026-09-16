@@ -27,12 +27,13 @@ export function AuthShell({
 }: AuthShellProps) {
   const { t } = useI18n();
 
-  const stats = [
-    { stat: "150+", label: t("landing.statsProjects") },
-    { stat: "100%", label: t("landing.statsKyc") },
-    { stat: "$12M+", label: t("landing.statsFunding") },
-    { stat: "24/7", label: t("landing.statsMessaging") },
+  const defaultHighlights = [
+    { title: t("landing.heroFeature1"), body: t("landing.statsProjects") },
+    { title: t("landing.heroFeature2"), body: t("landing.statsKyc") },
+    { title: t("landing.heroFeature3"), body: t("landing.statsMessaging") },
+    { title: t("landing.heroFeature4"), body: t("landing.statsFunding") },
   ];
+  const panelHighlights = highlights && highlights.length > 0 ? highlights : defaultHighlights;
 
   return (
     <div className="flex min-h-screen">
@@ -63,38 +64,24 @@ export function AuthShell({
                 )}
               </>
             )}
-            {highlights && highlights.length > 0 ? (
-              <div className="mt-6">
-                {highlightsTitle && (
-                  <p className="text-xs font-medium uppercase tracking-wider text-white/55">
-                    {highlightsTitle}
-                  </p>
-                )}
-                <div className="mt-3 grid gap-2.5">
-                  {highlights.map((item) => (
-                    <div
-                      key={item.title}
-                      className="rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 backdrop-blur-sm"
-                    >
-                      <p className="text-sm font-semibold text-white">{item.title}</p>
-                      <p className="mt-1 text-xs leading-relaxed text-white/60">{item.body}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div className="mt-8 grid grid-cols-2 gap-2.5">
-                {stats.map((item) => (
+            <div className="mt-6">
+              {highlightsTitle && (
+                <p className="text-xs font-medium uppercase tracking-wider text-white/55">
+                  {highlightsTitle}
+                </p>
+              )}
+              <div className="mt-3 grid gap-2.5">
+                {panelHighlights.map((item) => (
                   <div
-                    key={item.label}
-                    className="rounded-lg border border-white/10 bg-white/5 px-4 py-3 backdrop-blur-sm"
+                    key={item.title}
+                    className="rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 backdrop-blur-sm"
                   >
-                    <p className="font-display text-lg font-semibold text-white">{item.stat}</p>
-                    <p className="mt-0.5 text-xs text-white/60">{item.label}</p>
+                    <p className="text-sm font-semibold text-white">{item.title}</p>
+                    <p className="mt-1 text-xs leading-relaxed text-white/60">{item.body}</p>
                   </div>
                 ))}
               </div>
-            )}
+            </div>
           </div>
           <p className="text-xs text-white/50">
             © {new Date().getFullYear()} {t("common.platformName")}

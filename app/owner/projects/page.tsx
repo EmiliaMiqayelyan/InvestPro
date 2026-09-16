@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { FolderKanban, Plus } from "lucide-react";
+import { FolderKanban, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useOwnerProjects } from "@/hooks/use-marketplace";
 import { useI18n } from "@/hooks";
@@ -13,6 +13,7 @@ import { PanelPage } from "@/components/shared/panel-page";
 import { PanelCard } from "@/components/shared/panel-card";
 import { EmptyState } from "@/components/shared/empty-state";
 import { PanelBlockSkeleton } from "@/components/shared/loading-skeleton";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { ownerApi } from "@/services/api";
 import { getErrorMessage } from "@/services/api/client";
 import {
@@ -51,6 +52,9 @@ export default function OwnerProjectsPage() {
   useSetPageTitle(t("owner.myProjects"));
   const queryClient = useQueryClient();
   const { data: projects = [], isLoading } = useOwnerProjects();
+  const [pendingDelete, setPendingDelete] = useState<{ id: string; title: string } | null>(
+    null
+  );
 
   const sortedProjects = useMemo(
     () =>
@@ -75,6 +79,7 @@ export default function OwnerProjectsPage() {
     mutationFn: (id: string) => ownerApi.deleteProject(id),
     onSuccess: () => {
       toast.success(t("ownerReview.deletedToast"));
+      setPendingDelete(null);
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.OWNER_PROJECTS] });
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.OWNER_DOCUMENTS] });
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.OWNER_DASHBOARD] });
@@ -122,6 +127,10 @@ export default function OwnerProjectsPage() {
             const canMutate = isOwnerMutableProjectStatus(project.status);
             const canResubmit =
               project.status === "rejected" || project.status === "draft";
+            const canDelete =
+              project.status !== "funded" &&
+              (project.investorCount ?? 0) === 0 &&
+              project.currentFunding === 0;
             return (
               <PanelCard
                 key={project.id}
@@ -174,13 +183,15 @@ export default function OwnerProjectsPage() {
                   <Progress value={progress} />
                 </div>
 
-                {canMutate ? (
+                {canMutate || canDelete ? (
                   <div className="flex flex-wrap gap-2 border-t border-border/60 pt-4">
-                    <Button asChild variant="outline">
-                      <Link href={`${ROUTES.OWNER_PROJECTS}/${project.id}/edit`}>
-                        {t("ownerReview.editProject")}
-                      </Link>
-                    </Button>
+                    {canMutate ? (
+                      <Button asChild variant="outline">
+                        <Link href={`${ROUTES.OWNER_PROJECTS}/${project.id}/edit`}>
+                          {t("ownerReview.editProject")}
+                        </Link>
+                      </Button>
+                    ) : null}
                     {canResubmit ? (
                       <Button
                         disabled={resubmitMutation.isPending}
@@ -189,17 +200,20 @@ export default function OwnerProjectsPage() {
                         {t("ownerReview.resubmit")}
                       </Button>
                     ) : null}
-                    <Button
-                      variant="ghost"
-                      className="text-destructive hover:text-destructive"
-                      disabled={deleteMutation.isPending}
-                      onClick={() => {
-                        if (!window.confirm(t("ownerReview.deleteConfirm"))) return;
-                        deleteMutation.mutate(project.id);
-                      }}
-                    >
-                      {t("ownerReview.deleteProject")}
-                    </Button>
+                    {canDelete ? (
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-9 w-9 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                        disabled={deleteMutation.isPending}
+                        aria-label={t("ownerReview.deleteProject")}
+                        onClick={() =>
+                          setPendingDelete({ id: project.id, title: project.title })
+                        }
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    ) : null}
                   </div>
                 ) : null}
               </PanelCard>
@@ -207,6 +221,21 @@ export default function OwnerProjectsPage() {
           })}
         </div>
       )}
+
+      <ConfirmDialog
+        open={Boolean(pendingDelete)}
+        onOpenChange={(open) => {
+          if (!open) setPendingDelete(null);
+        }}
+        title={t("ownerReview.deleteConfirm")}
+        description={pendingDelete?.title}
+        confirmLabel={t("ownerReview.deleteProject")}
+        loading={deleteMutation.isPending}
+        onConfirm={() => {
+          if (!pendingDelete) return;
+          deleteMutation.mutate(pendingDelete.id);
+        }}
+      />
     </PanelPage>
   );
 }

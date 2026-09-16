@@ -7,7 +7,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Project } from "@/types";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { formatCompactCurrency } from "@/utils/format";
 import { useI18n } from "@/hooks/use-i18n";
 import { projectText, stageLabel } from "@/i18n/localize";
@@ -107,22 +106,20 @@ export function MarketplaceProjectCard({
         )}
         <div className="absolute left-3 top-3 flex flex-col items-start gap-1.5">
           {risk ? (
-            <Badge
+            <span
               className={cn(
-                "border-0 shadow-sm",
-                risk.bg,
-                risk.color,
-                "hover:opacity-100"
+                "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold text-white shadow-sm pointer-events-none",
+                risk.bg
               )}
             >
               {riskLabel}
-            </Badge>
+            </span>
           ) : null}
           {isVerified ? (
-            <Badge className="gap-1 border-0 bg-slate-950/80 text-white shadow-sm backdrop-blur-sm hover:bg-slate-950/80">
+            <span className="inline-flex items-center gap-1 rounded-full bg-slate-950/80 px-2.5 py-0.5 text-xs font-semibold text-white shadow-sm backdrop-blur-sm pointer-events-none">
               <Check className="h-3 w-3" strokeWidth={3} />
               {t("projects.verifiedProject")}
-            </Badge>
+            </span>
           ) : null}
         </div>
         {detailsLocked && (

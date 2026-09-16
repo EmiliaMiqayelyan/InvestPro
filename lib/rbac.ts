@@ -31,6 +31,7 @@ export const GUEST_ONLY_ROUTES = [
   ROUTES.LOGIN,
   ROUTES.REGISTER,
   ROUTES.FORGOT_PASSWORD,
+  ROUTES.RESET_PASSWORD,
 ] as string[];
 
 export const MEMBERSHIP_RANK: Record<MembershipTier, number> = {

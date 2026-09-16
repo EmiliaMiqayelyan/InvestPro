@@ -64,7 +64,8 @@ const INVESTOR_NAV: NavGroup[] = [
   {
     labelKey: "nav.groupEngage",
     items: [
-      { href: ROUTES.INVESTOR_INVESTMENTS, labelKey: "nav.myInvestments", icon: Handshake },
+      { href: ROUTES.INVESTOR_OFFERS, labelKey: "nav.myOffers", icon: Handshake },
+      { href: ROUTES.INVESTOR_INVESTMENTS, labelKey: "nav.myInvestments", icon: Briefcase },
       { href: ROUTES.INVESTOR_PORTFOLIO, labelKey: "nav.portfolio", icon: PieChart },
       { href: ROUTES.INVESTOR_WALLET, labelKey: "nav.wallet", icon: Wallet },
       { href: ROUTES.INVESTOR_MILESTONES, labelKey: "nav.milestones", icon: Milestone },
@@ -125,7 +126,6 @@ const ADMIN_NAV: NavGroup[] = [
       { href: ROUTES.ADMIN_USERS, labelKey: "nav.users", icon: Users },
       { href: ROUTES.ADMIN_PROJECTS, labelKey: "nav.projects", icon: FolderKanban },
       { href: ROUTES.ADMIN_PAYMENTS, labelKey: "nav.payments", icon: CreditCard },
-      { href: ROUTES.ADMIN_MEMBERSHIPS, labelKey: "nav.memberships", icon: CreditCard },
     ],
   },
   {
@@ -159,6 +159,16 @@ function WorkspaceShellInner({
   const { pageTitle } = usePageTitle();
   const [open, setOpen] = useState(false);
   const navGroups = navForRole(user?.role);
+  const allNavHrefs = navGroups.flatMap((group) => group.items.map((item) => item.href));
+
+  const isNavActive = (href: string) => {
+    const matches = allNavHrefs.filter(
+      (candidate) => pathname === candidate || pathname.startsWith(`${candidate}/`)
+    );
+    if (matches.length === 0) return false;
+    const best = matches.reduce((a, b) => (a.length >= b.length ? a : b));
+    return best === href;
+  };
 
   const roleLabel =
     user?.role === "admin"
@@ -191,8 +201,7 @@ function WorkspaceShellInner({
             </p>
             <div className="space-y-0.5">
               {group.items.map((item) => {
-                const active =
-                  pathname === item.href || pathname.startsWith(`${item.href}/`);
+                const active = isNavActive(item.href);
                 const Icon = item.icon;
                 return (
                   <Link

@@ -34,7 +34,7 @@ type PasswordForm = {
 
 export default function InvestorSecurityPage() {
   const { t } = useI18n();
-  const { user } = useAuthStore();
+  const { user, setUser } = useAuthStore();
   useSetPageTitle(t("nav.security"));
   const [show2faSetup, setShow2faSetup] = useState(false);
   const [qrCode, setQrCode] = useState("");
@@ -42,7 +42,7 @@ export default function InvestorSecurityPage() {
 
   const passwordSchema = z
     .object({
-      currentPassword: z.string().min(6, t("auth.passwordMin")),
+      currentPassword: z.string().min(8, t("auth.passwordMin8")),
       newPassword: z.string().min(8, t("auth.passwordMin8")),
       confirmPassword: z.string(),
     })
@@ -82,15 +82,21 @@ export default function InvestorSecurityPage() {
   const confirm2faMutation = useMutation({
     mutationFn: () => authApi.confirm2fa(twoFaCode),
     onSuccess: () => {
+      if (user) setUser({ ...user, is2faEnabled: true });
       toast.success(t("auth.twoFaEnabledToast"));
       setShow2faSetup(false);
+      setTwoFaCode("");
     },
     onError: (error) => toast.error(getErrorMessage(error)),
   });
 
   const disable2faMutation = useMutation({
     mutationFn: () => authApi.disable2fa(twoFaCode),
-    onSuccess: () => toast.success(t("auth.twoFaDisabledToast")),
+    onSuccess: () => {
+      if (user) setUser({ ...user, is2faEnabled: false });
+      toast.success(t("auth.twoFaDisabledToast"));
+      setTwoFaCode("");
+    },
     onError: (error) => toast.error(getErrorMessage(error)),
   });
 

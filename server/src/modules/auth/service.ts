@@ -183,10 +183,13 @@ export async function forgotPassword(email: string) {
   if (!user) return;
 
   const token = await createAuthToken(user.id, "password_reset", 1);
+  const { env } = await import("../../app/config/env");
+  const baseUrl = env.CORS_ORIGIN.replace(/\/$/, "");
+  const resetUrl = `${baseUrl}/reset-password?token=${encodeURIComponent(token)}`;
   await enqueueJob("email", {
     to: user.email,
     subject: "Password reset",
-    text: `Your password reset token: ${token}`,
+    text: `Reset your InvestIN password: ${resetUrl}\n\nIf you did not request this, you can ignore this email.`,
   });
 }
 

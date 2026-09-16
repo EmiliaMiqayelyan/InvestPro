@@ -85,7 +85,7 @@ export default function OwnerOffersPage() {
                 </div>
                 <div className="sm:col-span-2">
                   <p className="text-xs text-muted-foreground">{t("offers.conditions")}</p>
-                  <p className="text-foreground">{offer.conditions || "—"}</p>
+                  <p className="text-foreground">{offer.conditions || t("offers.noConditions")}</p>
                 </div>
               </div>
               {offer.status === "pending" && (

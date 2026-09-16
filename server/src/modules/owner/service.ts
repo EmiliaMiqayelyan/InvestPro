@@ -432,15 +432,14 @@ export async function deleteOwnerProject(auth: TokenPayload, id: string) {
   const row = await ProjectModel.findByPk(id);
   if (!row) throw AppError.notFound("Project not found");
   if (row.ownerId !== auth.sub) throw AppError.forbidden();
-  if (!OWNER_MUTABLE_STATUSES.has(row.status)) {
-    throw AppError.badRequest(
-      "Only draft, pending review, or rejected projects can be deleted"
-    );
-  }
 
   const investments = await InvestmentModel.count({ where: { projectId: id } });
   if (investments > 0) {
     throw AppError.badRequest("Cannot delete a project with investments");
+  }
+
+  if (row.status === "funded") {
+    throw AppError.badRequest("Funded projects cannot be deleted");
   }
 
   const conversations = await ConversationModel.findAll({ where: { projectId: id } });

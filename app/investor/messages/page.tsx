@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { MessagesPanel } from "@/components/workspace/messages-panel";
 import { useSetPageTitle } from "@/components/providers/page-title-provider";
 import { PanelPage } from "@/components/shared/panel-page";
@@ -11,7 +12,9 @@ export default function InvestorMessagesPage() {
 
   return (
     <PanelPage>
-      <MessagesPanel />
+      <Suspense fallback={<p className="text-sm text-muted-foreground">{t("common.loading")}</p>}>
+        <MessagesPanel />
+      </Suspense>
     </PanelPage>
   );
 }

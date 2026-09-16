@@ -10,10 +10,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ROUTES } from "@/constants";
 import { authApi } from "@/services/api";
 import { useAuthStore } from "@/store";
 import { getErrorMessage } from "@/services/api/client";
+import { getRoleHome } from "@/lib/rbac";
 import { useI18n } from "@/hooks";
 import { toast } from "sonner";
 
@@ -40,7 +40,7 @@ export default function TwoFactorPage() {
       login(user, tokens.accessToken, tokens.refreshToken);
       setRequires2fa(false);
       toast.success(t("auth.twoFactorVerified"));
-      router.push(ROUTES.DASHBOARD);
+      router.push(getRoleHome(user.role));
     },
     onError: (error) => toast.error(getErrorMessage(error)),
   });

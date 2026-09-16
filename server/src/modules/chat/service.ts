@@ -105,7 +105,12 @@ export async function sendMessage(
     throw AppError.forbidden("Platform service access required");
   }
 
-  const { text, blocked } = redactContactInfo(body.content || "");
+  const { getSystemSettings } = await import("../admin/service");
+  const settings = await getSystemSettings();
+  const shouldBlockContact = settings.contactBlocking !== false;
+  const { text, blocked } = shouldBlockContact
+    ? redactContactInfo(body.content || "")
+    : { text: body.content || "", blocked: false };
   if (!text.trim() && !body.attachmentUrl) throw AppError.badRequest("Message required");
 
   const sender = await UserModel.findByPk(auth.sub);

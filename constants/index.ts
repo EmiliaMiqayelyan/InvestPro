@@ -7,7 +7,7 @@ export const API_BASE_URL =
       : "/api/v1");
 
 export const PLATFORM_NAME = "InvestIN";
-export const SUPPORT_EMAIL = "support@investin.com";
+export const SUPPORT_EMAIL = "hello@investin.am";
 
 export const ROUTES = {
   HOME: "/",
@@ -19,6 +19,7 @@ export const ROUTES = {
   REGISTER: "/register",
   REGISTER_SUCCESS: "/register/success",
   FORGOT_PASSWORD: "/forgot-password",
+  RESET_PASSWORD: "/reset-password",
   VERIFY_EMAIL: "/verify-email",
   TWO_FACTOR: "/two-factor",
   PRIVACY: "/privacy",
@@ -31,6 +32,7 @@ export const ROUTES = {
   // Investor
   INVESTOR_DASHBOARD: "/investor/dashboard",
   INVESTOR_INVESTMENTS: "/investor/investments",
+  INVESTOR_OFFERS: "/investor/offers",
   INVESTOR_SAVED: "/investor/saved",
   INVESTOR_MESSAGES: "/investor/messages",
   INVESTOR_PROFILE: "/investor/profile",
@@ -138,19 +140,19 @@ export const RISK_LEVELS = [
     value: "low",
     label: "Low Risk",
     color: "text-white",
-    bg: "bg-emerald-700 hover:bg-emerald-700",
+    bg: "bg-emerald-700",
   },
   {
     value: "medium",
     label: "Medium Risk",
     color: "text-white",
-    bg: "bg-amber-600 hover:bg-amber-600",
+    bg: "bg-amber-700",
   },
   {
     value: "high",
     label: "High Risk",
     color: "text-white",
-    bg: "bg-red-700 hover:bg-red-700",
+    bg: "bg-red-700",
   },
 ] as const;
 

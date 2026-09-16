@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { MessageSquare, Send, ShieldAlert } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
@@ -25,11 +26,24 @@ export function MessagesPanel() {
   const { user } = useAuth();
   const { t, locale } = useI18n();
   const queryClient = useQueryClient();
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const conversationFromUrl = searchParams.get("c");
+  const [selectedId, setSelectedId] = useState<string | null>(conversationFromUrl);
   const [draft, setDraft] = useState("");
 
   const { data: conversations = [], isLoading } = useConversations();
   const { data: messages = [] } = useMessages(selectedId);
+
+  useEffect(() => {
+    if (!conversationFromUrl) return;
+    setSelectedId(conversationFromUrl);
+  }, [conversationFromUrl]);
+
+  useEffect(() => {
+    if (!conversationFromUrl || conversations.length === 0) return;
+    const exists = conversations.some((c) => c.id === conversationFromUrl);
+    if (exists) setSelectedId(conversationFromUrl);
+  }, [conversationFromUrl, conversations]);
 
   const selected = conversations.find((c) => c.id === selectedId);
 

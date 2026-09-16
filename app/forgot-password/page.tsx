@@ -36,12 +36,12 @@ export default function ForgotPasswordPage() {
 
   const mutation = useMutation({
     mutationFn: (data: FormData) => authApi.forgotPassword(data.email),
-    onSuccess: () => toast.success(t("common.success")),
+    onSuccess: () => toast.success(t("auth.forgotPasswordSent")),
     onError: (error) => toast.error(getErrorMessage(error)),
   });
 
   return (
-    <AuthShell title={t("auth.forgotPassword")} subtitle={t("auth.signInToAccount")}>
+    <AuthShell title={t("auth.forgotPassword")} subtitle={t("auth.forgotPasswordDesc")}>
       <Card className="border-border shadow-soft">
         <CardHeader className="text-center lg:hidden">
           <Link href={ROUTES.HOME} className="mb-2 inline-flex justify-center">
@@ -50,13 +50,18 @@ export default function ForgotPasswordPage() {
         </CardHeader>
         <CardHeader className="hidden text-center lg:block">
           <CardTitle className="text-2xl font-display">{t("auth.forgotPassword")}</CardTitle>
-          <CardDescription>{t("auth.signInToAccount")}</CardDescription>
+          <CardDescription>{t("auth.forgotPasswordDesc")}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit((d) => mutation.mutate(d))} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">{t("auth.email")}</Label>
-              <Input id="email" type="email" placeholder="you@example.com" {...register("email")} />
+              <Input
+                id="email"
+                type="email"
+                placeholder={t("loginPage.emailPlaceholder")}
+                {...register("email")}
+              />
               {errors.email && (
                 <p className="text-sm text-destructive">{errors.email.message}</p>
               )}

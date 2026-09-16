@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, FolderKanban } from "lucide-react";
+import { ArrowLeft, FolderKanban, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { ownerApi } from "@/services/api";
 import { getErrorMessage } from "@/services/api/client";
@@ -16,6 +16,7 @@ import { PanelPage } from "@/components/shared/panel-page";
 import { PanelCard } from "@/components/shared/panel-card";
 import { EmptyState } from "@/components/shared/empty-state";
 import { PanelBlockSkeleton } from "@/components/shared/loading-skeleton";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import {
   QUERY_KEYS,
   ROUTES,
@@ -64,6 +65,7 @@ export default function OwnerEditProjectPage() {
   const [revenueModel, setRevenueModel] = useState("");
   const [financialProjections, setFinancialProjections] = useState("");
   const [investmentPlan, setInvestmentPlan] = useState("");
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   useEffect(() => {
     if (!project) return;
@@ -137,6 +139,7 @@ export default function OwnerEditProjectPage() {
     mutationFn: () => ownerApi.deleteProject(id),
     onSuccess: () => {
       toast.success(t("ownerReview.deletedToast"));
+      setDeleteOpen(false);
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.OWNER_PROJECTS] });
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.OWNER_DOCUMENTS] });
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.OWNER_DASHBOARD] });
@@ -363,17 +366,26 @@ export default function OwnerEditProjectPage() {
           </Button>
         ) : null}
         <Button
+          size="icon"
           variant="ghost"
-          className="text-destructive hover:text-destructive"
+          className="h-10 w-10 text-destructive hover:bg-destructive/10 hover:text-destructive"
           disabled={deleteMutation.isPending}
-          onClick={() => {
-            if (!window.confirm(t("ownerReview.deleteConfirm"))) return;
-            deleteMutation.mutate();
-          }}
+          aria-label={t("ownerReview.deleteProject")}
+          onClick={() => setDeleteOpen(true)}
         >
-          {t("ownerReview.deleteProject")}
+          <Trash2 className="h-4 w-4" />
         </Button>
       </div>
+
+      <ConfirmDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        title={t("ownerReview.deleteConfirm")}
+        description={project.title}
+        confirmLabel={t("ownerReview.deleteProject")}
+        loading={deleteMutation.isPending}
+        onConfirm={() => deleteMutation.mutate()}
+      />
     </PanelPage>
   );
 }

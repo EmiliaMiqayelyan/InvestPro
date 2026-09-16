@@ -197,6 +197,9 @@ export const adminMarketplaceApi = {
         pendingKyc: KycSubmission[];
       }>
     >("/admin/security"),
+  approveKyc: (id: string) => apiClient.post(`/admin/kyc/${id}/approve`),
+  rejectKyc: (id: string, reason?: string) =>
+    apiClient.post(`/admin/kyc/${id}/reject`, { reason }),
   complaints: () => apiClient.get("/admin/complaints"),
 };
 

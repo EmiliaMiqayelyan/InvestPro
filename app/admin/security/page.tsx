@@ -1,11 +1,13 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Flag, ScrollText, Shield } from "lucide-react";
 import { adminMarketplaceApi } from "@/services/api";
 import { QUERY_KEYS } from "@/constants";
+import { getErrorMessage } from "@/services/api/client";
 import { formatDate, formatRelativeTime } from "@/utils/format";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useI18n } from "@/hooks";
 import { useSetPageTitle } from "@/components/providers/page-title-provider";
@@ -14,13 +16,27 @@ import { PanelPage } from "@/components/shared/panel-page";
 import { PanelCard } from "@/components/shared/panel-card";
 import { EmptyState } from "@/components/shared/empty-state";
 import { PanelListSkeleton } from "@/components/shared/loading-skeleton";
+import { toast } from "sonner";
 
 export default function AdminSecurityPage() {
   const { t } = useI18n();
   useSetPageTitle(t("admin.securityTitle"));
+  const queryClient = useQueryClient();
   const { data, isLoading } = useQuery({
     queryKey: [QUERY_KEYS.ADMIN_SECURITY],
     queryFn: async () => (await adminMarketplaceApi.security()).data.data,
+  });
+
+  const reviewMutation = useMutation({
+    mutationFn: ({ id, approve }: { id: string; approve: boolean }) =>
+      approve
+        ? adminMarketplaceApi.approveKyc(id)
+        : adminMarketplaceApi.rejectKyc(id, t("admin.kycRejectedDefault")),
+    onSuccess: (_res, vars) => {
+      toast.success(vars.approve ? t("admin.kycApprovedToast") : t("admin.kycRejectedToast"));
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ADMIN_SECURITY] });
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
   });
 
   const logs = data?.activityLogs ?? [];
@@ -98,7 +114,7 @@ export default function AdminSecurityPage() {
               <EmptyState icon={Shield} title={t("admin.noPendingKyc")} />
             ) : (
               pendingKyc.map((kyc) => (
-                <PanelCard key={kyc.id} padding="sm">
+                <PanelCard key={kyc.id} padding="sm" className="space-y-3">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <p className="font-medium text-foreground">
                       {t("admin.userLabel", { id: kyc.userId.slice(0, 8) })}
@@ -107,9 +123,27 @@ export default function AdminSecurityPage() {
                       {kyc.status.replace(/_/g, " ")}
                     </Badge>
                   </div>
-                  <p className="mt-1 text-sm text-muted-foreground">
+                  <p className="text-sm text-muted-foreground">
                     {t("admin.submitted", { date: formatDate(kyc.submittedAt) })}
                   </p>
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      size="sm"
+                      className="bg-emerald-600 hover:bg-emerald-700"
+                      disabled={reviewMutation.isPending}
+                      onClick={() => reviewMutation.mutate({ id: kyc.id, approve: true })}
+                    >
+                      {t("admin.approveKyc")}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      disabled={reviewMutation.isPending}
+                      onClick={() => reviewMutation.mutate({ id: kyc.id, approve: false })}
+                    >
+                      {t("admin.rejectKyc")}
+                    </Button>
+                  </div>
                 </PanelCard>
               ))
             )}
