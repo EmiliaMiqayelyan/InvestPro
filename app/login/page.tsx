@@ -15,14 +15,22 @@ import { useAuth, useI18n } from "@/hooks";
 
 type LoginForm = { email: string; password: string };
 
-const SHOW_DEMO =
-  process.env.NODE_ENV === "development" ||
-  process.env.NEXT_PUBLIC_SHOW_DEMO === "true";
-
 const DEMO_ACCOUNTS = [
-  { roleKey: "auth.demoInvestor" as const, email: "investor@investpro.com", password: "investor123" },
-  { roleKey: "auth.demoOwner" as const, email: "owner@investpro.com", password: "owner123" },
-  { roleKey: "auth.demoAdmin" as const, email: "admin@investpro.com", password: "admin123" },
+  {
+    roleKey: "auth.demoInvestor" as const,
+    email: "investor@investpro.com",
+    password: "investor123",
+  },
+  {
+    roleKey: "auth.demoOwner" as const,
+    email: "owner@investpro.com",
+    password: "owner123",
+  },
+  {
+    roleKey: "auth.demoAdmin" as const,
+    email: "admin@investpro.com",
+    password: "admin123",
+  },
 ];
 
 export default function LoginPage() {
@@ -34,7 +42,12 @@ export default function LoginPage() {
     password: z.string().min(8, t("auth.passwordMin8")),
   });
 
-  const { register, handleSubmit, setValue, formState: { errors } } = useForm<LoginForm>({
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors },
+  } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
   });
 
@@ -42,6 +55,12 @@ export default function LoginPage() {
     { title: t("loginPage.investorTitle"), body: t("loginPage.investorBody") },
     { title: t("loginPage.ownerTitle"), body: t("loginPage.ownerBody") },
   ];
+
+  const signInAs = (email: string, password: string) => {
+    setValue("email", email, { shouldDirty: true, shouldValidate: true });
+    setValue("password", password, { shouldDirty: true, shouldValidate: true });
+    login({ email, password });
+  };
 
   return (
     <AuthShell
@@ -73,17 +92,42 @@ export default function LoginPage() {
             <div className="space-y-2">
               <Label htmlFor="password">{t("loginPage.password")}</Label>
               <Input id="password" type="password" {...register("password")} />
-              {errors.password && <p className="text-sm text-destructive">{errors.password.message}</p>}
+              {errors.password && (
+                <p className="text-sm text-destructive">{errors.password.message}</p>
+              )}
             </div>
             <Button type="submit" className="w-full" disabled={isLoggingIn}>
               {isLoggingIn ? t("auth.signingIn") : t("loginPage.logIn")}
             </Button>
             <p className="text-center">
-              <Link href={ROUTES.FORGOT_PASSWORD} className="text-sm font-medium text-primary hover:underline">
+              <Link
+                href={ROUTES.FORGOT_PASSWORD}
+                className="text-sm font-medium text-primary hover:underline"
+              >
                 {t("loginPage.forgot")}
               </Link>
             </p>
           </form>
+
+          <div className="mt-6 rounded-xl border border-border bg-secondary/50 p-3">
+            <p className="mb-2 text-xs font-medium text-muted-foreground">
+              {t("auth.demoAccounts")}
+            </p>
+            <div className="space-y-1.5">
+              {DEMO_ACCOUNTS.map((account) => (
+                <button
+                  key={account.email}
+                  type="button"
+                  disabled={isLoggingIn}
+                  className="flex w-full items-center justify-between rounded-lg bg-card px-3 py-2.5 text-left text-xs transition hover:bg-secondary disabled:opacity-60"
+                  onClick={() => signInAs(account.email, account.password)}
+                >
+                  <span className="font-medium">{t(account.roleKey)}</span>
+                  <span className="text-muted-foreground">{account.email}</span>
+                </button>
+              ))}
+            </div>
+          </div>
 
           <div className="mt-6 border-t border-border pt-6 text-center">
             <p className="font-medium">{t("loginPage.noAccountTitle")}</p>
@@ -92,28 +136,6 @@ export default function LoginPage() {
               <Link href={ROUTES.REGISTER}>{t("loginPage.createAccount")}</Link>
             </Button>
           </div>
-
-          {SHOW_DEMO ? (
-            <div className="mt-6 rounded-xl border border-border bg-secondary/50 p-3">
-              <p className="mb-2 text-xs font-medium text-muted-foreground">{t("auth.demoAccounts")}</p>
-              <div className="space-y-1.5">
-                {DEMO_ACCOUNTS.map((account) => (
-                  <button
-                    key={account.email}
-                    type="button"
-                    className="flex w-full items-center justify-between rounded-lg bg-card px-3 py-2 text-left text-xs transition hover:bg-secondary"
-                    onClick={() => {
-                      setValue("email", account.email, { shouldDirty: true, shouldValidate: true });
-                      setValue("password", account.password, { shouldDirty: true, shouldValidate: true });
-                    }}
-                  >
-                    <span className="font-medium">{t(account.roleKey)}</span>
-                    <span className="text-muted-foreground">{account.email}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          ) : null}
         </CardContent>
       </Card>
     </AuthShell>
