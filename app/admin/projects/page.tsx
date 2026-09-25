@@ -24,8 +24,10 @@ type FilterId = "all" | ProjectStatus | "approved";
 const FILTERS: { id: FilterId; status?: ProjectStatus | "approved" }[] = [
   { id: "all" },
   { id: "pending_review", status: "pending_review" },
+  { id: "removal_requested", status: "removal_requested" },
   { id: "published", status: "published" },
   { id: "approved", status: "approved" },
+  { id: "archived", status: "archived" },
   { id: "rejected", status: "rejected" },
   { id: "draft", status: "draft" },
 ];
@@ -50,8 +52,35 @@ function filterLabel(t: (key: string) => string, id: FilterId) {
       return t("admin.filterRejected");
     case "draft":
       return t("admin.filterDraft");
+    case "archived":
+      return t("admin.filterArchived");
+    case "removal_requested":
+      return t("admin.filterRemovalRequested");
     default:
       return id;
+  }
+}
+
+function projectStatusLabel(t: (key: string) => string, status: Project["status"]) {
+  switch (status) {
+    case "pending_review":
+      return t("admin.statusPending");
+    case "published":
+      return t("admin.statusPublished");
+    case "rejected":
+      return t("admin.statusRejected");
+    case "draft":
+      return t("admin.statusDraft");
+    case "funded":
+      return t("admin.statusFunded");
+    case "funding":
+      return t("admin.statusFunding");
+    case "archived":
+      return t("admin.statusArchived");
+    case "removal_requested":
+      return t("admin.statusRemovalRequested");
+    default:
+      return t("admin.statusClosed");
   }
 }
 
@@ -70,11 +99,11 @@ export default function AdminProjectsPage() {
   const pending = useMemo(
     () =>
       projects
-        .filter((p) => p.status === "pending_review")
+        .filter((p) => p.status === "pending_review" || p.status === "removal_requested")
         .sort(
           (a, b) =>
-            new Date(b.submittedAt || b.createdAt).getTime() -
-            new Date(a.submittedAt || a.createdAt).getTime()
+            new Date(b.submittedAt || b.updatedAt || b.createdAt).getTime() -
+            new Date(a.submittedAt || a.updatedAt || a.createdAt).getTime()
         ),
     [projects]
   );
@@ -146,8 +175,16 @@ export default function AdminProjectsPage() {
                     </p>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <Badge className="border-amber-200 bg-amber-50 text-amber-900">
-                      {t("admin.awaitingReview")}
+                    <Badge
+                      className={
+                        project.status === "removal_requested"
+                          ? "border-orange-200 bg-orange-50 text-orange-900"
+                          : "border-amber-200 bg-amber-50 text-amber-900"
+                      }
+                    >
+                      {project.status === "removal_requested"
+                        ? t("admin.statusRemovalRequested")
+                        : t("admin.awaitingReview")}
                     </Badge>
                     <Button asChild size="sm">
                       <Link href={`${ROUTES.ADMIN_PROJECTS}/${project.id}/review`}>
@@ -219,17 +256,7 @@ export default function AdminProjectsPage() {
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <Badge className={cn("border capitalize", STATUS_COLORS[project.status])}>
-                  {project.status === "pending_review"
-                    ? t("admin.statusPending")
-                    : project.status === "published"
-                      ? t("admin.statusPublished")
-                      : project.status === "rejected"
-                        ? t("admin.statusRejected")
-                        : project.status === "draft"
-                          ? t("admin.statusDraft")
-                          : project.status === "funded"
-                            ? t("admin.statusFunded")
-                            : t("admin.statusClosed")}
+                  {projectStatusLabel(t, project.status)}
                 </Badge>
                 <Button asChild size="sm" variant="outline">
                   <Link href={`${ROUTES.ADMIN_PROJECTS}/${project.id}/review`}>

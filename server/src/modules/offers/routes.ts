@@ -43,4 +43,12 @@ router.patch(
   })
 );
 
+router.post(
+  "/:id/cancel",
+  asyncHandler(async (req: AuthedRequest, res) => {
+    const auth = requireRole(req, ["investor"]);
+    return ok(res, await offers.cancelOffer(auth, param(req, "id")), "Offer cancelled");
+  })
+);
+
 export default router;

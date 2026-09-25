@@ -27,6 +27,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { CardSkeleton } from "@/components/shared/loading-skeleton";
+import { DocumentActions } from "@/components/shared/document-actions";
 import { ServicePaywall } from "@/components/shared/service-paywall";
 import { useProject } from "@/hooks/use-marketplace";
 import { useI18n } from "@/hooks";
@@ -557,11 +558,12 @@ export default function ProjectDetailPage() {
                             </p>
                           </div>
                         </div>
-                        <Button variant="outline" size="sm" asChild>
-                          <a href={doc.url} target="_blank" rel="noreferrer">
-                            {t("common.view")}
-                          </a>
-                        </Button>
+                        <DocumentActions
+                          url={doc.url}
+                          name={doc.name}
+                          showDownload={false}
+                          openLabel={t("common.view")}
+                        />
                       </li>
                     ))}
                   </ul>

@@ -104,6 +104,16 @@ router.patch("/projects/:id/status", asyncHandler(async (req: AuthedRequest, res
   return ok(res, await admin.patchProjectStatus(auth, param(req, "id"), req.body));
 }));
 
+router.post("/projects/:id/archive", asyncHandler(async (req: AuthedRequest, res) => {
+  const auth = requireAuth(req);
+  return ok(res, await admin.archiveAdminProject(auth, param(req, "id")), "Project archived");
+}));
+
+router.delete("/projects/:id", asyncHandler(async (req: AuthedRequest, res) => {
+  const auth = requireAuth(req);
+  return ok(res, await admin.deleteAdminProject(auth, param(req, "id")), "Project removed");
+}));
+
 router.get("/investments", asyncHandler(async (req, res) => {
   const { InvestmentModel } = await import("../../shared/database/associations");
   const rows = await InvestmentModel.findAll({ order: [["createdAt", "DESC"]] });

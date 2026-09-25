@@ -28,6 +28,7 @@ export const en = {
     success: "Success",
     error: "Something went wrong",
     unavailable: "Unavailable",
+    fileUnavailable: "This file is not available. Please re-upload it.",
     open: "Open",
     view: "View",
     sending: "Sending…",
@@ -1207,6 +1208,7 @@ export const en = {
     submitProject: "Submit project",
     noTeamYet: "No team members yet",
     noDocumentsYet: "No documents yet",
+    teamPageSub: "Team members grouped by project",
   },
   offers: {
     title: "Investment offers",
@@ -1224,6 +1226,14 @@ export const en = {
     negotiateTitle: "Negotiate offer",
     negotiatePlaceholder: "Share your counter-terms…",
     sendNegotiation: "Send negotiation",
+    cancelOffer: "Cancel offer",
+    cancelConfirm: "Cancel this offer? The project owner will be notified.",
+    cancelledToast: "Offer cancelled",
+    statusPending: "Pending",
+    statusAccepted: "Accepted",
+    statusRejected: "Rejected",
+    statusNegotiating: "Negotiating",
+    statusCancelled: "Cancelled",
   },
   messages: {
     title: "Messages",
@@ -1240,6 +1250,14 @@ export const en = {
     emptyTitle: "No conversations yet",
     emptyBody:
       "Message owners from a project page after you activate platform access. Contact details (email, phone, chat apps) are blocked automatically so diligence stays on-platform.",
+    emptyBodyAdmin:
+      "Start a conversation with an investor or project owner from here or from the Users page.",
+    adminSub: "Message investors and project owners on-platform",
+    newConversation: "New conversation",
+    newConversationBody: "Choose a user to open or continue a support conversation.",
+    pickUser: "Select investor or project owner…",
+    startChatAction: "Start chat",
+    startedToast: "Conversation ready",
   },
   admin: {
     dashboardTitle: "Admin dashboard",
@@ -1339,6 +1357,20 @@ export const en = {
     filterRejected: "Rejected",
     filterDraft: "Draft",
     filterPublished: "Published",
+    filterArchived: "Archived",
+    filterRemovalRequested: "Removal requested",
+    archiveProject: "Archive",
+    archiveConfirmTitle: "Archive this project?",
+    archiveConfirmBody: "The project will leave the marketplace. The owner will be notified.",
+    archiveToast: "Project archived",
+    removeProject: "Remove",
+    removeConfirmTitle: "Permanently remove this project?",
+    removeConfirmBody: "This cannot be undone. The owner will be notified.",
+    removeToast: "Project removed",
+    removeBlockedInvestors:
+      "This project still has investors. Manage investments before removing.",
+    hasInvestorsWarning:
+      "This project has investor records. Removal is blocked until they are resolved.",
     reviewTitle: "Project review",
     reviewStatus: "Pending review",
     submissionDate: "Submission date",
@@ -1411,6 +1443,9 @@ export const en = {
     statusFunded: "Funded",
     statusClosed: "Closed",
     statusRejected: "Rejected",
+    statusArchived: "Archived",
+    statusRemovalRequested: "Removal requested",
+    statusFunding: "Funding",
   },
   ownerReview: {
     rejected: "Rejected",
@@ -1419,6 +1454,15 @@ export const en = {
     deleteProject: "Delete project",
     deleteConfirm: "Delete this project? This cannot be undone.",
     deletedToast: "Project deleted",
+    archiveProject: "Archive",
+    archiveConfirm: "Archive this project? It will leave the marketplace.",
+    archivedToast: "Project archived",
+    requestRemoval: "Request removal",
+    requestRemovalConfirm:
+      "Send a removal request to admins? They will permanently delete it if allowed.",
+    requestRemovalToast: "Removal request sent to admins",
+    removalRequested: "Removal requested",
+    archived: "Archived",
     removeMember: "Remove",
     removeDocument: "Remove",
     removeMemberConfirm: "Remove this team member?",
@@ -1515,6 +1559,26 @@ export const en = {
         title: "Project closed",
         body: "“{projectTitle}” is no longer open for new offers.",
       },
+      projectArchived: {
+        title: "Project archived",
+        body: "“{projectTitle}” was archived and is no longer visible on the marketplace.",
+      },
+      projectRemovalRequested: {
+        title: "Project removal requested",
+        body: "The owner requested permanent removal of “{projectTitle}”.",
+      },
+      projectRemovalRequestedWithInvestors: {
+        title: "Project removal requested",
+        body: "“{projectTitle}” was requested for removal but still has {investmentCount} investor record(s). Resolve investments before deleting.",
+      },
+      projectRemoved: {
+        title: "Project removed",
+        body: "“{projectTitle}” was permanently removed by an administrator.",
+      },
+      projectRemoveBlocked: {
+        title: "Cannot remove project",
+        body: "“{projectTitle}” still has {investmentCount} investor record(s). Manage investments before removing.",
+      },
       offerReceived: {
         title: "New investment offer",
         body: "{investorName} offered {amount} on {projectTitle}.",
@@ -1530,6 +1594,10 @@ export const en = {
       offerNegotiating: {
         title: "Offer in negotiation",
         body: "The owner opened negotiation on your {amount} offer for {projectTitle}. Reply on-platform to agree terms.",
+      },
+      offerCancelled: {
+        title: "Offer cancelled",
+        body: "{investorName} cancelled their {amount} offer for {projectTitle}.",
       },
       newMessage: {
         title: "New message · {projectTitle}",

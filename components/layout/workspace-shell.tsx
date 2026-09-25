@@ -125,6 +125,7 @@ const ADMIN_NAV: NavGroup[] = [
     items: [
       { href: ROUTES.ADMIN_USERS, labelKey: "nav.users", icon: Users },
       { href: ROUTES.ADMIN_PROJECTS, labelKey: "nav.projects", icon: FolderKanban },
+      { href: ROUTES.ADMIN_MESSAGES, labelKey: "nav.messages", icon: MessageSquare },
       { href: ROUTES.ADMIN_PAYMENTS, labelKey: "nav.payments", icon: CreditCard },
     ],
   },

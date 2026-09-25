@@ -130,6 +130,28 @@ export function useNotificationStream() {
           /* ignore malformed frames */
         }
       });
+      source.addEventListener("notifications_read", (event) => {
+        try {
+          const data = JSON.parse((event as MessageEvent).data) as {
+            conversationId?: string;
+            unreadCount?: number;
+          };
+          queryClient.setQueryData<Notification[]>([QUERY_KEYS.NOTIFICATIONS], (list) =>
+            (list || []).map((item) => {
+              if (item.isRead) return item;
+              if (item.type !== "message") return item;
+              const meta = item.metadata || {};
+              if (data.conversationId && meta.conversationId === data.conversationId) {
+                return { ...item, isRead: true };
+              }
+              return item;
+            })
+          );
+          queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.NOTIFICATIONS] });
+        } catch {
+          /* ignore */
+        }
+      });
       source.onerror = () => {
         source?.close();
         source = null;

@@ -48,6 +48,26 @@ router.delete(
 );
 
 router.post(
+  "/projects/:id/archive",
+  asyncHandler(async (req: AuthedRequest, res) => {
+    const auth = requireRole(req, ["project_owner"]);
+    return ok(res, await owner.archiveOwnerProject(auth, param(req, "id")), "Project archived");
+  })
+);
+
+router.post(
+  "/projects/:id/request-removal",
+  asyncHandler(async (req: AuthedRequest, res) => {
+    const auth = requireRole(req, ["project_owner"]);
+    return ok(
+      res,
+      await owner.requestOwnerProjectRemoval(auth, param(req, "id")),
+      "Removal requested"
+    );
+  })
+);
+
+router.post(
   "/projects/:id/documents",
   asyncHandler(async (req: AuthedRequest, res) => {
     const auth = requireRole(req, ["project_owner"]);

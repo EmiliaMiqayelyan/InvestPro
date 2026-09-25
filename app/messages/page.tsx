@@ -29,7 +29,7 @@ export default function MessagesRedirectPage() {
       return;
     }
     if (user.role === "admin") {
-      router.replace(ROUTES.ADMIN_DASHBOARD);
+      router.replace(ROUTES.ADMIN_MESSAGES);
       return;
     }
 

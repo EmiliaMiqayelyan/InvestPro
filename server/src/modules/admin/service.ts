@@ -9,6 +9,10 @@ import {
   ComplaintModel,
   ActivityLogModel,
   MessageModel,
+  InvestmentModel,
+  ConversationModel,
+  SavedProjectModel,
+  MilestonePlanModel,
 } from "../../shared/database/associations";
 import { AppError } from "../../shared/errors/AppError";
 import {
@@ -198,6 +202,58 @@ export async function patchProjectStatus(
     status: body.status,
   });
   return updated;
+}
+
+export async function archiveAdminProject(auth: TokenPayload, id: string) {
+  return patchProjectStatus(auth, id, { status: "archived" });
+}
+
+export async function deleteAdminProject(auth: TokenPayload, id: string) {
+  const row = await ProjectModel.findByPk(id);
+  if (!row) throw AppError.notFound("Project not found");
+  const project = toProject(row);
+
+  const investments = await InvestmentModel.count({ where: { projectId: id } });
+  if (investments > 0) {
+    await dispatchNotificationEvent({
+      kind: "project_remove_blocked",
+      adminId: auth.sub,
+      project,
+      investmentCount: investments,
+    });
+    throw AppError.badRequest(
+      `Cannot remove a project with ${investments} investor record(s). Manage investments first.`
+    );
+  }
+
+  if (row.status === "funded") {
+    throw AppError.badRequest("Funded projects cannot be removed until investments are cleared");
+  }
+
+  await dispatchNotificationEvent({
+    kind: "project_removed",
+    ownerId: project.ownerId,
+    projectId: project.id,
+    projectTitle: project.title,
+    byAdmin: true,
+  });
+
+  const conversations = await ConversationModel.findAll({ where: { projectId: id } });
+  const conversationIds = conversations.map((c) => c.id);
+  if (conversationIds.length) {
+    await MessageModel.destroy({ where: { conversationId: { [Op.in]: conversationIds } } });
+    await ConversationModel.destroy({ where: { id: { [Op.in]: conversationIds } } });
+  }
+
+  await Promise.all([
+    OfferModel.destroy({ where: { projectId: id } }),
+    SavedProjectModel.destroy({ where: { projectId: id } }),
+    MilestonePlanModel.destroy({ where: { projectId: id } }),
+  ]);
+
+  await row.destroy();
+  await logActivity(auth.sub, "project_deleted_by_admin", "project", id);
+  return { id };
 }
 
 export async function listPayments() {

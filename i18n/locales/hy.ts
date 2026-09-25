@@ -30,6 +30,7 @@ export const hy: EnMessages = {
     success: "Հաջողված է",
     error: "Ինչ-որ բան սխալ է",
     unavailable: "Հասանելի չէ",
+    fileUnavailable: "Այս ֆայլը հասանելի չէ։ Խնդրում ենք նորից վերբեռնել։",
     open: "Բացել",
     view: "Դիտել",
     sending: "Ուղարկվում է…",
@@ -1219,6 +1220,7 @@ export const hy: EnMessages = {
     submitProject: "Ուղարկել նախագիծը",
     noTeamYet: "Թիմի անդամներ դեռ չկան",
     noDocumentsYet: "Փաստաթղթեր դեռ չկան",
+    teamPageSub: "Թիմի անդամները խմբավորված են ըստ նախագծի",
   },
   offers: {
     title: "Ներդրումային առաջարկներ",
@@ -1236,6 +1238,14 @@ export const hy: EnMessages = {
     negotiateTitle: "Բանակցել առաջարկի շուրջ",
     negotiatePlaceholder: "Կիսվեք ձեր հակառակ պայմաններով…",
     sendNegotiation: "Ուղարկել բանակցությունը",
+    cancelOffer: "Չեղարկել առաջարկը",
+    cancelConfirm: "Չեղարկե՞լ այս առաջարկը։ Նախագծի սեփականատերը կտեղեկացվի։",
+    cancelledToast: "Առաջարկը չեղարկված է",
+    statusPending: "Սպասում է",
+    statusAccepted: "Ընդունված",
+    statusRejected: "Մերժված",
+    statusNegotiating: "Բանակցություն",
+    statusCancelled: "Չեղարկված",
   },
   messages: {
     title: "Հաղորդագրություններ",
@@ -1252,6 +1262,14 @@ export const hy: EnMessages = {
     emptyTitle: "Զրույցներ դեռ չկան",
     emptyBody:
       "Գրեք սեփականատերերին նախագծի էջից՝ հարթակի մուտքն ակտիվացնելուց հետո։ Կոնտակտները ավտոմատ արգելափակվում են։",
+    emptyBodyAdmin:
+      "Սկսեք զրույց ներդրողի կամ սեփականատիրոջ հետ այստեղից կամ Օգտատերեր էջից։",
+    adminSub: "Հաղորդագրություններ ներդրողների և սեփականատերերի հետ",
+    newConversation: "Նոր զրույց",
+    newConversationBody: "Ընտրեք օգտատիրոջը՝ աջակցության զրույց սկսելու կամ շարունակելու համար։",
+    pickUser: "Ընտրեք ներդրող կամ սեփականատեր…",
+    startChatAction: "Սկսել զրույցը",
+    startedToast: "Զրույցը պատրաստ է",
   },
   admin: {
     dashboardTitle: "Ադմին վահանակ",
@@ -1351,6 +1369,20 @@ export const hy: EnMessages = {
     filterRejected: "Մերժված",
     filterDraft: "Սևագիր",
     filterPublished: "Հրապարակված",
+    filterArchived: "Արխիվացված",
+    filterRemovalRequested: "Հեռացման հարցում",
+    archiveProject: "Արխիվացնել",
+    archiveConfirmTitle: "Արխիվացնե՞լ այս նախագիծը։",
+    archiveConfirmBody: "Նախագիծը կհեռանա շուկայից։ Սեփականատերը կտեղեկացվի։",
+    archiveToast: "Նախագիծը արխիվացված է",
+    removeProject: "Հեռացնել",
+    removeConfirmTitle: "Մշտապես հեռացնե՞լ այս նախագիծը։",
+    removeConfirmBody: "Գործողությունը անդառնալի է։ Սեփականատերը կտեղեկացվի։",
+    removeToast: "Նախագիծը հեռացված է",
+    removeBlockedInvestors:
+      "Նախագիծը դեռ ունի ներդրողներ։ Նախ կառավարեք ներդրումները։",
+    hasInvestorsWarning:
+      "Նախագիծը ունի ներդրողների գրառումներ։ Հեռացումը արգելափակված է մինչև դրանց լուծումը։",
     reviewTitle: "Նախագծի ստուգում",
     reviewStatus: "Սպասում է ստուգման",
     submissionDate: "Ուղարկման ամսաթիվ",
@@ -1423,6 +1455,9 @@ export const hy: EnMessages = {
     statusFunded: "Ֆինանսավորված",
     statusClosed: "Փակված",
     statusRejected: "Մերժված",
+    statusArchived: "Արխիվացված",
+    statusRemovalRequested: "Հեռացման հարցում",
+    statusFunding: "Ֆինանսավորվում է",
   },
   ownerReview: {
     rejected: "Մերժված",
@@ -1431,6 +1466,15 @@ export const hy: EnMessages = {
     deleteProject: "Ջնջել նախագիծը",
     deleteConfirm: "Ջնջե՞լ այս նախագիծը։ Գործողությունը անդառնալի է։",
     deletedToast: "Նախագիծը ջնջված է",
+    archiveProject: "Արխիվացնել",
+    archiveConfirm: "Արխիվացնե՞լ այս նախագիծը։ Այն կհեռանա շուկայից։",
+    archivedToast: "Նախագիծը արխիվացված է",
+    requestRemoval: "Խնդրել հեռացում",
+    requestRemovalConfirm:
+      "Ուղարկե՞լ հեռացման հարցում ադմիններին։ Նրանք կջնջեն այն, եթե թույլատրված է։",
+    requestRemovalToast: "Հեռացման հարցումը ուղարկվել է ադմիններին",
+    removalRequested: "Հեռացման հարցում",
+    archived: "Արխիվացված",
     removeMember: "Հեռացնել",
     removeDocument: "Հեռացնել",
     removeMemberConfirm: "Հեռացնե՞լ այս թիմի անդամին։",
@@ -1529,6 +1573,26 @@ export const hy: EnMessages = {
         title: "Նախագիծը փակված է",
         body: "«{projectTitle}» նախագիծն այլևս բաց չէ նոր առաջարկների համար։",
       },
+      projectArchived: {
+        title: "Նախագիծը արխիվացված է",
+        body: "«{projectTitle}» նախագիծը արխիվացվել է և այլևս տեսանելի չէ շուկայում։",
+      },
+      projectRemovalRequested: {
+        title: "Հեռացման հարցում",
+        body: "Սեփականատերը խնդրել է մշտապես հեռացնել «{projectTitle}» նախագիծը։",
+      },
+      projectRemovalRequestedWithInvestors: {
+        title: "Հեռացման հարցում",
+        body: "«{projectTitle}» նախագծի հեռացում է խնդրվել, բայց դեռ կա {investmentCount} ներդրողի գրառում։ Նախ լուծեք ներդրումները։",
+      },
+      projectRemoved: {
+        title: "Նախագիծը հեռացված է",
+        body: "«{projectTitle}» նախագիծը մշտապես հեռացվել է ադմինիստրատորի կողմից։",
+      },
+      projectRemoveBlocked: {
+        title: "Նախագիծը հնարավոր չէ հեռացնել",
+        body: "«{projectTitle}» նախագիծը դեռ ունի {investmentCount} ներդրողի գրառում։ Նախ կառավարեք ներդրումները։",
+      },
       offerReceived: {
         title: "Նոր ներդրումային առաջարկ",
         body: "{investorName}-ը {amount} առաջարկ է արել «{projectTitle}» նախագծի համար։",
@@ -1544,6 +1608,10 @@ export const hy: EnMessages = {
       offerNegotiating: {
         title: "Առաջարկը բանակցության մեջ է",
         body: "Սեփականատերը բանակցություն է սկսել ձեր {amount} առաջարկի շուրջ «{projectTitle}» նախագծի համար։ Պատասխանեք հարթակում՝ պայմանները համաձայնեցնելու համար։",
+      },
+      offerCancelled: {
+        title: "Առաջարկը չեղարկված է",
+        body: "{investorName}-ը չեղարկել է իր {amount} առաջարկը «{projectTitle}» նախագծի համար։",
       },
       newMessage: {
         title: "Նոր հաղորդագրություն · {projectTitle}",

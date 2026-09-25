@@ -11,7 +11,9 @@ export type ProjectStatus =
   | "funding"
   | "funded"
   | "closed"
-  | "rejected";
+  | "rejected"
+  | "archived"
+  | "removal_requested";
 
 export type ProjectStage =
   | "idea"
@@ -21,7 +23,12 @@ export type ProjectStage =
   | "expansion";
 
 export type RiskLevel = "low" | "medium" | "high";
-export type OfferStatus = "pending" | "accepted" | "rejected" | "negotiating";
+export type OfferStatus =
+  | "pending"
+  | "accepted"
+  | "rejected"
+  | "negotiating"
+  | "cancelled";
 export type KycStatus =
   | "not_submitted"
   | "pending"

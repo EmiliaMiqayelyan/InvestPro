@@ -21,11 +21,16 @@ const TITLE_ALIASES: Record<string, string> = {
   "Project rejected": "projectRejected",
   "Project funded": "projectFunded",
   "Project closed": "projectClosed",
+  "Project archived": "projectArchived",
+  "Project removal requested": "projectRemovalRequested",
+  "Project removed": "projectRemoved",
+  "Cannot remove project": "projectRemoveBlocked",
   "New investment offer": "offerReceived",
   "Offer accepted": "offerAccepted",
   "Offer rejected": "offerRejected",
   "Offer negotiating": "offerNegotiating",
   "Offer pending": "offerNegotiating",
+  "Offer cancelled": "offerCancelled",
   "Verification submitted": "kycSubmitted",
   "KYC awaiting review": "kycAwaitingAdmin",
   "New milestone plan": "milestoneCreated",
@@ -122,6 +127,7 @@ function templateParams(
     subject: metaString(metadata, "subject") || item.message,
     role: roleKey ? t(roleKey) : roleRaw.replace(/_/g, " "),
     status,
+    investmentCount: metaString(metadata, "investmentCount") || "0",
   };
 }
 

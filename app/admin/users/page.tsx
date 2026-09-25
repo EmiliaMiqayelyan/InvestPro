@@ -1,12 +1,16 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Users } from "lucide-react";
-import { adminMarketplaceApi } from "@/services/api";
-import { QUERY_KEYS, STATUS_COLORS } from "@/constants";
+import { useRouter } from "next/navigation";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { MessageSquare, Users } from "lucide-react";
+import { toast } from "sonner";
+import { adminMarketplaceApi, chatApi } from "@/services/api";
+import { getErrorMessage } from "@/services/api/client";
+import { QUERY_KEYS, ROUTES, STATUS_COLORS } from "@/constants";
 import { formatDate } from "@/utils/format";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -27,6 +31,7 @@ import type { User } from "@/types";
 
 export default function AdminUsersPage() {
   const { t } = useI18n();
+  const router = useRouter();
   useSetPageTitle(t("admin.usersTitle"));
   const [search, setSearch] = useState("");
   const [role, setRole] = useState<string>("all");
@@ -44,6 +49,20 @@ export default function AdminUsersPage() {
   });
 
   const users = data?.data ?? [];
+
+  const messageMutation = useMutation({
+    mutationFn: (userId: string) => chatApi.start({ userId }),
+    onSuccess: (res) => {
+      const conversation = res.data.data;
+      toast.success(t("messages.startedToast"));
+      router.push(
+        conversation?.id
+          ? `${ROUTES.ADMIN_MESSAGES}?c=${conversation.id}`
+          : ROUTES.ADMIN_MESSAGES
+      );
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
+  });
 
   const columns: Column<User>[] = useMemo(
     () => [
@@ -95,8 +114,26 @@ export default function AdminUsersPage() {
           <span className="text-muted-foreground">{formatDate(u.createdAt)}</span>
         ),
       },
+      {
+        key: "actions",
+        header: t("common.actions"),
+        cell: (u) =>
+          u.role === "investor" || u.role === "project_owner" ? (
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={messageMutation.isPending}
+              onClick={() => messageMutation.mutate(u.id)}
+            >
+              <MessageSquare className="h-3.5 w-3.5" />
+              {t("messages.startChatAction")}
+            </Button>
+          ) : (
+            <span className="text-muted-foreground">—</span>
+          ),
+      },
     ],
-    [t]
+    [t, messageMutation.isPending]
   );
 
   return (
@@ -132,11 +169,7 @@ export default function AdminUsersPage() {
       ) : users.length === 0 ? (
         <EmptyState icon={Users} title={t("admin.noUsers")} />
       ) : (
-        <DataTable
-          columns={columns}
-          data={users}
-          keyExtractor={(u) => u.id}
-        />
+        <DataTable columns={columns} data={users} keyExtractor={(u) => u.id} />
       )}
     </PanelPage>
   );

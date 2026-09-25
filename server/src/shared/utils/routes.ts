@@ -19,4 +19,5 @@ export const ROUTES = {
   ADMIN_PAYMENTS: "/admin/payments",
   ADMIN_SECURITY: "/admin/security",
   ADMIN_COMPLAINTS: "/admin/complaints",
+  ADMIN_MESSAGES: "/admin/messages",
 } as const;

@@ -1,8 +1,7 @@
 /**
- * File upload helpers. Mock mode returns data URLs / placeholder paths.
- * Configure S3_* env for real object storage.
+ * File upload helpers for the Next in-memory API fallback.
+ * Prefer Express storage in server/ when the backend is running.
  */
-
 export type UploadResult = {
   url: string;
   name: string;
@@ -18,20 +17,21 @@ export async function storeUploadedFile(params: {
   size?: number;
   category?: string;
   userId: string;
+  contentBase64?: string;
+  mimeType?: string;
+  id?: string;
 }): Promise<UploadResult> {
   const size = params.size ?? 0;
-  if (!isObjectStorageConfigured()) {
-    return {
-      url: `#upload-${params.userId}-${Date.now()}-${encodeURIComponent(params.name)}`,
-      name: params.name,
-      size,
-    };
+  if (!params.contentBase64) {
+    throw new Error("File content is required");
   }
-
-  // Production: put object to S3/R2 and return public/signed URL
-  const key = `uploads/${params.userId}/${Date.now()}-${params.name}`;
+  // Keep a data URL so open/download still works without S3 / Express disk storage.
+  const mime = params.mimeType || "application/octet-stream";
+  const raw = params.contentBase64.includes(",")
+    ? params.contentBase64.split(",")[1]
+    : params.contentBase64;
   return {
-    url: `https://${process.env.S3_BUCKET}.s3.amazonaws.com/${key}`,
+    url: `data:${mime};base64,${raw}`,
     name: params.name,
     size,
   };

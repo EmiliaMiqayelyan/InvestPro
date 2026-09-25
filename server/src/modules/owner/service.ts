@@ -460,6 +460,48 @@ export async function deleteOwnerProject(auth: TokenPayload, id: string) {
   return { id };
 }
 
+const OWNER_ARCHIVABLE = new Set(["published", "funding", "funded", "closed"]);
+
+export async function archiveOwnerProject(auth: TokenPayload, id: string) {
+  const row = await ProjectModel.findByPk(id);
+  if (!row) throw AppError.notFound("Project not found");
+  if (row.ownerId !== auth.sub) throw AppError.forbidden();
+  if (!OWNER_ARCHIVABLE.has(row.status)) {
+    throw AppError.badRequest("Only live or closed projects can be archived");
+  }
+
+  row.status = "archived";
+  await row.save();
+  const project = toProject(row);
+  await logActivity(auth.sub, "project_archived", "project", id);
+  await dispatchNotificationEvent({
+    kind: "project_status_changed",
+    project,
+    status: "archived",
+  });
+  return project;
+}
+
+export async function requestOwnerProjectRemoval(auth: TokenPayload, id: string) {
+  const row = await ProjectModel.findByPk(id);
+  if (!row) throw AppError.notFound("Project not found");
+  if (row.ownerId !== auth.sub) throw AppError.forbidden();
+  if (row.status !== "archived") {
+    throw AppError.badRequest("Archive the project before requesting removal");
+  }
+
+  row.status = "removal_requested";
+  await row.save();
+  const project = toProject(row);
+  await logActivity(auth.sub, "project_removal_requested", "project", id);
+  await dispatchNotificationEvent({
+    kind: "project_status_changed",
+    project,
+    status: "removal_requested",
+  });
+  return project;
+}
+
 export async function addDocument(
   auth: TokenPayload,
   projectId: string,

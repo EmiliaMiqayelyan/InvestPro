@@ -34,8 +34,8 @@ export function createApp() {
   );
   app.use(helmet({ contentSecurityPolicy: false }));
   app.use(morgan(env.NODE_ENV === "production" ? "combined" : "dev"));
-  app.use(express.json({ limit: "2mb" }));
-  app.use(express.urlencoded({ extended: true }));
+  app.use(express.json({ limit: "20mb" }));
+  app.use(express.urlencoded({ extended: true, limit: "20mb" }));
 
   const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,

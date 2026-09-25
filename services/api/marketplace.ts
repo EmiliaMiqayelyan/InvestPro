@@ -91,7 +91,13 @@ export const milestonesApi = {
 };
 
 export const uploadsApi = {
-  create: (data: { name?: string; size?: number; category?: string }) =>
+  create: (data: {
+    name?: string;
+    size?: number;
+    category?: string;
+    contentBase64: string;
+    mimeType?: string;
+  }) =>
     apiClient.post<ApiResponse<{ url: string; name: string; size: number }>>("/uploads", data),
 };
 
@@ -107,14 +113,20 @@ export const offersApi = {
   }) => apiClient.post<ApiResponse<InvestmentOffer>>("/offers", data),
   respond: (id: string, data: { status: InvestmentOffer["status"]; ownerResponse?: string }) =>
     apiClient.patch<ApiResponse<InvestmentOffer>>(`/offers/${id}`, data),
+  cancel: (id: string) =>
+    apiClient.post<ApiResponse<InvestmentOffer>>(`/offers/${id}/cancel`),
 };
 
 export const chatApi = {
   listConversations: () => apiClient.get<ApiResponse<Conversation[]>>("/conversations"),
-  start: (data: { projectId: string; investorId?: string }) =>
+  start: (data: { projectId?: string; investorId?: string; userId?: string }) =>
     apiClient.post<ApiResponse<Conversation>>("/conversations", data),
   getMessages: (id: string) =>
     apiClient.get<ApiResponse<ChatMessage[]>>(`/conversations/${id}/messages`),
+  markRead: (id: string) =>
+    apiClient.post<
+      ApiResponse<{ conversation: Conversation; notificationsUpdated: number }>
+    >(`/conversations/${id}/read`),
   sendMessage: (
     id: string,
     data: { content: string; attachmentUrl?: string; attachmentName?: string }
@@ -136,6 +148,10 @@ export const ownerApi = {
     apiClient.patch<ApiResponse<Project>>(`/owner/projects/${id}`, data),
   deleteProject: (id: string) =>
     apiClient.delete<ApiResponse<{ id: string }>>(`/owner/projects/${id}`),
+  archiveProject: (id: string) =>
+    apiClient.post<ApiResponse<Project>>(`/owner/projects/${id}/archive`),
+  requestRemoval: (id: string) =>
+    apiClient.post<ApiResponse<Project>>(`/owner/projects/${id}/request-removal`),
   resubmitProject: (id: string) =>
     apiClient.post<ApiResponse<Project>>(`/owner/projects/${id}/resubmit`),
   addDocument: (
@@ -188,6 +204,10 @@ export const adminMarketplaceApi = {
     apiClient.post<ApiResponse<Project>>(`/admin/projects/${id}/reject`, { reason }),
   updateProjectStatus: (id: string, status: string, reason?: string) =>
     apiClient.patch(`/admin/projects/${id}/status`, { status, reason }),
+  archiveProject: (id: string) =>
+    apiClient.post<ApiResponse<Project>>(`/admin/projects/${id}/archive`),
+  deleteProject: (id: string) =>
+    apiClient.delete<ApiResponse<{ id: string }>>(`/admin/projects/${id}`),
   payments: () => apiClient.get("/admin/payments"),
   security: () =>
     apiClient.get<

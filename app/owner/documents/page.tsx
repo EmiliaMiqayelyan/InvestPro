@@ -6,6 +6,7 @@ import { FileText, Trash2, Upload, Save } from "lucide-react";
 import { toast } from "sonner";
 import { ownerApi, uploadsApi } from "@/services/api";
 import { getErrorMessage } from "@/services/api/client";
+import { fileToBase64 } from "@/utils/document-url";
 import { useI18n, useOwnerProjects } from "@/hooks";
 import { useSetPageTitle } from "@/components/providers/page-title-provider";
 import { PageHeader } from "@/components/shared/page-header";
@@ -14,6 +15,7 @@ import { PanelCard } from "@/components/shared/panel-card";
 import { EmptyState } from "@/components/shared/empty-state";
 import { PanelBlockSkeleton } from "@/components/shared/loading-skeleton";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
+import { DocumentActions } from "@/components/shared/document-actions";
 import { DOCUMENT_CATEGORIES, QUERY_KEYS, STATUS_COLORS } from "@/constants";
 import { docCategoryLabel } from "@/i18n/localize";
 import { formatDate } from "@/utils/format";
@@ -84,10 +86,13 @@ export default function OwnerDocumentsPage() {
       if (!projectId) throw new Error(t("owner.docProjectRequired"));
       if (!file) throw new Error(t("owner.docFileRequired"));
       const name = docName.trim() || file.name;
+      const contentBase64 = await fileToBase64(file);
       const uploaded = await uploadsApi.create({
         name,
         size: file.size,
         category,
+        contentBase64,
+        mimeType: file.type || undefined,
       });
       const stored = uploaded.data.data;
       await ownerApi.addDocument(projectId, {
@@ -255,6 +260,7 @@ export default function OwnerDocumentsPage() {
                   <Badge className={`border capitalize ${STATUS_COLORS.published}`}>
                     {categoryLabel}
                   </Badge>
+                  <DocumentActions url={doc.url} name={doc.name} />
                   {doc.projectId ? (
                     <Button
                       size="icon"

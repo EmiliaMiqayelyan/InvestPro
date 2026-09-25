@@ -38,6 +38,8 @@ Thumbs.db
 *.sqlite-journal
 *.sqlite-wal
 *.sqlite-shm
+uploads/
+server/uploads/
 
 # Test / temp
 .turbo/

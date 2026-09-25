@@ -12,7 +12,7 @@ import type {
   ProjectStatus,
   UserRole,
 } from "../../shared/types";
-import { NotificationModel, UserModel } from "../../shared/database/associations";
+import { NotificationModel, UserModel, InvestmentModel } from "../../shared/database/associations";
 import { toNotification } from "../../shared/utils/mappers";
 import { sendEmail } from "../../shared/integrations/email";
 import { publishNotification } from "./hub";
@@ -48,6 +48,19 @@ export type NotificationEvent =
       project: Project;
       status: ProjectStatus;
       rejectionReason?: string;
+    }
+  | {
+      kind: "project_removed";
+      ownerId: string;
+      projectId: string;
+      projectTitle: string;
+      byAdmin: boolean;
+    }
+  | {
+      kind: "project_remove_blocked";
+      adminId: string;
+      project: Project;
+      investmentCount: number;
     }
   | { kind: "milestone_created"; plan: MilestonePlan }
   | { kind: "milestone_updated"; plan: MilestonePlan; actorId: string }
@@ -144,6 +157,8 @@ export function hrefForRole(
   meta?: Record<string, unknown>
 ): string {
   const projectId = typeof meta?.projectId === "string" ? meta.projectId : undefined;
+  const conversationId =
+    typeof meta?.conversationId === "string" ? meta.conversationId : undefined;
 
   if (role === "investor") {
     switch (type) {
@@ -151,7 +166,9 @@ export function hrefForRole(
       case "offer_updated":
         return ROUTES.INVESTOR_INVESTMENTS;
       case "message":
-        return ROUTES.INVESTOR_MESSAGES;
+        return conversationId
+          ? `${ROUTES.INVESTOR_MESSAGES}?c=${conversationId}`
+          : ROUTES.INVESTOR_MESSAGES;
       case "membership":
         return ROUTES.INVESTOR_MEMBERSHIP;
       case "kyc_update":
@@ -173,7 +190,9 @@ export function hrefForRole(
       case "offer_updated":
         return ROUTES.OWNER_OFFERS;
       case "message":
-        return ROUTES.OWNER_MESSAGES;
+        return conversationId
+          ? `${ROUTES.OWNER_MESSAGES}?c=${conversationId}`
+          : ROUTES.OWNER_MESSAGES;
       case "milestone_update":
         return ROUTES.OWNER_MILESTONES;
       case "project_update":
@@ -186,6 +205,10 @@ export function hrefForRole(
   }
 
   switch (type) {
+    case "message":
+      return conversationId
+        ? `${ROUTES.ADMIN_MESSAGES}?c=${conversationId}`
+        : ROUTES.ADMIN_MESSAGES;
     case "project_update":
       return projectId ? `${ROUTES.ADMIN_PROJECTS}/${projectId}/review` : ROUTES.ADMIN_PROJECTS;
     case "kyc_update":
@@ -256,6 +279,28 @@ async function draftsForEvent(event: NotificationEvent): Promise<NotificationDra
     }
     case "offer_updated": {
       const { offer } = event;
+      if (offer.status === "cancelled") {
+        return [
+          {
+            userId: offer.ownerId,
+            type: "offer_updated",
+            title: "Offer cancelled",
+            message: `${offer.investorName} cancelled their ${money(offer.amount)} offer for ${offer.projectTitle}.`,
+            href: hrefForRole("project_owner", "offer_received", { projectId: offer.projectId }),
+            priority: "high",
+            email: true,
+            metadata: {
+              template: "offerCancelled",
+              offerId: offer.id,
+              projectId: offer.projectId,
+              status: offer.status,
+              amount: offer.amount,
+              projectTitle: offer.projectTitle,
+              investorName: offer.investorName,
+            },
+          },
+        ];
+      }
       const verb =
         offer.status === "accepted"
           ? "accepted"
@@ -294,30 +339,43 @@ async function draftsForEvent(event: NotificationEvent): Promise<NotificationDra
       ];
     }
     case "message_sent": {
-      const recipientId =
-        event.message.senderId === event.conversation.investorId
-          ? event.conversation.ownerId
-          : event.conversation.investorId;
+      const { conversation, message } = event;
+      let recipientId =
+        message.senderId === conversation.investorId
+          ? conversation.ownerId
+          : message.senderId === conversation.ownerId
+            ? conversation.investorId
+            : conversation.isAdminThread && conversation.projectId.startsWith("support:investor:")
+              ? conversation.investorId
+              : conversation.ownerId;
+      if (recipientId === message.senderId) {
+        recipientId =
+          conversation.investorId === message.senderId
+            ? conversation.ownerId
+            : conversation.investorId;
+      }
+      const recipient = await UserModel.findByPk(recipientId);
       const recipientRole: UserRole =
-        recipientId === event.conversation.ownerId ? "project_owner" : "investor";
-      const preview = event.message.content.slice(0, 90) || "Sent an attachment";
+        (recipient?.role as UserRole) ||
+        (recipientId === conversation.ownerId ? "project_owner" : "investor");
+      const preview = message.content.slice(0, 90) || "Sent an attachment";
       return [
         {
           userId: recipientId,
           type: "message",
-          title: `New message · ${event.conversation.projectTitle}`,
-          message: `${event.message.senderName}: ${preview}`,
+          title: `New message · ${conversation.projectTitle}`,
+          message: `${message.senderName}: ${preview}`,
           href: hrefForRole(recipientRole, "message", {
-            conversationId: event.conversation.id,
-            projectId: event.conversation.projectId,
+            conversationId: conversation.id,
+            projectId: conversation.projectId,
           }),
           metadata: {
             template: "newMessage",
-            conversationId: event.conversation.id,
-            projectId: event.conversation.projectId,
-            senderId: event.message.senderId,
-            projectTitle: event.conversation.projectTitle,
-            senderName: event.message.senderName,
+            conversationId: conversation.id,
+            projectId: conversation.projectId,
+            senderId: message.senderId,
+            projectTitle: conversation.projectTitle,
+            senderName: message.senderName,
             preview,
           },
         },
@@ -450,6 +508,38 @@ async function draftsForEvent(event: NotificationEvent): Promise<NotificationDra
           href: hrefForRole("project_owner", "project_update", { projectId: project.id }),
           metadata: { template: "projectClosed", projectId: project.id, status, projectTitle: project.title },
         });
+      } else if (status === "archived") {
+        drafts.push({
+          userId: project.ownerId,
+          type: "project_update",
+          title: "Project archived",
+          message: `“${project.title}” was archived and is no longer visible on the marketplace.`,
+          href: hrefForRole("project_owner", "project_update", { projectId: project.id }),
+          priority: "high",
+          metadata: { template: "projectArchived", projectId: project.id, status, projectTitle: project.title },
+        });
+      } else if (status === "removal_requested") {
+        const admins = await listUserIdsByRole("admin");
+        const investments = await InvestmentModel.count({ where: { projectId: project.id } });
+        drafts.push(
+          ...admins.map((userId) => ({
+            userId,
+            type: "project_update" as const,
+            title: "Project removal requested",
+            message:
+              investments > 0
+                ? `“${project.title}” was requested for removal but still has ${investments} investor record(s). Resolve investments before deleting.`
+                : `The owner requested permanent removal of “${project.title}”.`,
+            href: hrefForRole("admin", "project_update", { projectId: project.id }),
+            priority: "high" as const,
+            metadata: {
+              template: investments > 0 ? "projectRemovalRequestedWithInvestors" : "projectRemovalRequested",
+              projectId: project.id,
+              projectTitle: project.title,
+              investmentCount: investments,
+            },
+          }))
+        );
       } else if (status === "pending_review") {
         const admins = await listUserIdsByRole("admin");
         drafts.push(
@@ -465,6 +555,42 @@ async function draftsForEvent(event: NotificationEvent): Promise<NotificationDra
         );
       }
       return drafts;
+    }
+    case "project_removed": {
+      const { ownerId, projectId, projectTitle, byAdmin } = event;
+      return [
+        {
+          userId: ownerId,
+          type: "project_update",
+          title: "Project removed",
+          message: byAdmin
+            ? `“${projectTitle}” was permanently removed by an administrator.`
+            : `“${projectTitle}” was permanently removed.`,
+          href: ROUTES.OWNER_PROJECTS,
+          priority: "high",
+          email: true,
+          metadata: { template: "projectRemoved", projectId, projectTitle },
+        },
+      ];
+    }
+    case "project_remove_blocked": {
+      const { adminId, project, investmentCount } = event;
+      return [
+        {
+          userId: adminId,
+          type: "project_update",
+          title: "Cannot remove project",
+          message: `“${project.title}” still has ${investmentCount} investor record(s). Manage investments before removing.`,
+          href: hrefForRole("admin", "project_update", { projectId: project.id }),
+          priority: "high",
+          metadata: {
+            template: "projectRemoveBlocked",
+            projectId: project.id,
+            projectTitle: project.title,
+            investmentCount,
+          },
+        },
+      ];
     }
     case "milestone_created": {
       const { plan } = event;
@@ -707,5 +833,33 @@ export async function markAllNotificationsRead(userId: string): Promise<number> 
     { isRead: true },
     { where: { userId, isRead: false } }
   );
+  return updated;
+}
+
+/** Mark unread message notifications for a conversation as read (when chat is opened). */
+export async function markMessageNotificationsReadForConversation(
+  userId: string,
+  conversationId: string
+): Promise<number> {
+  const rows = await NotificationModel.findAll({
+    where: { userId, isRead: false, type: "message" },
+  });
+  let updated = 0;
+  for (const row of rows) {
+    const meta = (row.metadata || {}) as Record<string, unknown>;
+    if (meta.conversationId === conversationId) {
+      row.isRead = true;
+      await row.save();
+      updated += 1;
+    }
+  }
+  if (updated > 0) {
+    const unreadCount = await getUnreadNotificationCount(userId);
+    publishNotification(userId, "notifications_read", {
+      conversationId,
+      updated,
+      unreadCount,
+    });
+  }
   return updated;
 }

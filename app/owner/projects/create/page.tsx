@@ -15,6 +15,7 @@ import {
 } from "@/constants";
 import { getErrorMessage } from "@/services/api/client";
 import { createId } from "@/utils/id";
+import { fileToBase64 } from "@/utils/document-url";
 import { useI18n } from "@/hooks";
 import {
   categoryLabel,
@@ -140,10 +141,13 @@ export default function OwnerCreateProjectPage() {
           throw new Error(t("owner.docFileRequired"));
         }
         const name = d.name.trim() || d.file.name;
+        const contentBase64 = await fileToBase64(d.file);
         const uploaded = await uploadsApi.create({
           name,
           size: d.file.size,
           category: d.category,
+          contentBase64,
+          mimeType: d.file.type || undefined,
         });
         const stored = uploaded.data.data;
         preparedDocs.push({

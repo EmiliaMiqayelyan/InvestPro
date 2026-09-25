@@ -1422,15 +1422,24 @@ const handlers: Record<string, Handler> = {
   "POST /uploads": async (req, _p, auth) => {
     const err = requireAuth(auth);
     if (err) return err;
-    const body = await parseBody<{ name?: string; size?: number; category?: string }>(req);
+    const body = await parseBody<{
+      name?: string;
+      size?: number;
+      category?: string;
+      contentBase64?: string;
+      mimeType?: string;
+    }>(req);
     const name = body.name || `upload-${Date.now()}.bin`;
     const size = typeof body.size === "number" ? body.size : 0;
+    if (!body.contentBase64) return fail("File content is required", 400);
     const { storeUploadedFile } = await import("./storage");
     const stored = await storeUploadedFile({
       name,
       size,
       category: body.category,
       userId: auth!.sub,
+      contentBase64: body.contentBase64,
+      mimeType: body.mimeType,
     });
     return ok(stored, "Upload accepted", 201);
   },

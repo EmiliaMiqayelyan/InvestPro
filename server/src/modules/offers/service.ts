@@ -164,3 +164,20 @@ export async function patchOffer(
   }
   return dto;
 }
+
+export async function cancelOffer(auth: TokenPayload, offerId: string) {
+  const offer = await OfferModel.findByPk(offerId);
+  if (!offer) throw AppError.notFound("Offer not found");
+  if (offer.investorId !== auth.sub) throw AppError.forbidden();
+  if (!["pending", "negotiating"].includes(offer.status)) {
+    throw AppError.badRequest("Only pending or negotiating offers can be cancelled");
+  }
+
+  offer.status = "cancelled";
+  await offer.save();
+  const dto = toOffer(offer);
+
+  await logActivity(auth.sub, "offer_cancelled", "offer", offerId);
+  await dispatchNotificationEvent({ kind: "offer_updated", offer: dto });
+  return dto;
+}

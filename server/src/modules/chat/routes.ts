@@ -22,7 +22,7 @@ router.get(
 router.post(
   "/",
   asyncHandler(async (req: AuthedRequest, res) => {
-    const auth = requireRole(req, ["investor", "project_owner"]);
+    const auth = requireRole(req, ["investor", "project_owner", "admin"]);
     const conversation = await chat.createConversation(auth, req.body);
     return ok(res, conversation, undefined, 201);
   })
@@ -33,6 +33,14 @@ router.get(
   asyncHandler(async (req: AuthedRequest, res) => {
     const auth = requireAuth(req);
     return ok(res, await chat.listMessages(auth, param(req, "id")));
+  })
+);
+
+router.post(
+  "/:id/read",
+  asyncHandler(async (req: AuthedRequest, res) => {
+    const auth = requireAuth(req);
+    return ok(res, await chat.markConversationRead(auth, param(req, "id")));
   })
 );
 

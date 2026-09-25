@@ -5,16 +5,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  ArrowLeft,
-  Download,
-  ExternalLink,
-  FileText,
-  FolderKanban,
-  ShieldAlert,
-} from "lucide-react";
 import { toast } from "sonner";
-import { adminMarketplaceApi } from "@/services/api";
+import { adminMarketplaceApi, chatApi } from "@/services/api";
 import { QUERY_KEYS, ROUTES, STATUS_COLORS } from "@/constants";
 import { getErrorMessage } from "@/services/api/client";
 import { formatCurrency, formatDate, formatPercent } from "@/utils/format";
@@ -25,6 +17,7 @@ import { PanelPage } from "@/components/shared/panel-page";
 import { PanelCard } from "@/components/shared/panel-card";
 import { EmptyState } from "@/components/shared/empty-state";
 import { PanelBlockSkeleton } from "@/components/shared/loading-skeleton";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { projectText, teamMemberText, teamRoleLabel, docCategoryLabel } from "@/i18n/localize";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -39,7 +32,18 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { DocumentActions } from "@/components/shared/document-actions";
+import { documentOpenHref } from "@/utils/document-url";
 import type { ProjectReviewEntry } from "@/types";
+import {
+  ArrowLeft,
+  Archive,
+  FileText,
+  FolderKanban,
+  MessageSquare,
+  ShieldAlert,
+  Trash2,
+} from "lucide-react";
 
 function Section({
   title,
@@ -89,6 +93,8 @@ export default function AdminProjectReviewPage() {
   const [rejectOpen, setRejectOpen] = useState(false);
   const [rejectConfirmOpen, setRejectConfirmOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
+  const [archiveOpen, setArchiveOpen] = useState(false);
+  const [removeOpen, setRemoveOpen] = useState(false);
 
   const { data, isLoading, isError } = useQuery({
     queryKey: [QUERY_KEYS.PROJECTS, "admin-review", id],
@@ -134,6 +140,14 @@ export default function AdminProjectReviewPage() {
 
   const canDecide =
     project?.status === "pending_review" || project?.status === "draft";
+  const hasInvestors =
+    (project?.investorCount ?? 0) > 0 || (project?.currentFunding ?? 0) > 0;
+  const canArchive =
+    !!project &&
+    project.status !== "archived" &&
+    project.status !== "rejected" &&
+    project.status !== "draft";
+  const canRemove = !!project && project.status !== "funded";
 
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.PROJECTS] });
@@ -159,6 +173,45 @@ export default function AdminProjectReviewPage() {
       setRejectReason("");
       invalidate();
       router.push(ROUTES.ADMIN_PROJECTS);
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
+  });
+
+  const archiveMutation = useMutation({
+    mutationFn: () => adminMarketplaceApi.archiveProject(id),
+    onSuccess: () => {
+      toast.success(t("admin.archiveToast"));
+      setArchiveOpen(false);
+      invalidate();
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
+  });
+
+  const removeMutation = useMutation({
+    mutationFn: () => adminMarketplaceApi.deleteProject(id),
+    onSuccess: () => {
+      toast.success(t("admin.removeToast"));
+      setRemoveOpen(false);
+      invalidate();
+      router.push(ROUTES.ADMIN_PROJECTS);
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
+  });
+
+  const messageOwnerMutation = useMutation({
+    mutationFn: () =>
+      chatApi.start({
+        userId: owner?.id || project?.ownerId,
+        projectId: project?.id,
+      }),
+    onSuccess: (res) => {
+      const conversation = res.data.data;
+      toast.success(t("messages.startedToast"));
+      router.push(
+        conversation?.id
+          ? `${ROUTES.ADMIN_MESSAGES}?c=${conversation.id}`
+          : ROUTES.ADMIN_MESSAGES
+      );
     },
     onError: (error) => toast.error(getErrorMessage(error)),
   });
@@ -249,9 +302,15 @@ export default function AdminProjectReviewPage() {
                       ? t("admin.statusDraft")
                       : project.status === "funded"
                         ? t("admin.statusFunded")
-                        : project.status === "closed"
-                          ? t("admin.statusClosed")
-                          : project.status
+                        : project.status === "funding"
+                          ? t("admin.statusFunding")
+                          : project.status === "archived"
+                            ? t("admin.statusArchived")
+                            : project.status === "removal_requested"
+                              ? t("admin.statusRemovalRequested")
+                              : project.status === "closed"
+                                ? t("admin.statusClosed")
+                                : project.status
             }
           />
           <Field label={t("admin.created")} value={formatDate(project.createdAt)} />
@@ -402,20 +461,7 @@ export default function AdminProjectReviewPage() {
                     </p>
                   </div>
                 </div>
-                <div className="flex gap-2">
-                  <Button asChild size="sm" variant="outline">
-                    <a href={doc.url} target="_blank" rel="noreferrer">
-                      {t("admin.openDocument")}
-                      <ExternalLink className="h-3.5 w-3.5" />
-                    </a>
-                  </Button>
-                  <Button asChild size="sm" variant="ghost">
-                    <a href={doc.url} download>
-                      {t("admin.downloadDocument")}
-                      <Download className="h-3.5 w-3.5" />
-                    </a>
-                  </Button>
-                </div>
+                <DocumentActions url={doc.url} name={doc.name} />
               </li>
             ))}
           </ul>
@@ -430,17 +476,32 @@ export default function AdminProjectReviewPage() {
                 <Image src={project.image} alt={title} fill className="object-cover" />
               </div>
             ) : null}
-            {mediaDocs.map((doc) => (
-              <a
-                key={doc.id}
-                href={doc.url}
-                target="_blank"
-                rel="noreferrer"
-                className="rounded-xl border border-border/70 p-4 text-sm hover:bg-muted"
-              >
-                {doc.name}
-              </a>
-            ))}
+            {mediaDocs.map((doc) => {
+              const href = documentOpenHref(doc.url);
+              if (!href) {
+                return (
+                  <button
+                    key={doc.id}
+                    type="button"
+                    onClick={() => toast.error(t("common.fileUnavailable"))}
+                    className="rounded-xl border border-border/70 p-4 text-left text-sm hover:bg-muted"
+                  >
+                    {doc.name}
+                  </button>
+                );
+              }
+              return (
+                <a
+                  key={doc.id}
+                  href={href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="rounded-xl border border-border/70 p-4 text-sm hover:bg-muted"
+                >
+                  {doc.name}
+                </a>
+              );
+            })}
           </div>
         ) : (
           <p className="text-sm text-muted-foreground">—</p>
@@ -501,19 +562,30 @@ export default function AdminProjectReviewPage() {
 
       <Section title={t("admin.ownerSection")}>
         {owner ? (
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field
-              label={t("admin.submittedBy")}
-              value={`${owner.firstName} ${owner.lastName}`}
-            />
-            <Field label={t("admin.ownerEmail")} value={owner.email} />
-            <Field label={t("admin.ownerKyc")} value={owner.kycStatus} />
-            <Field label={t("admin.ownerProjects")} value={owner.previousProjects} />
-            <Field label={t("admin.ownerJoined")} value={formatDate(owner.createdAt)} />
-            {owner.companyName ? (
-              <Field label={t("admin.ownerCompany")} value={owner.companyName} />
-            ) : null}
-            {owner.bio ? <Field label={t("admin.ownerBio")} value={owner.bio} /> : null}
+          <div className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field
+                label={t("admin.submittedBy")}
+                value={`${owner.firstName} ${owner.lastName}`}
+              />
+              <Field label={t("admin.ownerEmail")} value={owner.email} />
+              <Field label={t("admin.ownerKyc")} value={owner.kycStatus} />
+              <Field label={t("admin.ownerProjects")} value={owner.previousProjects} />
+              <Field label={t("admin.ownerJoined")} value={formatDate(owner.createdAt)} />
+              {owner.companyName ? (
+                <Field label={t("admin.ownerCompany")} value={owner.companyName} />
+              ) : null}
+              {owner.bio ? <Field label={t("admin.ownerBio")} value={owner.bio} /> : null}
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={messageOwnerMutation.isPending || !owner.id}
+              onClick={() => messageOwnerMutation.mutate()}
+            >
+              <MessageSquare className="h-4 w-4" />
+              {t("messages.startChatAction")}
+            </Button>
           </div>
         ) : (
           <p className="text-sm text-muted-foreground">{project.ownerName}</p>
@@ -546,6 +618,15 @@ export default function AdminProjectReviewPage() {
         )}
       </Section>
 
+      {hasInvestors ? (
+        <div className="rounded-xl border border-amber-200 bg-amber-50/80 px-4 py-3 text-sm text-amber-950">
+          <div className="flex items-start gap-2">
+            <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" />
+            <p>{t("admin.hasInvestorsWarning")}</p>
+          </div>
+        </div>
+      ) : null}
+
       {canDecide ? (
         <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 backdrop-blur">
           <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-end gap-3 px-4 py-4 sm:px-6">
@@ -565,7 +646,63 @@ export default function AdminProjectReviewPage() {
             </Button>
           </div>
         </div>
+      ) : canArchive || canRemove ? (
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 backdrop-blur">
+          <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-end gap-3 px-4 py-4 sm:px-6">
+            {canArchive ? (
+              <Button
+                variant="outline"
+                disabled={archiveMutation.isPending || removeMutation.isPending}
+                onClick={() => setArchiveOpen(true)}
+              >
+                <Archive className="h-4 w-4" />
+                {t("admin.archiveProject")}
+              </Button>
+            ) : null}
+            {canRemove ? (
+              <Button
+                variant="destructive"
+                disabled={
+                  hasInvestors ||
+                  archiveMutation.isPending ||
+                  removeMutation.isPending
+                }
+                title={hasInvestors ? t("admin.removeBlockedInvestors") : undefined}
+                onClick={() => {
+                  if (hasInvestors) {
+                    toast.error(t("admin.removeBlockedInvestors"));
+                    return;
+                  }
+                  setRemoveOpen(true);
+                }}
+              >
+                <Trash2 className="h-4 w-4" />
+                {t("admin.removeProject")}
+              </Button>
+            ) : null}
+          </div>
+        </div>
       ) : null}
+
+      <ConfirmDialog
+        open={archiveOpen}
+        onOpenChange={setArchiveOpen}
+        title={t("admin.archiveConfirmTitle")}
+        description={t("admin.archiveConfirmBody")}
+        confirmLabel={t("admin.archiveProject")}
+        loading={archiveMutation.isPending}
+        onConfirm={() => archiveMutation.mutate()}
+      />
+
+      <ConfirmDialog
+        open={removeOpen}
+        onOpenChange={setRemoveOpen}
+        title={t("admin.removeConfirmTitle")}
+        description={t("admin.removeConfirmBody")}
+        confirmLabel={t("admin.removeProject")}
+        loading={removeMutation.isPending}
+        onConfirm={() => removeMutation.mutate()}
+      />
 
       <Dialog open={approveOpen} onOpenChange={setApproveOpen}>
         <DialogContent>

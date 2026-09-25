@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { FolderKanban, Plus, Trash2 } from "lucide-react";
+import { Archive, FolderKanban, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useOwnerProjects } from "@/hooks/use-marketplace";
 import { useI18n } from "@/hooks";
@@ -31,30 +31,62 @@ import type { Project } from "@/types";
 
 function ownerProjectRank(status: Project["status"]) {
   if (status === "pending_review") return 0;
-  if (status === "published" || status === "funded") return 1;
-  if (status === "draft") return 2;
-  if (status === "rejected") return 3;
-  return 4;
+  if (status === "removal_requested") return 1;
+  if (status === "published" || status === "funded" || status === "funding") return 2;
+  if (status === "draft") return 3;
+  if (status === "rejected") return 4;
+  if (status === "archived") return 5;
+  return 6;
 }
 
 function ownerProjectActivityTime(project: Project) {
   if (project.status === "pending_review") {
     return new Date(project.submittedAt || project.updatedAt || project.createdAt).getTime();
   }
-  if (project.status === "published" || project.status === "funded") {
+  if (project.status === "published" || project.status === "funded" || project.status === "funding") {
     return new Date(project.approvedAt || project.updatedAt || project.createdAt).getTime();
   }
   return new Date(project.updatedAt || project.createdAt).getTime();
 }
+
+function statusLabel(t: (key: string) => string, status: Project["status"]) {
+  switch (status) {
+    case "rejected":
+      return t("ownerReview.rejected");
+    case "pending_review":
+      return t("ownerReview.pendingReview");
+    case "published":
+      return t("admin.filterApproved");
+    case "archived":
+      return t("ownerReview.archived");
+    case "removal_requested":
+      return t("ownerReview.removalRequested");
+    case "funded":
+      return t("admin.statusFunded");
+    case "funding":
+      return t("admin.statusFunding");
+    case "closed":
+      return t("admin.statusClosed");
+    case "draft":
+      return t("admin.statusDraft");
+    default:
+      return status.replace(/_/g, " ");
+  }
+}
+
+type PendingAction =
+  | { type: "delete"; id: string; title: string }
+  | { type: "archive"; id: string; title: string }
+  | { type: "request-removal"; id: string; title: string };
+
+const ARCHIVABLE = new Set(["published", "funding", "funded", "closed"]);
 
 export default function OwnerProjectsPage() {
   const { t } = useI18n();
   useSetPageTitle(t("owner.myProjects"));
   const queryClient = useQueryClient();
   const { data: projects = [], isLoading } = useOwnerProjects();
-  const [pendingDelete, setPendingDelete] = useState<{ id: string; title: string } | null>(
-    null
-  );
+  const [pending, setPending] = useState<PendingAction | null>(null);
 
   const sortedProjects = useMemo(
     () =>
@@ -65,6 +97,12 @@ export default function OwnerProjectsPage() {
       }),
     [projects]
   );
+
+  const invalidate = () => {
+    queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.OWNER_PROJECTS] });
+    queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.OWNER_DOCUMENTS] });
+    queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.OWNER_DASHBOARD] });
+  };
 
   const resubmitMutation = useMutation({
     mutationFn: (id: string) => ownerApi.resubmitProject(id),
@@ -79,13 +117,36 @@ export default function OwnerProjectsPage() {
     mutationFn: (id: string) => ownerApi.deleteProject(id),
     onSuccess: () => {
       toast.success(t("ownerReview.deletedToast"));
-      setPendingDelete(null);
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.OWNER_PROJECTS] });
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.OWNER_DOCUMENTS] });
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.OWNER_DASHBOARD] });
+      setPending(null);
+      invalidate();
     },
     onError: (error) => toast.error(getErrorMessage(error)),
   });
+
+  const archiveMutation = useMutation({
+    mutationFn: (id: string) => ownerApi.archiveProject(id),
+    onSuccess: () => {
+      toast.success(t("ownerReview.archivedToast"));
+      setPending(null);
+      invalidate();
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
+  });
+
+  const requestRemovalMutation = useMutation({
+    mutationFn: (id: string) => ownerApi.requestRemoval(id),
+    onSuccess: () => {
+      toast.success(t("ownerReview.requestRemovalToast"));
+      setPending(null);
+      invalidate();
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
+  });
+
+  const busy =
+    deleteMutation.isPending ||
+    archiveMutation.isPending ||
+    requestRemovalMutation.isPending;
 
   return (
     <PanelPage>
@@ -128,9 +189,16 @@ export default function OwnerProjectsPage() {
             const canResubmit =
               project.status === "rejected" || project.status === "draft";
             const canDelete =
-              project.status !== "funded" &&
+              (project.status === "draft" ||
+                project.status === "pending_review" ||
+                project.status === "rejected") &&
               (project.investorCount ?? 0) === 0 &&
               project.currentFunding === 0;
+            const canArchive = ARCHIVABLE.has(project.status);
+            const canRequestRemoval = project.status === "archived";
+            const showActions =
+              canMutate || canDelete || canArchive || canRequestRemoval || canResubmit;
+
             return (
               <PanelCard
                 key={project.id}
@@ -151,13 +219,7 @@ export default function OwnerProjectsPage() {
                         : STATUS_COLORS[project.status]
                     )}
                   >
-                    {isRejected
-                      ? t("ownerReview.rejected")
-                      : project.status === "pending_review"
-                        ? t("ownerReview.pendingReview")
-                        : project.status === "published"
-                          ? t("admin.filterApproved")
-                          : project.status.replace(/_/g, " ")}
+                    {statusLabel(t, project.status)}
                   </Badge>
                 </div>
 
@@ -183,7 +245,7 @@ export default function OwnerProjectsPage() {
                   <Progress value={progress} />
                 </div>
 
-                {canMutate || canDelete ? (
+                {showActions ? (
                   <div className="flex flex-wrap gap-2 border-t border-border/60 pt-4">
                     {canMutate ? (
                       <Button asChild variant="outline">
@@ -200,15 +262,50 @@ export default function OwnerProjectsPage() {
                         {t("ownerReview.resubmit")}
                       </Button>
                     ) : null}
+                    {canArchive ? (
+                      <Button
+                        variant="outline"
+                        disabled={busy}
+                        onClick={() =>
+                          setPending({
+                            type: "archive",
+                            id: project.id,
+                            title: project.title,
+                          })
+                        }
+                      >
+                        <Archive className="h-4 w-4" />
+                        {t("ownerReview.archiveProject")}
+                      </Button>
+                    ) : null}
+                    {canRequestRemoval ? (
+                      <Button
+                        variant="outline"
+                        disabled={busy}
+                        onClick={() =>
+                          setPending({
+                            type: "request-removal",
+                            id: project.id,
+                            title: project.title,
+                          })
+                        }
+                      >
+                        {t("ownerReview.requestRemoval")}
+                      </Button>
+                    ) : null}
                     {canDelete ? (
                       <Button
                         size="icon"
                         variant="ghost"
                         className="h-9 w-9 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                        disabled={deleteMutation.isPending}
+                        disabled={busy}
                         aria-label={t("ownerReview.deleteProject")}
                         onClick={() =>
-                          setPendingDelete({ id: project.id, title: project.title })
+                          setPending({
+                            type: "delete",
+                            id: project.id,
+                            title: project.title,
+                          })
                         }
                       >
                         <Trash2 className="h-4 w-4" />
@@ -223,17 +320,32 @@ export default function OwnerProjectsPage() {
       )}
 
       <ConfirmDialog
-        open={Boolean(pendingDelete)}
+        open={Boolean(pending)}
         onOpenChange={(open) => {
-          if (!open) setPendingDelete(null);
+          if (!open) setPending(null);
         }}
-        title={t("ownerReview.deleteConfirm")}
-        description={pendingDelete?.title}
-        confirmLabel={t("ownerReview.deleteProject")}
-        loading={deleteMutation.isPending}
+        title={
+          pending?.type === "archive"
+            ? t("ownerReview.archiveConfirm")
+            : pending?.type === "request-removal"
+              ? t("ownerReview.requestRemovalConfirm")
+              : t("ownerReview.deleteConfirm")
+        }
+        description={pending?.title}
+        confirmLabel={
+          pending?.type === "archive"
+            ? t("ownerReview.archiveProject")
+            : pending?.type === "request-removal"
+              ? t("ownerReview.requestRemoval")
+              : t("ownerReview.deleteProject")
+        }
+        loading={busy}
         onConfirm={() => {
-          if (!pendingDelete) return;
-          deleteMutation.mutate(pendingDelete.id);
+          if (!pending) return;
+          if (pending.type === "archive") archiveMutation.mutate(pending.id);
+          else if (pending.type === "request-removal")
+            requestRemovalMutation.mutate(pending.id);
+          else deleteMutation.mutate(pending.id);
         }}
       />
     </PanelPage>
