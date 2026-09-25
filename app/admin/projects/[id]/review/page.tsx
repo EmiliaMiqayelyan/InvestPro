@@ -38,6 +38,7 @@ import type { ProjectReviewEntry } from "@/types";
 import {
   ArrowLeft,
   Archive,
+  ExternalLink,
   FileText,
   FolderKanban,
   MessageSquare,

@@ -69,8 +69,10 @@ function statusLabel(t: (key: string) => string, status: Project["status"]) {
       return t("admin.statusClosed");
     case "draft":
       return t("admin.statusDraft");
-    default:
-      return status.replace(/_/g, " ");
+    default: {
+      const fallback: string = status;
+      return fallback.replace(/_/g, " ");
+    }
   }
 }
 
