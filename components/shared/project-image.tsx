@@ -18,7 +18,7 @@ export function ProjectImage({ src, alt, className }: ProjectImageProps) {
   return (
     <div
       className={cn(
-        "w-full h-full bg-gradient-to-br from-brand-blue/30 to-emerald/30 flex items-center justify-center",
+        "w-full h-full bg-gradient-to-br from-brand-blue/30 to-neutral-900/20 flex items-center justify-center",
         className
       )}
     >

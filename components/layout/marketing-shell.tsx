@@ -8,7 +8,6 @@ import { ROUTES, SUPPORT_EMAIL } from "@/constants";
 import { useAuthStore } from "@/store";
 import { getRoleHome } from "@/lib/rbac";
 import { buttonVariants } from "@/components/ui/button";
-import { LanguageSwitcher } from "@/components/shared/language-switcher";
 import { PlatformLogo } from "@/components/shared/platform-logo";
 import { useI18n } from "@/hooks/use-i18n";
 import { cn } from "@/lib/utils";
@@ -81,12 +80,10 @@ export function MarketingHeader() {
         </nav>
 
         <div className="hidden shrink-0 items-center gap-3 lg:flex">
-          <LanguageSwitcher compact />
           {authLinks}
         </div>
 
         <div className="flex items-center gap-1 lg:hidden">
-          <LanguageSwitcher compact />
           <button
             onClick={() => setOpen((v) => !v)}
             className="rounded-lg p-2 text-foreground hover:bg-secondary"

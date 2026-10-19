@@ -80,7 +80,7 @@ export default function AdminDisputesPage() {
               </div>
               <p className="text-sm text-foreground">{d.description}</p>
               {d.resolution && (
-                <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
+                <p className="rounded-lg bg-neutral-100 px-3 py-2 text-sm text-neutral-900">
                   {d.resolution}
                 </p>
               )}

@@ -91,7 +91,7 @@ export default function OwnerOffersPage() {
               {offer.status === "pending" && (
                 <div className="flex flex-wrap gap-2">
                   <Button
-                    className="bg-emerald-600 hover:bg-emerald-700"
+                    className="bg-neutral-950 hover:bg-neutral-800"
                     size="sm"
                     onClick={() =>
                       respondMutation.mutate({ id: offer.id, status: "accepted" })

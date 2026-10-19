@@ -21,7 +21,7 @@ export function DecorativeBackground({
         "relative overflow-hidden",
         variant === "hero" && "hero-gradient text-white",
         variant === "auth" && "hero-mesh min-h-full",
-        variant === "subtle" && "bg-gradient-to-br from-teal-50/50 via-background to-amber-50/30",
+        variant === "subtle" && "bg-gradient-to-br from-neutral-100/80 via-background to-amber-50/30",
         variant === "default" && "bg-background",
         className
       )}
@@ -30,7 +30,7 @@ export function DecorativeBackground({
         <>
           <div
             aria-hidden
-            className="pointer-events-none absolute -left-24 -top-24 h-64 w-64 rounded-full bg-teal-700/10 blur-3xl animate-float"
+            className="pointer-events-none absolute -left-24 -top-24 h-64 w-64 rounded-full bg-neutral-900/10 blur-3xl animate-float"
           />
           <div
             aria-hidden
@@ -39,7 +39,7 @@ export function DecorativeBackground({
           />
           <div
             aria-hidden
-            className="pointer-events-none absolute bottom-0 left-1/2 h-32 w-96 -translate-x-1/2 rounded-full bg-emerald-500/5 blur-3xl"
+            className="pointer-events-none absolute bottom-0 left-1/2 h-32 w-96 -translate-x-1/2 rounded-full bg-neutral-1000/5 blur-3xl"
           />
         </>
       )}

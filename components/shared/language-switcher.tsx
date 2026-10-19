@@ -29,7 +29,7 @@ export function LanguageSwitcher({ className, compact }: LanguageSwitcherProps) 
           className={cn(
             "rounded-full px-2.5 py-1 text-xs font-semibold transition",
             locale === item.code
-              ? "bg-teal-800 text-white shadow-sm"
+              ? "bg-neutral-950 text-white shadow-sm"
               : "text-slate-600 hover:text-slate-900"
           )}
         >

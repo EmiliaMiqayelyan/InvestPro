@@ -44,7 +44,7 @@ export function AuthShell({
           aria-hidden
         />
         <div
-          className="pointer-events-none absolute -bottom-20 -left-10 h-64 w-64 rounded-full bg-emerald-400/10 blur-3xl"
+          className="pointer-events-none absolute -bottom-20 -left-10 h-64 w-64 rounded-full bg-neutral-900/10 blur-3xl"
           aria-hidden
         />
         <div className="relative z-10 flex min-h-full flex-1 flex-col justify-between overflow-y-auto p-10 xl:p-12">

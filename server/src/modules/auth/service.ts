@@ -189,7 +189,7 @@ export async function forgotPassword(email: string) {
   await enqueueJob("email", {
     to: user.email,
     subject: "Password reset",
-    text: `Reset your InvestIN password: ${resetUrl}\n\nIf you did not request this, you can ignore this email.`,
+    text: `Reset your XS Invest password: ${resetUrl}\n\nIf you did not request this, you can ignore this email.`,
   });
 }
 
@@ -221,7 +221,7 @@ export async function enable2fa(userId: string) {
   const user = await UserModel.findByPk(userId);
   if (!user) throw AppError.notFound("User not found");
 
-  const secret = speakeasy.generateSecret({ name: "InvestIN", length: 20 });
+  const secret = speakeasy.generateSecret({ name: "XS Invest", length: 20 });
   user.totpSecret = secret.base32;
   await user.save();
 

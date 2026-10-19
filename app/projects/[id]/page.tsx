@@ -214,13 +214,13 @@ export default function ProjectDetailPage() {
       case "published":
       case "funded":
       case "closed":
-        return { label: t("projects.statusVerified"), className: "border-emerald-200 bg-emerald-50 text-emerald-700" };
+        return { label: t("projects.statusVerified"), className: "border-neutral-300 bg-neutral-100 text-neutral-800" };
       case "pending_review":
         return { label: t("projects.statusUnderReview"), className: "border-amber-200 bg-amber-50 text-amber-700" };
       case "draft":
         return {
           label: t("projects.statusNeedsInfo"),
-          className: "border-teal-200 bg-teal-50 text-teal-800",
+          className: "border-neutral-300 bg-neutral-100 text-neutral-900",
         };
       case "rejected":
       default:
@@ -257,7 +257,7 @@ export default function ProjectDetailPage() {
               {project.status === "published" && (
                 <Badge
                   variant="outline"
-                  className="border-teal-200 bg-teal-50 text-teal-800"
+                  className="border-neutral-300 bg-neutral-100 text-neutral-900"
                 >
                   {t("projects.badgesReviewed")}
                 </Badge>
@@ -265,7 +265,7 @@ export default function ProjectDetailPage() {
               {project.ownerKycStatus === "approved" && (
                 <Badge
                   variant="outline"
-                  className="border-emerald-200 bg-emerald-50 text-emerald-700"
+                  className="border-neutral-300 bg-neutral-100 text-neutral-800"
                 >
                   {t("projects.badgesKyc")}
                 </Badge>
@@ -297,31 +297,31 @@ export default function ProjectDetailPage() {
               <TabsList className="w-full justify-start overflow-x-auto">
                 <TabsTrigger
                   value="overview"
-                  className="data-[state=active]:bg-teal-50 data-[state=active]:text-teal-900"
+                  className="data-[state=active]:bg-neutral-100 data-[state=active]:text-neutral-950"
                 >
                   {t("projects.overview")}
                 </TabsTrigger>
                 <TabsTrigger
                   value="financial"
-                  className="data-[state=active]:bg-teal-50 data-[state=active]:text-teal-900"
+                  className="data-[state=active]:bg-neutral-100 data-[state=active]:text-neutral-950"
                 >
                   {t("projects.financialShort")}
                 </TabsTrigger>
                 <TabsTrigger
                   value="team"
-                  className="data-[state=active]:bg-teal-50 data-[state=active]:text-teal-900"
+                  className="data-[state=active]:bg-neutral-100 data-[state=active]:text-neutral-950"
                 >
                   {t("projects.team")}
                 </TabsTrigger>
                 <TabsTrigger
                   value="documents"
-                  className="data-[state=active]:bg-teal-50 data-[state=active]:text-teal-900"
+                  className="data-[state=active]:bg-neutral-100 data-[state=active]:text-neutral-950"
                 >
                   {t("projects.documents")}
                 </TabsTrigger>
                 <TabsTrigger
                   value="updates"
-                  className="data-[state=active]:bg-teal-50 data-[state=active]:text-teal-900"
+                  className="data-[state=active]:bg-neutral-100 data-[state=active]:text-neutral-950"
                 >
                   {t("projects.updates")}
                 </TabsTrigger>
@@ -388,7 +388,7 @@ export default function ProjectDetailPage() {
                           <li key={phase.id} className="premium-card p-4">
                             <div className="flex flex-wrap items-start justify-between gap-2">
                               <div>
-                                <p className="text-xs font-medium uppercase tracking-wide text-teal-800">
+                                <p className="text-xs font-medium uppercase tracking-wide text-neutral-900">
                                   {t("common.phaseLabel", { n: index + 1 })}
                                 </p>
                                 <h3 className="mt-1 font-display font-semibold text-slate-900">
@@ -396,7 +396,7 @@ export default function ProjectDetailPage() {
                                 </h3>
                               </div>
                               {hasAccess && !needsService ? (
-                                <p className="text-sm font-medium text-teal-900">
+                                <p className="text-sm font-medium text-neutral-950">
                                   {t("projects.phaseBudget")}: {formatCurrency(phase.budgetAsk)}
                                 </p>
                               ) : null}
@@ -419,7 +419,7 @@ export default function ProjectDetailPage() {
                 )}
 
                 {needsService && (
-                  <ServicePaywall className="premium-card flex flex-col items-start gap-3 border-teal-100 bg-teal-50/50 p-5" />
+                  <ServicePaywall className="premium-card flex flex-col items-start gap-3 border-neutral-200 bg-neutral-100/70 p-5" />
                 )}
               </TabsContent>
 
@@ -483,7 +483,7 @@ export default function ProjectDetailPage() {
                           <h3 className="font-display font-semibold">
                             {project.ownerName || t("projects.founder")}
                           </h3>
-                          <p className="text-sm text-teal-700">{t("projects.founder")}</p>
+                          <p className="text-sm text-neutral-800">{t("projects.founder")}</p>
                           <p className="mt-2 text-sm text-muted-foreground">
                             {project.ownerName ? t("projects.founderBio") : "—"}
                           </p>
@@ -509,7 +509,7 @@ export default function ProjectDetailPage() {
                           </Avatar>
                           <div className="min-w-0 flex-1">
                             <h3 className="font-display font-semibold">{member.name}</h3>
-                            <p className="text-sm text-teal-700">
+                            <p className="text-sm text-neutral-800">
                               {teamMemberText(member, "position", locale)} ·{" "}
                               {teamRoleLabel(locale, member.role)}
                             </p>
@@ -524,7 +524,7 @@ export default function ProjectDetailPage() {
                                 href={member.portfolio}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="mt-3 inline-flex items-center text-sm font-medium text-teal-800 underline underline-offset-4"
+                                className="mt-3 inline-flex items-center text-sm font-medium text-neutral-900 underline underline-offset-4"
                               >
                                 {t("projects.viewProfile")}
                               </a>
@@ -550,7 +550,7 @@ export default function ProjectDetailPage() {
                         className="premium-card flex items-center justify-between gap-3 px-4 py-3"
                       >
                         <div className="flex items-center gap-3">
-                          <FileText className="h-4 w-4 text-teal-700" />
+                          <FileText className="h-4 w-4 text-neutral-800" />
                           <div>
                             <p className="text-sm font-medium">{doc.name}</p>
                             <p className="text-xs text-muted-foreground capitalize">
@@ -610,7 +610,7 @@ export default function ProjectDetailPage() {
               </p>
               <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-slate-100">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-teal-900 via-teal-700 to-emerald-500"
+                  className="h-full rounded-full bg-gradient-to-r from-neutral-950 via-neutral-800 to-neutral-600"
                   style={{ width: `${progress}%` }}
                 />
               </div>
@@ -736,7 +736,7 @@ export default function ProjectDetailPage() {
               />
             </div>
             <Button
-              className="w-full bg-teal-700 hover:bg-teal-800"
+              className="w-full bg-neutral-900 hover:bg-neutral-800"
               onClick={handleOffer}
               disabled={busy === "offer"}
             >

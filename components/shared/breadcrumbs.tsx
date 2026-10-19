@@ -24,7 +24,7 @@ export function Breadcrumbs({
     <nav aria-label={t("common.home")} className={cn("flex items-center gap-1 text-sm", className)}>
       <Link
         href="/"
-        className="text-muted-foreground transition hover:text-teal-800"
+        className="text-muted-foreground transition hover:text-neutral-950"
         aria-label={t("common.home")}
       >
         <Home className="h-3.5 w-3.5" />
@@ -37,7 +37,7 @@ export function Breadcrumbs({
             {item.href && !isLast ? (
               <Link
                 href={item.href}
-                className="text-muted-foreground transition hover:text-teal-800"
+                className="text-muted-foreground transition hover:text-neutral-950"
               >
                 {item.label}
               </Link>

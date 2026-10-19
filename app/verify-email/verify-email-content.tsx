@@ -37,7 +37,7 @@ export default function VerifyEmailContent() {
           )}
           {mutation.isSuccess && (
             <>
-              <CheckCircle className="h-12 w-12 text-emerald mx-auto mb-4" />
+              <CheckCircle className="h-12 w-12 text-neutral-950 mx-auto mb-4" />
               <CardTitle>{t("auth.verifyEmailSuccess")}</CardTitle>
               <CardDescription>{t("auth.verifyEmailSuccessBody")}</CardDescription>
             </>

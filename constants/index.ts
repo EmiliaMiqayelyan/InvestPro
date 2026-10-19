@@ -6,7 +6,7 @@ export const API_BASE_URL =
       ? `https://${process.env.VERCEL_URL}/api/v1`
       : "/api/v1");
 
-export const PLATFORM_NAME = "InvestIN";
+export const PLATFORM_NAME = "XS Invest";
 export const SUPPORT_EMAIL = "hello@investin.am";
 
 export const ROUTES = {
@@ -160,25 +160,25 @@ export const RISK_LEVELS = [
 export const STATUS_COLORS: Record<string, string> = {
   draft: "bg-slate-100 text-slate-700 border-slate-200",
   pending_review: "bg-amber-50 text-amber-700 border-amber-200",
-  published: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  funded: "bg-teal-50 text-teal-800 border-teal-200",
+  published: "bg-neutral-100 text-neutral-800 border-neutral-300",
+  funded: "bg-neutral-100 text-neutral-900 border-neutral-300",
   closed: "bg-slate-100 text-slate-600 border-slate-200",
   rejected: "bg-red-50 text-red-700 border-red-200",
   archived: "bg-slate-100 text-slate-600 border-slate-200",
   removal_requested: "bg-orange-50 text-orange-700 border-orange-200",
-  funding: "bg-teal-50 text-teal-800 border-teal-200",
+  funding: "bg-neutral-100 text-neutral-900 border-neutral-300",
   pending: "bg-amber-50 text-amber-700 border-amber-200",
-  accepted: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  accepted: "bg-neutral-100 text-neutral-800 border-neutral-300",
   negotiating: "bg-violet-50 text-violet-700 border-violet-200",
   cancelled: "bg-slate-100 text-slate-600 border-slate-200",
-  active: "bg-teal-50 text-teal-800 border-teal-200",
-  completed: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  approved: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  active: "bg-neutral-100 text-neutral-900 border-neutral-300",
+  completed: "bg-neutral-100 text-neutral-800 border-neutral-300",
+  approved: "bg-neutral-100 text-neutral-800 border-neutral-300",
   not_submitted: "bg-slate-100 text-slate-600 border-slate-200",
   resubmission_requested: "bg-orange-50 text-orange-700 border-orange-200",
   open: "bg-amber-50 text-amber-700 border-amber-200",
-  reviewing: "bg-teal-50 text-teal-800 border-teal-200",
-  resolved: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  reviewing: "bg-neutral-100 text-neutral-900 border-neutral-300",
+  resolved: "bg-neutral-100 text-neutral-800 border-neutral-300",
   dismissed: "bg-slate-100 text-slate-600 border-slate-200",
 };
 

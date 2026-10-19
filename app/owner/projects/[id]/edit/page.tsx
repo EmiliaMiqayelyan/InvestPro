@@ -929,7 +929,7 @@ export default function OwnerEditProjectPage() {
                   <p
                     className={cn(
                       "text-sm font-medium",
-                      budgetMismatch ? "text-amber-700" : "text-teal-800"
+                      budgetMismatch ? "text-amber-700" : "text-neutral-900"
                     )}
                   >
                     {t("owner.phaseBudgetSum", {

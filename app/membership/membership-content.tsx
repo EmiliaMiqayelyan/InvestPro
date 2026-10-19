@@ -85,7 +85,7 @@ export default function MembershipPage() {
     <Card
       className={cn(
         "overflow-hidden surface-card",
-        hasAccess && "border-teal-200/80 ring-1 ring-teal-100"
+        hasAccess && "border-neutral-300 ring-1 ring-neutral-200"
       )}
     >
       <CardContent className="p-8">
@@ -144,7 +144,7 @@ export default function MembershipPage() {
           </div>
         </div>
         {hasAccess ? (
-          <p className="mt-8 flex items-center gap-2 rounded-xl border border-teal-200 bg-teal-50 px-4 py-3 text-sm text-teal-800">
+          <p className="mt-8 flex items-center gap-2 rounded-xl border border-neutral-300 bg-neutral-100 px-4 py-3 text-sm text-neutral-900">
             <Check className="h-4 w-4 shrink-0" />
             {t("membership.yourCurrent")}
             {mine?.expiresAt

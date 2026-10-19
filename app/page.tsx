@@ -100,7 +100,7 @@ export default function HomePage() {
               <div className="mt-7 flex flex-col items-stretch gap-3 sm:mt-8 sm:flex-row sm:flex-wrap sm:items-center">
                 <Button
                   size="lg"
-                  className="h-11 shrink-0 rounded-full bg-[#1e3a5f] px-6 text-sm font-medium text-white shadow-sm hover:bg-[#18314f] [&_svg]:text-white"
+                  className="h-11 shrink-0 rounded-full bg-neutral-950 px-6 text-sm font-medium text-white shadow-sm hover:bg-neutral-800 [&_svg]:text-white"
                   asChild
                 >
                   <Link href={ROUTES.PROJECTS}>

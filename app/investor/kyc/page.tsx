@@ -87,7 +87,7 @@ export default function InvestorKycPage() {
           {steps.map((step) => (
             <div key={step.label} className="flex items-start gap-3 text-sm">
               {step.done ? (
-                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-neutral-900" />
               ) : (
                 <Circle
                   className={cn(

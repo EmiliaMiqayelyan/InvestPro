@@ -30,7 +30,6 @@ import {
 import { useState } from "react";
 import { ROUTES } from "@/constants";
 import { useAuth, useI18n } from "@/hooks";
-import { LanguageSwitcher } from "@/components/shared/language-switcher";
 import { PlatformLogo } from "@/components/shared/platform-logo";
 import { NotificationCenter } from "@/components/workspace/notification-center";
 import { PageTitleProvider, usePageTitle } from "@/components/providers/page-title-provider";
@@ -309,7 +308,6 @@ function WorkspaceShellInner({
             </div>
             <div className="flex shrink-0 items-center gap-2">
               <NotificationCenter />
-              <LanguageSwitcher compact />
             </div>
           </div>
         </header>

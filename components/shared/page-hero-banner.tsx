@@ -38,7 +38,7 @@ export function PageHeroBanner({
         aria-hidden
       />
       <div
-        className="pointer-events-none absolute -bottom-28 -left-16 h-64 w-64 rounded-full bg-emerald-400/10 blur-3xl"
+        className="pointer-events-none absolute -bottom-28 -left-16 h-64 w-64 rounded-full bg-neutral-900/10 blur-3xl"
         aria-hidden
       />
       <div

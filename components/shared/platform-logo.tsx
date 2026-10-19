@@ -16,29 +16,22 @@ export function PlatformLogo({
   theme?: "light" | "dark";
 }) {
   const { t } = useI18n();
-  const iconSize = size === "sm" ? 32 : 36;
-  const textSize = size === "sm" ? "text-base" : "text-lg";
+  const height = size === "sm" ? 40 : 48;
+  const width = Math.round(height * (907 / 567));
 
   return (
     <span className={cn("inline-flex items-center gap-2.5", className)}>
       <Image
-        src="/brand/logo.png"
+        src={theme === "dark" ? "/brand/logo-dark.png" : "/brand/logo.png"}
         alt={t("common.platformName")}
-        width={iconSize}
-        height={iconSize}
-        className="shrink-0 rounded-lg shadow-sm"
+        width={width}
+        height={height}
+        className="w-auto shrink-0"
+        style={{ width: "auto", height }}
         priority
       />
       {showText && (
-        <span
-          className={cn(
-            "font-display font-semibold tracking-tight",
-            textSize,
-            theme === "dark" ? "text-white" : "text-foreground"
-          )}
-        >
-          {t("common.platformName")}
-        </span>
+        <span className="sr-only">{t("common.platformName")}</span>
       )}
     </span>
   );

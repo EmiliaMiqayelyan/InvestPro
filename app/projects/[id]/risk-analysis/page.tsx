@@ -148,7 +148,7 @@ export default function RiskAnalysisPage() {
                 {report.phaseBudgetTotal != null && (
                   <div>
                     <p className="text-xs text-muted-foreground">{t("risk.phaseBudget")}</p>
-                    <p className="mt-1 font-semibold text-teal-900">
+                    <p className="mt-1 font-semibold text-neutral-950">
                       {formatCurrency(report.phaseBudgetTotal)}
                     </p>
                   </div>
@@ -173,7 +173,7 @@ export default function RiskAnalysisPage() {
 
             <div className="grid gap-6 lg:grid-cols-2">
               <section className="premium-card p-6">
-                <div className="mb-4 flex items-center gap-2 text-emerald-700">
+                <div className="mb-4 flex items-center gap-2 text-neutral-800">
                   <CheckCircle2 className="h-5 w-5" />
                   <h2 className="font-display text-lg font-semibold">{t("risk.positive")}</h2>
                 </div>
@@ -232,7 +232,7 @@ export default function RiskAnalysisPage() {
               </section>
 
               <section className="premium-card p-6">
-                <div className="mb-4 flex items-center gap-2 text-teal-800">
+                <div className="mb-4 flex items-center gap-2 text-neutral-900">
                   <HelpCircle className="h-5 w-5" />
                   <h2 className="font-display text-lg font-semibold">{t("risk.questionsShort")}</h2>
                 </div>
@@ -240,7 +240,7 @@ export default function RiskAnalysisPage() {
                   {questions.length ? (
                     questions.map((q) => (
                       <li key={q} className="flex gap-2 text-sm text-slate-700">
-                        <span className="text-teal-700">•</span>
+                        <span className="text-neutral-800">•</span>
                         {q}
                       </li>
                     ))

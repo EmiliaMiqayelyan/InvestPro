@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, Instrument_Sans, Noto_Sans_Armenian } from "next/font/google";
+import { Plus_Jakarta_Sans, Instrument_Sans } from "next/font/google";
 import { Toaster } from "sonner";
 import { QueryProvider } from "@/components/providers/query-provider";
 import { AuthProvider } from "@/components/providers/auth-provider";
@@ -17,23 +17,16 @@ const display = Instrument_Sans({
   variable: "--font-display",
 });
 
-const armenian = Noto_Sans_Armenian({
-  subsets: ["armenian"],
-  variable: "--font-armenian",
-  weight: ["400", "500", "600", "700"],
-});
-
 export const metadata: Metadata = {
-  title: `${PLATFORM_NAME} / Investment Marketplace | Ներդրումային շուկա`,
-  description:
-    "Connect innovative projects with trusted investors. / Կապեք նորարար նախագծերը վստահելի ներդրողների հետ։",
+  title: `${PLATFORM_NAME} / Investment Marketplace`,
+  description: "Connect innovative projects with trusted investors.",
   applicationName: PLATFORM_NAME,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="hy" className="locale-hy">
-      <body className={`${sans.variable} ${display.variable} ${armenian.variable} font-sans`}>
+    <html lang="en" className="locale-en">
+      <body className={`${sans.variable} ${display.variable} font-sans`}>
         <QueryProvider>
           <LocaleProvider>
             <AuthProvider>

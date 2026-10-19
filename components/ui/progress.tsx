@@ -21,7 +21,7 @@ const Progress = React.forwardRef<
         "h-full w-full flex-1 transition-all duration-500 rounded-full",
         variant === "gold"
           ? "bg-gradient-to-r from-amber-600 via-brand-gold to-amber-400"
-          : "bg-gradient-to-r from-teal-900 via-teal-700 to-emerald-500"
+          : "bg-gradient-to-r from-neutral-950 via-neutral-800 to-neutral-600"
       )}
       style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
     />

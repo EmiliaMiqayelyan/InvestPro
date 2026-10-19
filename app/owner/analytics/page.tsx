@@ -128,7 +128,7 @@ export default function OwnerAnalyticsPage() {
                       </div>
                       <div>
                         <p className="text-xs text-muted-foreground">{t("owner.analyticsRoi")}</p>
-                        <p className="font-semibold text-emerald-600">{project.expectedRoi}%</p>
+                        <p className="font-semibold text-neutral-900">{project.expectedRoi}%</p>
                       </div>
                     </div>
                   </CardContent>

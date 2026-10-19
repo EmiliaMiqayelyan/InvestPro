@@ -10,26 +10,26 @@
     --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
-    --primary: 172 56% 30%;
+    --primary: 0 0% 8%;
     --primary-foreground: 0 0% 100%;
     --secondary: 220 14% 96%;
     --secondary-foreground: 222 47% 11%;
     --muted: 220 14% 96%;
     --muted-foreground: 220 9% 46%;
-    --accent: 172 40% 94%;
-    --accent-foreground: 172 56% 22%;
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 8%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 98%;
-    --success: 152 60% 36%;
+    --success: 0 0% 12%;
     --success-foreground: 0 0% 100%;
     --warning: 38 92% 50%;
     --warning-foreground: 26 83% 14%;
     --border: 220 13% 90%;
     --input: 220 13% 90%;
-    --ring: 172 56% 30%;
+    --ring: 0 0% 8%;
     --radius: 0.625rem;
-    --chart-1: 172 56% 30%;
-    --chart-2: 160 60% 40%;
+    --chart-1: 0 0% 12%;
+    --chart-2: 0 0% 32%;
     --chart-3: 38 92% 50%;
     --chart-4: 220 9% 46%;
     --chart-5: 0 72% 51%;
@@ -37,7 +37,7 @@
     --sidebar-foreground: 210 20% 94%;
     --sidebar-muted: 215 16% 58%;
     --sidebar-border: 222 30% 15%;
-    --sidebar-accent: 172 56% 42%;
+    --sidebar-accent: 0 0% 100%;
     --ink: 222 47% 11%;
     --gold: 38 92% 50%;
   }
@@ -199,9 +199,9 @@
     background: linear-gradient(
       105deg,
       hsl(var(--sidebar) / 0.78) 0%,
-      hsl(172 56% 16% / 0.52) 42%,
-      hsl(172 40% 28% / 0.22) 72%,
-      hsl(172 40% 28% / 0.12) 100%
+      hsl(0 0% 8% / 0.52) 42%,
+      hsl(0 0% 12% / 0.22) 72%,
+      hsl(0 0% 12% / 0.12) 100%
     );
   }
 
@@ -209,7 +209,7 @@
     background: linear-gradient(
       to top,
       hsl(var(--sidebar) / 0.92) 0%,
-      hsl(172 56% 20% / 0.45) 50%,
+      hsl(0 0% 8% / 0.45) 50%,
       transparent 100%
     );
   }
@@ -218,7 +218,7 @@
     background: linear-gradient(
       to top,
       hsl(var(--sidebar) / 0.94) 0%,
-      hsl(172 56% 18% / 0.6) 100%
+      hsl(0 0% 8% / 0.6) 100%
     );
   }
 
@@ -226,7 +226,7 @@
     background: linear-gradient(
       165deg,
       hsl(var(--sidebar) / 0.94) 0%,
-      hsl(172 56% 16% / 0.78) 100%
+      hsl(0 0% 6% / 0.78) 100%
     );
   }
 
@@ -272,9 +272,9 @@
   .hero-gradient {
     background: linear-gradient(
       135deg,
-      hsl(172 56% 18%) 0%,
-      hsl(172 56% 26%) 50%,
-      hsl(160 50% 22%) 100%
+      hsl(0 0% 6%) 0%,
+      hsl(0 0% 12%) 50%,
+      hsl(0 0% 8%) 100%
     );
   }
 
@@ -282,25 +282,25 @@
   .cta-gradient {
     background: linear-gradient(
       145deg,
-      hsl(222 47% 10%) 0%,
-      hsl(172 56% 16%) 42%,
-      hsl(172 48% 22%) 78%,
-      hsl(160 42% 18%) 100%
+      hsl(0 0% 6%) 0%,
+      hsl(0 0% 10%) 42%,
+      hsl(0 0% 14%) 78%,
+      hsl(0 0% 8%) 100%
     );
   }
 
   .cta-gradient-navy {
     background: linear-gradient(
       145deg,
-      hsl(222 47% 9%) 0%,
-      hsl(210 40% 14%) 40%,
-      hsl(172 40% 18%) 100%
+      hsl(0 0% 6%) 0%,
+      hsl(0 0% 10%) 40%,
+      hsl(0 0% 14%) 100%
     );
   }
 
   .hero-mesh {
     background:
-      radial-gradient(at 20% 30%, hsl(172 56% 30% / 0.15) 0%, transparent 50%),
+      radial-gradient(at 20% 30%, hsl(0 0% 8% / 0.12) 0%, transparent 50%),
       radial-gradient(at 80% 70%, hsl(38 92% 50% / 0.08) 0%, transparent 50%),
       hsl(var(--background));
   }

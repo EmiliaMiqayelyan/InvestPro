@@ -36,7 +36,7 @@ const TYPE_META: Record<
 > = {
   offer_received: {
     icon: Handshake,
-    className: "bg-emerald-50 text-emerald-700",
+    className: "bg-neutral-100 text-neutral-800",
     labelKey: "notifications.types.offer_received",
   },
   offer_updated: {

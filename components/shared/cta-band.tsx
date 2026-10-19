@@ -30,7 +30,7 @@ export function CtaBand({
         aria-hidden
       />
       <div
-        className="pointer-events-none absolute -bottom-28 -left-16 h-64 w-64 rounded-full bg-emerald-400/10 blur-3xl"
+        className="pointer-events-none absolute -bottom-28 -left-16 h-64 w-64 rounded-full bg-neutral-900/10 blur-3xl"
         aria-hidden
       />
       <div
@@ -46,7 +46,7 @@ export function CtaBand({
         aria-hidden
       />
       <div
-        className="pointer-events-none absolute bottom-0 left-1/2 h-px w-40 -translate-x-1/2 bg-gradient-to-r from-transparent via-emerald-300/40 to-transparent sm:w-56"
+        className="pointer-events-none absolute bottom-0 left-1/2 h-px w-40 -translate-x-1/2 bg-gradient-to-r from-transparent via-neutral-400/40 to-transparent sm:w-56"
         aria-hidden
       />
       <div

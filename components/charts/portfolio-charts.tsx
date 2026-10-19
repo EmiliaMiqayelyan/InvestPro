@@ -83,7 +83,7 @@ export function LineChartComponent({
   data,
   dataKey = "value",
   height = 300,
-  color = "#10b981",
+  color = "#111111",
 }: AreaChartComponentProps) {
   return (
     <ResponsiveContainer width="100%" height={height}>

@@ -12,10 +12,10 @@ export const useLocaleStore = create<LocaleState>()(
     (set) => ({
       locale: DEFAULT_LOCALE,
       setLocale: (locale) => {
-        if (!isLocale(locale)) return;
-        set({ locale });
+        if (locale !== "en" || !isLocale(locale)) return;
+        set({ locale: "en" });
         if (typeof document !== "undefined") {
-          document.documentElement.lang = locale;
+          document.documentElement.lang = "en";
         }
       },
     }),
@@ -24,8 +24,7 @@ export const useLocaleStore = create<LocaleState>()(
       partialize: (state) => ({ locale: state.locale }),
       merge: (persisted, current) => {
         const stored = persisted as Partial<LocaleState> | undefined;
-        const locale = isLocale(stored?.locale) ? stored.locale : current.locale;
-        return { ...current, ...stored, locale };
+        return { ...current, ...stored, locale: "en" };
       },
     }
   )

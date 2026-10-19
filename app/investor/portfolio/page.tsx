@@ -76,7 +76,7 @@ export default function InvestorPortfolioPage() {
             </div>
             <div>
               <p className="text-xs text-muted-foreground">{t("investor.roi")}</p>
-              <p className="mt-1 font-display text-xl font-semibold text-emerald-700">
+              <p className="mt-1 font-display text-xl font-semibold text-neutral-800">
                 {portfolio?.roi ?? 0}%
               </p>
             </div>

@@ -639,7 +639,7 @@ export default function AdminProjectReviewPage() {
               {t("admin.reject")}
             </Button>
             <Button
-              className="bg-emerald-600 hover:bg-emerald-700"
+              className="bg-neutral-950 hover:bg-neutral-800"
               disabled={approveMutation.isPending || rejectMutation.isPending}
               onClick={() => setApproveOpen(true)}
             >
@@ -716,7 +716,7 @@ export default function AdminProjectReviewPage() {
               {t("admin.cancel")}
             </Button>
             <Button
-              className="bg-emerald-600 hover:bg-emerald-700"
+              className="bg-neutral-950 hover:bg-neutral-800"
               disabled={approveMutation.isPending}
               onClick={() => approveMutation.mutate()}
             >

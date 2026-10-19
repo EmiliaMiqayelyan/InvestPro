@@ -103,7 +103,7 @@ async function sendInAppEmail(draft: NotificationDraft) {
   if (!user?.email) return;
   await sendEmail({
     to: user.email,
-    subject: `InvestIN — ${draft.title}`,
+    subject: `XS Invest — ${draft.title}`,
     text: draft.message.slice(0, MAX_EMAIL_BODY),
   });
 }
@@ -358,8 +358,8 @@ function draftsForEvent(event: NotificationEvent): NotificationDraft[] {
       const adminDrafts: NotificationDraft[] = listUserIdsByRole("admin").map((userId) => ({
         userId,
         type: "project_update",
-        title: "Նոր նախագիծ է սպասում ստուգման",
-        message: `«${project.title}» նախագիծը ուղարկվել է հաստատման։`,
+        title: "New project awaiting review",
+        message: `“${project.title}” was submitted for approval.`,
         href: hrefForRole("admin", "project_update", { projectId: project.id }),
         priority: "high",
         metadata: { template: "projectPendingAdmin", projectId: project.id, projectTitle: project.title },
@@ -385,8 +385,8 @@ function draftsForEvent(event: NotificationEvent): NotificationDraft[] {
         drafts.push({
           userId: project.ownerId,
           type: "project_update",
-          title: "Ձեր նախագիծը հաստատվել է",
-          message: `Ձեր «${project.title}» նախագիծը հաջողությամբ անցել է ստուգումը և այժմ հասանելի է հարթակում։`,
+          title: "Your project was approved",
+          message: `“${project.title}” passed review and is now available on the platform.`,
           href: hrefForRole("project_owner", "project_update", { projectId: project.id }),
           priority: "high",
           email: true,
@@ -407,10 +407,10 @@ function draftsForEvent(event: NotificationEvent): NotificationDraft[] {
         drafts.push({
           userId: project.ownerId,
           type: "project_update",
-          title: "Նախագիծը մերժվել է",
+          title: "Project rejected",
           message: reasonText
-            ? `«${project.title}» նախագիծը մերժվել է։ Պատճառ՝ ${reasonText.slice(0, 160)}`
-            : `«${project.title}» նախագիծը այս պահին չի հաստատվել։ Ստուգեք հաղորդագրությունները և կրկին ուղարկեք։`,
+            ? `“${project.title}” was rejected. Reason: ${reasonText.slice(0, 160)}`
+            : `“${project.title}” was not approved. Check your messages and submit it again.`,
           href: ROUTES.OWNER_MESSAGES,
           priority: "high",
           email: true,
@@ -440,8 +440,8 @@ function draftsForEvent(event: NotificationEvent): NotificationDraft[] {
         const adminDrafts: NotificationDraft[] = listUserIdsByRole("admin").map((userId) => ({
           userId,
           type: "project_update" as const,
-          title: "Նոր նախագիծ է սպասում ստուգման",
-          message: `«${project.title}» նախագիծը ուղարկվել է հաստատման։`,
+          title: "New project awaiting review",
+          message: `“${project.title}” was submitted for approval.`,
           href: hrefForRole("admin", "project_update", { projectId: project.id }),
           priority: "high" as const,
           metadata: { template: "projectPendingAdmin", projectId: project.id, projectTitle: project.title },

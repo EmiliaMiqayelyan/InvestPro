@@ -68,7 +68,7 @@ export default function InvestorInvestmentsPage() {
                 </div>
                 <div className="text-right">
                   <p className="text-xs text-muted-foreground">{t("projects.expectedRoi")}</p>
-                  <p className="font-semibold text-emerald-600">
+                  <p className="font-semibold text-neutral-900">
                     {formatCurrency(inv.expectedReturn)}
                   </p>
                 </div>

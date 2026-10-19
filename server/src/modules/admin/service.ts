@@ -319,7 +319,7 @@ export async function updateComplaintStatus(
 const SETTINGS_KEY = "platform";
 
 const DEFAULT_SETTINGS = {
-  platformName: "InvestIN",
+  platformName: "XS Invest",
   supportEmail: "hello@investin.am",
   maintenanceMode: false,
   kycRequired: true,
