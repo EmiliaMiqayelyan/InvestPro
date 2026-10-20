@@ -173,6 +173,7 @@ export const adminMarketplaceApi = {
     apiClient.get<ApiResponse<PaginatedResponse<User>>>("/admin/users", { params }),
   updateRole: (id: string, role: string) =>
     apiClient.patch(`/admin/users/${id}/role`, { role }),
+  deleteUser: (id: string) => apiClient.delete(`/admin/users/${id}`),
   projects: (params?: FilterParams) =>
     apiClient.get<ApiResponse<PaginatedResponse<Project>>>("/admin/projects", { params }),
   pendingProjects: () =>

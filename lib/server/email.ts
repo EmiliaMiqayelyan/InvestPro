@@ -1,6 +1,5 @@
 /**
- * Email delivery stub for receipts / verify / notifications.
- * Configure SMTP_* env vars to enable; otherwise logs to console in development.
+ * Frontend email stub. Production mail is sent by the Express API (server/).
  */
 
 export type EmailPayload = {
@@ -11,16 +10,9 @@ export type EmailPayload = {
 };
 
 export async function sendEmail(payload: EmailPayload): Promise<{ ok: boolean }> {
-  const host = process.env.SMTP_HOST;
-  if (!host) {
-    if (process.env.NODE_ENV !== "production") {
-      console.info("[email:dev]", payload.to, payload.subject, payload.text.slice(0, 120));
-    }
-    return { ok: true };
+  if (process.env.NODE_ENV !== "production") {
+    console.info("[email:dev]", payload.to, payload.subject, payload.text.slice(0, 200));
   }
-
-  // Placeholder for nodemailer / Resend integration
-  console.info("[email]", payload.to, payload.subject);
   return { ok: true };
 }
 

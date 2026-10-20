@@ -98,10 +98,14 @@ router.post(
     if (user.isEmailVerified) return ok(res, null, "Email already verified");
     const token = await createAuthToken(user.id, "email_verify", 48);
     const { enqueueJob } = await import("../../shared/jobs/queue");
+    const { env } = await import("../../app/config/env");
+    const baseUrl = env.CORS_ORIGIN.replace(/\/$/, "");
+    const verifyUrl = `${baseUrl}/verify-email?token=${encodeURIComponent(token)}`;
     await enqueueJob("email", {
       to: user.email,
-      subject: "Verify your email",
-      text: `Your verification token: ${token}`,
+      subject: "XS Invest — Verify your email",
+      text: `Confirm your email by opening this link:\n${verifyUrl}\n\nThis link expires in 48 hours.`,
+      html: `<p>Confirm your email by clicking the button below:</p><p><a href="${verifyUrl}" style="display:inline-block;padding:12px 20px;background:#111;color:#fff;text-decoration:none;border-radius:8px;">Verify email</a></p><p>Or open this link:<br><a href="${verifyUrl}">${verifyUrl}</a></p><p>This link expires in 48 hours.</p>`,
     });
     return ok(res, null, "Verification email sent");
   })

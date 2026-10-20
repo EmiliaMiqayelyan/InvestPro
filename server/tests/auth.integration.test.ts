@@ -55,6 +55,15 @@ describe("auth integration", () => {
     });
     expect(res.status).toBe(201);
     expect(res.body.data.user.role).toBe("investor");
-    expect(res.body.data.tokens.accessToken).toBeTruthy();
+    expect(res.body.data.user.isEmailVerified).toBe(false);
+    expect(res.body.data.tokens).toBeNull();
+  });
+
+  it("blocks login until email is verified", async () => {
+    const res = await request(app)
+      .post("/api/v1/auth/login")
+      .send({ email: "newinvestor@example.com", password: "secret12" });
+    expect(res.status).toBe(403);
+    expect(res.body.success).toBe(false);
   });
 });

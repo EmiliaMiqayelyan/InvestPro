@@ -21,6 +21,10 @@ const envSchema = z.object({
   JWT_SECRET: z.string().min(8).default("investpro-dev-secret-change-in-production"),
   CORS_ORIGIN: z.string().default("http://localhost:3000"),
   LOG_LEVEL: z.string().default("info"),
+  // Brevo transactional email (preferred)
+  BREVO_API_KEY: z.string().optional(),
+  BREVO_SENDER_EMAIL: z.string().optional(),
+  // Optional SMTP fallback
   SMTP_HOST: z.string().optional(),
   SMTP_PORT: z.string().optional(),
   SMTP_USER: z.string().optional(),

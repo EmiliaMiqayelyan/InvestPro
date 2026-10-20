@@ -75,6 +75,11 @@ router.post("/users/:id/activate", asyncHandler(async (req: AuthedRequest, res) 
   return ok(res, await authService.activateUser(auth.sub, param(req, "id"), req));
 }));
 
+router.delete("/users/:id", asyncHandler(async (req: AuthedRequest, res) => {
+  const auth = requireAuth(req);
+  return ok(res, await admin.deleteUser(auth.sub, param(req, "id"), req), "User deleted");
+}));
+
 router.get("/projects", asyncHandler(async (req, res) =>
   ok(res, await admin.listAdminProjects({ status: req.query.status as string, page: Number(req.query.page || 1), limit: Number(req.query.limit || 20) }))
 ));

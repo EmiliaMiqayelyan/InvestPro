@@ -63,6 +63,9 @@ export async function login(email: string, password: string, totpCode?: string) 
   if (matched.status === "suspended" || matched.status === "blocked") {
     throw AppError.forbidden("Account is suspended");
   }
+  if (!matched.isEmailVerified) {
+    throw AppError.forbidden("Please verify your email before logging in");
+  }
 
   if (matched.is2faEnabled) {
     if (!totpCode) {
@@ -122,10 +125,14 @@ export async function register(body: z.infer<typeof registerSchema>) {
   });
 
   const verifyToken = await createAuthToken(id, "email_verify", 48);
+  const { env } = await import("../../app/config/env");
+  const baseUrl = env.CORS_ORIGIN.replace(/\/$/, "");
+  const verifyUrl = `${baseUrl}/verify-email?token=${encodeURIComponent(verifyToken)}`;
   await enqueueJob("email", {
     to: row.email,
-    subject: "Verify your email",
-    text: `Your verification token: ${verifyToken}`,
+    subject: "XS Invest — Verify your email",
+    text: `Welcome to XS Invest.\n\nConfirm your email by opening this link:\n${verifyUrl}\n\nThis link expires in 48 hours. If you did not create an account, you can ignore this email.`,
+    html: `<p>Welcome to <strong>XS Invest</strong>.</p><p>Confirm your email by clicking the button below:</p><p><a href="${verifyUrl}" style="display:inline-block;padding:12px 20px;background:#111;color:#fff;text-decoration:none;border-radius:8px;">Verify email</a></p><p>Or open this link:<br><a href="${verifyUrl}">${verifyUrl}</a></p><p>This link expires in 48 hours. If you did not create an account, you can ignore this email.</p>`,
   });
 
   await logActivity(id, "register", "auth", undefined, { role });
@@ -137,9 +144,8 @@ export async function register(body: z.infer<typeof registerSchema>) {
     email: row.email,
   });
 
-  const safe = toUser(row);
-  const tokens = await issueTokens(safe);
-  return { user: safe, tokens };
+  // No session until email is verified — user must confirm via the link first.
+  return { user: toUser(row), tokens: null };
 }
 
 export async function refresh(refreshToken: string) {
@@ -153,6 +159,7 @@ export async function refresh(refreshToken: string) {
 
   const stored = await UserModel.findByPk(payload.sub);
   if (!stored || !stored.isActive) throw AppError.unauthorized("User not found");
+  if (!stored.isEmailVerified) throw AppError.forbidden("Please verify your email before logging in");
   const user = toUser(stored);
   return issueTokens(user);
 }

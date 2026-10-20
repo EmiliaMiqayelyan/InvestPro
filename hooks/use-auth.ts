@@ -21,6 +21,10 @@ export function useAuth() {
     mutationFn: (credentials: LoginCredentials) => authApi.login(credentials),
     onSuccess: (response) => {
       const { user, tokens, requires2fa } = response.data.data;
+      if (!tokens) {
+        toast.error(translate(useLocaleStore.getState().locale, "auth.emailNotVerified"));
+        return;
+      }
       if (requires2fa) {
         setRequires2fa(true, tokens.accessToken);
         router.push(ROUTES.TWO_FACTOR);
@@ -37,14 +41,11 @@ export function useAuth() {
   const registerMutation = useMutation({
     mutationFn: (data: RegisterData) => authApi.register(data),
     onSuccess: (response) => {
-      const { user, tokens } = response.data.data;
-      if (!user || !tokens?.accessToken || !tokens.refreshToken) {
-        toast.success(translate(useLocaleStore.getState().locale, "auth.registerSuccess"));
-        window.location.assign(ROUTES.LOGIN);
-        return;
+      const { user } = response.data.data;
+      if (user?.email && typeof window !== "undefined") {
+        sessionStorage.setItem("pendingVerifyEmail", user.email);
       }
-      login(user, tokens.accessToken, tokens.refreshToken);
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.AUTH] });
+      toast.success(translate(useLocaleStore.getState().locale, "auth.registerSuccess"));
       window.location.assign(ROUTES.REGISTER_SUCCESS);
     },
     onError: (error) => toast.error(getErrorMessage(error)),

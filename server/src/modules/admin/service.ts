@@ -13,6 +13,21 @@ import {
   ConversationModel,
   SavedProjectModel,
   MilestonePlanModel,
+  NotificationModel,
+  InvestorProfileModel,
+  CompanyProfileModel,
+  WalletModel,
+  LedgerTransactionModel,
+  PaymentModel,
+  WithdrawalModel,
+  ReturnModel,
+  InvestmentDealModel,
+  ReviewModel,
+  DisputeModel,
+  RefreshTokenModel,
+  AuthTokenModel,
+  KybSubmissionModel,
+  UploadedFileModel,
 } from "../../shared/database/associations";
 import { AppError } from "../../shared/errors/AppError";
 import {
@@ -27,12 +42,15 @@ import {
 import { paginate } from "../../shared/utils/paginate";
 import { analyzeProjectRisk } from "../../shared/utils/risk-analysis";
 import { logActivity } from "../../shared/utils/activity";
+import { writeAuditLog } from "../../shared/utils/audit";
+import { revokeAllRefreshTokens } from "../../shared/utils/auth-tokens";
 import { dispatchNotificationEvent } from "../notifications/service";
 import {
   approveProject,
   rejectProject,
 } from "../owner/service";
 import type { TokenPayload } from "../../shared/utils/jwt";
+import type { AuthedRequest } from "../../app/middleware";
 import type { AdminStats, Project, UserRole } from "../../shared/types";
 
 export async function getAdminStats(): Promise<AdminStats> {
@@ -89,6 +107,114 @@ export async function updateUserRole(userId: string, role: UserRole) {
   await user.save();
   await dispatchNotificationEvent({ kind: "role_changed", userId: user.id, role });
   return toUser(user);
+}
+
+export async function deleteUser(adminId: string, userId: string, req?: AuthedRequest) {
+  if (adminId === userId) {
+    throw AppError.badRequest("You cannot delete your own account");
+  }
+
+  const user = await UserModel.findByPk(userId);
+  if (!user) throw AppError.notFound("User not found");
+
+  if (user.role === "admin") {
+    const adminCount = await UserModel.count({ where: { role: "admin", isActive: true } });
+    if (adminCount <= 1) {
+      throw AppError.badRequest("Cannot delete the last active admin");
+    }
+  }
+
+  const investmentCount = await InvestmentModel.count({ where: { investorId: userId } });
+  if (investmentCount > 0) {
+    throw AppError.badRequest(
+      `Cannot delete a user with ${investmentCount} investment record(s). Resolve investments first.`
+    );
+  }
+
+  const ownedProjects = await ProjectModel.findAll({ where: { ownerId: userId } });
+  for (const project of ownedProjects) {
+    const projectInvestments = await InvestmentModel.count({ where: { projectId: project.id } });
+    if (projectInvestments > 0 || project.status === "funded") {
+      throw AppError.badRequest(
+        `Cannot delete user while project “${project.title}” still has investment records`
+      );
+    }
+  }
+
+  await revokeAllRefreshTokens(userId);
+
+  for (const project of ownedProjects) {
+    const conversations = await ConversationModel.findAll({ where: { projectId: project.id } });
+    const conversationIds = conversations.map((c) => c.id);
+    if (conversationIds.length) {
+      await MessageModel.destroy({ where: { conversationId: { [Op.in]: conversationIds } } });
+      await ConversationModel.destroy({ where: { id: { [Op.in]: conversationIds } } });
+    }
+    await Promise.all([
+      OfferModel.destroy({ where: { projectId: project.id } }),
+      SavedProjectModel.destroy({ where: { projectId: project.id } }),
+      MilestonePlanModel.destroy({ where: { projectId: project.id } }),
+      ReviewModel.destroy({ where: { projectId: project.id } }),
+      ReturnModel.destroy({ where: { projectId: project.id } }),
+      InvestmentDealModel.destroy({ where: { projectId: project.id } }),
+    ]);
+    await project.destroy();
+  }
+
+  const userConversations = await ConversationModel.findAll({
+    where: { [Op.or]: [{ investorId: userId }, { ownerId: userId }] },
+  });
+  const userConversationIds = userConversations.map((c) => c.id);
+  if (userConversationIds.length) {
+    await MessageModel.destroy({ where: { conversationId: { [Op.in]: userConversationIds } } });
+    await ConversationModel.destroy({ where: { id: { [Op.in]: userConversationIds } } });
+  }
+  await MessageModel.destroy({ where: { senderId: userId } });
+
+  const wallets = await WalletModel.findAll({ where: { userId } });
+  const walletIds = wallets.map((w) => w.id);
+  if (walletIds.length) {
+    await LedgerTransactionModel.destroy({ where: { walletId: { [Op.in]: walletIds } } });
+    await PaymentModel.destroy({ where: { walletId: { [Op.in]: walletIds } } });
+    await WithdrawalModel.destroy({ where: { walletId: { [Op.in]: walletIds } } });
+    await WalletModel.destroy({ where: { id: { [Op.in]: walletIds } } });
+  }
+
+  await Promise.all([
+    OfferModel.destroy({ where: { investorId: userId } }),
+    SavedProjectModel.destroy({ where: { userId } }),
+    SubscriptionModel.destroy({ where: { userId } }),
+    NotificationModel.destroy({ where: { userId } }),
+    KycSubmissionModel.destroy({ where: { userId } }),
+    KybSubmissionModel.destroy({ where: { userId } }),
+    InvestorProfileModel.destroy({ where: { userId } }),
+    CompanyProfileModel.destroy({ where: { userId } }),
+    PaymentModel.destroy({ where: { userId } }),
+    WithdrawalModel.destroy({ where: { userId } }),
+    ReturnModel.destroy({ where: { investorId: userId } }),
+    InvestmentDealModel.destroy({ where: { investorId: userId } }),
+    ReviewModel.destroy({ where: { investorId: userId } }),
+    DisputeModel.destroy({ where: { reporterId: userId } }),
+    ComplaintModel.destroy({ where: { reporterId: userId } }),
+    MilestonePlanModel.destroy({
+      where: { [Op.or]: [{ investorId: userId }, { ownerId: userId }] },
+    }),
+    ActivityLogModel.destroy({ where: { userId } }),
+    UploadedFileModel.destroy({ where: { userId } }),
+    RefreshTokenModel.destroy({ where: { userId } }),
+    AuthTokenModel.destroy({ where: { userId } }),
+  ]);
+
+  await user.destroy();
+  await writeAuditLog({
+    actorId: adminId,
+    action: "user_deleted",
+    entityType: "user",
+    entityId: userId,
+    req,
+  });
+  await logActivity(adminId, "user_deleted", "user", userId);
+  return { id: userId };
 }
 
 export async function listAdminProjects(opts: { status?: string; page?: number; limit?: number }) {

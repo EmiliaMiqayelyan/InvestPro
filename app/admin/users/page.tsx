@@ -2,8 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { MessageSquare, Users } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { MessageSquare, Trash2, Users } from "lucide-react";
 import { toast } from "sonner";
 import { adminMarketplaceApi, chatApi } from "@/services/api";
 import { getErrorMessage } from "@/services/api/client";
@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { useI18n } from "@/hooks";
+import { useAuth, useI18n } from "@/hooks";
 import { useSetPageTitle } from "@/components/providers/page-title-provider";
 import { PageHeader } from "@/components/shared/page-header";
 import { PanelPage } from "@/components/shared/panel-page";
@@ -27,14 +27,18 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { PanelListSkeleton } from "@/components/shared/loading-skeleton";
 import { SearchInput } from "@/components/shared/search-input";
 import { DataTable, type Column } from "@/components/shared/data-table";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import type { User } from "@/types";
 
 export default function AdminUsersPage() {
   const { t } = useI18n();
+  const { user: currentUser } = useAuth();
   const router = useRouter();
+  const queryClient = useQueryClient();
   useSetPageTitle(t("admin.usersTitle"));
   const [search, setSearch] = useState("");
   const [role, setRole] = useState<string>("all");
+  const [pendingDelete, setPendingDelete] = useState<User | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: [QUERY_KEYS.ADMIN_USERS, search, role],
@@ -63,6 +67,29 @@ export default function AdminUsersPage() {
     },
     onError: (error) => toast.error(getErrorMessage(error)),
   });
+
+  const deleteMutation = useMutation({
+    mutationFn: (userId: string) => adminMarketplaceApi.deleteUser(userId),
+    onSuccess: () => {
+      toast.success(t("admin.deleteUserToast"));
+      setPendingDelete(null);
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ADMIN_USERS] });
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
+  });
+
+  const onDelete = (u: User) => {
+    if (u.id === currentUser?.id) {
+      toast.error(t("admin.cannotDeleteSelf"));
+      return;
+    }
+    setPendingDelete(u);
+  };
+
+  const pendingName = pendingDelete
+    ? `${pendingDelete.firstName} ${pendingDelete.lastName}`.trim() ||
+      pendingDelete.email
+    : "";
 
   const columns: Column<User>[] = useMemo(
     () => [
@@ -117,23 +144,38 @@ export default function AdminUsersPage() {
       {
         key: "actions",
         header: t("common.actions"),
-        cell: (u) =>
-          u.role === "investor" || u.role === "project_owner" ? (
-            <Button
-              size="sm"
-              variant="outline"
-              disabled={messageMutation.isPending}
-              onClick={() => messageMutation.mutate(u.id)}
-            >
-              <MessageSquare className="h-3.5 w-3.5" />
-              {t("messages.startChatAction")}
-            </Button>
-          ) : (
-            <span className="text-muted-foreground">—</span>
-          ),
+        cell: (u) => {
+          const canMessage = u.role === "investor" || u.role === "project_owner";
+          const isSelf = u.id === currentUser?.id;
+          return (
+            <div className="flex flex-wrap items-center gap-2">
+              {canMessage ? (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={messageMutation.isPending}
+                  onClick={() => messageMutation.mutate(u.id)}
+                >
+                  <MessageSquare className="h-3.5 w-3.5" />
+                  {t("messages.startChatAction")}
+                </Button>
+              ) : null}
+              <Button
+                size="sm"
+                variant="outline"
+                className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                disabled={isSelf || deleteMutation.isPending}
+                onClick={() => onDelete(u)}
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                {t("admin.deleteUser")}
+              </Button>
+            </div>
+          );
+        },
       },
     ],
-    [t, messageMutation.isPending]
+    [t, messageMutation.isPending, deleteMutation.isPending, currentUser?.id]
   );
 
   return (
@@ -171,6 +213,25 @@ export default function AdminUsersPage() {
       ) : (
         <DataTable columns={columns} data={users} keyExtractor={(u) => u.id} />
       )}
+
+      <ConfirmDialog
+        open={Boolean(pendingDelete)}
+        onOpenChange={(open) => {
+          if (!open && !deleteMutation.isPending) setPendingDelete(null);
+        }}
+        title={t("admin.deleteUserTitle")}
+        description={
+          pendingDelete
+            ? t("admin.deleteUserConfirm", { name: pendingName })
+            : undefined
+        }
+        confirmLabel={t("admin.deleteUser")}
+        loading={deleteMutation.isPending}
+        onConfirm={() => {
+          if (!pendingDelete) return;
+          deleteMutation.mutate(pendingDelete.id);
+        }}
+      />
     </PanelPage>
   );
 }

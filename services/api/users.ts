@@ -49,4 +49,6 @@ export const usersApi = {
 
   activate: (id: string) =>
     apiClient.post<ApiResponse<null>>(`/admin/users/${id}/activate`),
+
+  delete: (id: string) => apiClient.delete<ApiResponse<{ id: string }>>(`/admin/users/${id}`),
 };

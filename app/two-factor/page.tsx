@@ -37,6 +37,10 @@ export default function TwoFactorPage() {
       authApi.verify2fa({ code: data.code, tempToken: tempToken || undefined }),
     onSuccess: (response) => {
       const { user, tokens } = response.data.data;
+      if (!tokens) {
+        toast.error(t("auth.emailNotVerified"));
+        return;
+      }
       login(user, tokens.accessToken, tokens.refreshToken);
       setRequires2fa(false);
       toast.success(t("auth.twoFactorVerified"));
