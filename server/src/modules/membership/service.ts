@@ -7,7 +7,7 @@ import { logActivity } from "../../shared/utils/activity";
 import { createTokenPair } from "../../shared/utils/jwt";
 import { dispatchNotificationEvent } from "../notifications/service";
 import { sendServiceFeeReceipt } from "../../shared/integrations/email";
-import { createServiceFeeCheckoutSession } from "../../shared/integrations/stripe";
+import { createServiceFeeCheckout } from "../payments/service";
 
 export const MEMBERSHIP_PLANS: MembershipPlan[] = [
   {
@@ -53,14 +53,18 @@ export async function getMyMembership(userId: string) {
   };
 }
 
-export async function subscribe(userId: string, planId: MembershipPlanId = "service") {
+export async function activateMembershipFromPayment(userId: string, amount: number, paymentId: string) {
   const user = await UserModel.findByPk(userId);
   if (!user) throw AppError.notFound("User not found");
-  if (planId !== "service") throw AppError.badRequest("Invalid plan");
-  const plan = MEMBERSHIP_PLANS.find((p) => p.id === planId);
-  if (!plan) throw AppError.badRequest("Invalid plan");
+  const existing = await SubscriptionModel.findOne({ where: { stripeSessionId: paymentId } });
+  if (existing) {
+    return { user: toUser(user), subscription: toSubscription(existing), tokens: await createTokenPair(toUser(user)) };
+  }
 
-  const expiresAt = new Date(Date.now() + 30 * 86400000);
+  const base = user.membershipExpiresAt && user.membershipExpiresAt.getTime() > Date.now()
+    ? user.membershipExpiresAt
+    : new Date();
+  const expiresAt = new Date(base.getTime() + 30 * 86400000);
   user.membershipTier = "service";
   user.membershipExpiresAt = expiresAt;
   await user.save();
@@ -72,12 +76,13 @@ export async function subscribe(userId: string, planId: MembershipPlanId = "serv
     status: "active",
     startedAt: new Date(),
     expiresAt,
-    amount: plan.price,
-    stripeSessionId: null,
+    amount,
+    stripeSessionId: paymentId,
   });
 
-  await logActivity(userId, "membership_purchased", "membership", planId, {
-    amount: plan.price,
+  await logActivity(userId, "membership_purchased", "membership", "service", {
+    amount,
+    paymentId,
   });
 
   const safe = toUser(user);
@@ -98,12 +103,11 @@ export async function subscribe(userId: string, planId: MembershipPlanId = "serv
 
 export async function checkout(userId: string, planId: MembershipPlanId = "service") {
   if (planId !== "service") throw AppError.badRequest("Invalid plan");
-  const user = await UserModel.findByPk(userId);
-  const session = await createServiceFeeCheckoutSession({
-    userId,
-    email: user?.email || "",
-    successUrl: "/investor/membership?checkout=mock",
-    cancelUrl: "/investor/membership",
-  });
-  return { checkoutUrl: session.checkoutUrl, sessionId: session.sessionId, planId };
+  const opened = await createServiceFeeCheckout(userId);
+  return {
+    checkoutUrl: opened.checkoutUrl,
+    sessionId: opened.payment.id,
+    paymentId: opened.payment.id,
+    planId,
+  };
 }

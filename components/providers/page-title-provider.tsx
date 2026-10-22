@@ -74,12 +74,12 @@ export function useSetPageTitle(
   title: string,
   breadcrumbs: BreadcrumbItem[] = EMPTY_BREADCRUMBS
 ) {
-  const { setPageTitle } = usePageTitle();
+  const ctx = useContext(PageTitleContext);
   const crumbsRef = useRef(breadcrumbs);
   crumbsRef.current = breadcrumbs;
   const crumbsKey = breadcrumbs.map((b) => `${b.label}|${b.href ?? ""}`).join("\0");
 
   useEffect(() => {
-    setPageTitle(title, crumbsRef.current);
-  }, [title, crumbsKey, setPageTitle]);
+    ctx?.setPageTitle(title, crumbsRef.current);
+  }, [title, crumbsKey, ctx]);
 }

@@ -33,6 +33,10 @@ const envSchema = z.object({
   STRIPE_SECRET_KEY: z.string().optional(),
   STRIPE_SERVICE_PRICE_ID: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
+  BINANCE_PAY_API_KEY: z.string().optional(),
+  BINANCE_PAY_API_SECRET: z.string().optional(),
+  BINANCE_PAY_BASE_URL: z.string().optional(),
+  BINANCE_KYC_DEPOSIT_USD: z.coerce.number().positive().default(1000),
   S3_BUCKET: z.string().optional(),
   S3_ACCESS_KEY_ID: z.string().optional(),
   S3_SECRET_ACCESS_KEY: z.string().optional(),
@@ -40,6 +44,18 @@ const envSchema = z.object({
 });
 
 export type Env = z.infer<typeof envSchema>;
+
+/** First configured site origin that is not localhost. */
+export function publicWebOrigin(): string {
+  const origins = env.CORS_ORIGIN.split(",")
+    .map((s) => s.trim().replace(/\/$/, ""))
+    .filter(Boolean);
+  return (
+    origins.find((origin) => !/^https?:\/\/(localhost|127\.0\.0\.1)(:|\/|$)/.test(origin)) ||
+    origins[0] ||
+    ""
+  );
+}
 
 function loadEnv(): Env {
   const parsed = envSchema.safeParse(process.env);

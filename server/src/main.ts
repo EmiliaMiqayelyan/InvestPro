@@ -10,8 +10,9 @@ async function bootstrap() {
   const { startJobWorker } = await import("./shared/jobs/queue");
   startJobWorker();
   const app = createApp();
-  app.listen(env.PORT, "127.0.0.1", () => {
-    logger.info(`XS Invest API listening on http://127.0.0.1:${env.PORT}`);
+  const host = env.NODE_ENV === "production" ? "127.0.0.1" : "0.0.0.0";
+  app.listen(env.PORT, host, () => {
+    logger.info(`XS Invest API listening on http://${host}:${env.PORT}`);
   });
 }
 

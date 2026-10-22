@@ -26,6 +26,7 @@ import {
 import { logActivity } from "../../shared/utils/activity";
 import { writeAuditLog } from "../../shared/utils/audit";
 import { enqueueJob } from "../../shared/jobs/queue";
+import { publicWebOrigin } from "../../app/config/env";
 import { dispatchNotificationEvent } from "../notifications/service";
 import type { UserRole } from "../../shared/types";
 import type { AuthedRequest } from "../../app/middleware";
@@ -126,7 +127,7 @@ export async function register(body: z.infer<typeof registerSchema>) {
 
   const verifyToken = await createAuthToken(id, "email_verify", 48);
   const { env } = await import("../../app/config/env");
-  const baseUrl = env.CORS_ORIGIN.replace(/\/$/, "");
+  const baseUrl = publicWebOrigin();
   const verifyUrl = `${baseUrl}/verify-email?token=${encodeURIComponent(verifyToken)}`;
   await enqueueJob("email", {
     to: row.email,
@@ -191,7 +192,7 @@ export async function forgotPassword(email: string) {
 
   const token = await createAuthToken(user.id, "password_reset", 1);
   const { env } = await import("../../app/config/env");
-  const baseUrl = env.CORS_ORIGIN.replace(/\/$/, "");
+  const baseUrl = publicWebOrigin();
   const resetUrl = `${baseUrl}/reset-password?token=${encodeURIComponent(token)}`;
   await enqueueJob("email", {
     to: user.email,

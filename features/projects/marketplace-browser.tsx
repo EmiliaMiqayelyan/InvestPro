@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Search, SlidersHorizontal, X } from "lucide-react";
+import { ChevronDown, Search, SlidersHorizontal, X } from "lucide-react";
 import { MarketplaceProjectCard } from "@/features/projects";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,7 @@ import { SearchInput } from "@/components/shared/search-input";
 import { investorApi } from "@/services/api";
 import { useAuthStore } from "@/store";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 
 function FilterField({
   label,
@@ -62,6 +63,7 @@ export function MarketplaceBrowser({
   const [fundingStatus, setFundingStatus] = useState<string>("all");
   const [investmentBudget, setInvestmentBudget] = useState<string>("");
   const [sortBy, setSortBy] = useState<string>("newest");
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   useEffect(() => {
     const id = window.setTimeout(() => setSearch(searchInput.trim()), 250);
@@ -231,9 +233,34 @@ export function MarketplaceBrowser({
       />
 
       <div className="surface-card p-4 sm:p-5">
-        <div className="mb-4 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-            <SlidersHorizontal className="h-4 w-4 text-primary" />
+        <div
+          className={cn(
+            "flex items-center justify-between gap-2",
+            mobileFiltersOpen ? "mb-4" : "sm:mb-4"
+          )}
+        >
+          <button
+            type="button"
+            className="flex min-w-0 flex-1 items-center gap-2 text-left text-sm font-semibold text-foreground sm:hidden"
+            onClick={() => setMobileFiltersOpen((open) => !open)}
+            aria-expanded={mobileFiltersOpen}
+          >
+            <SlidersHorizontal className="h-4 w-4 shrink-0 text-primary" />
+            {t("projects.filters")}
+            {hasFilters ? (
+              <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                {t("projects.filtersActive")}
+              </span>
+            ) : null}
+            <ChevronDown
+              className={cn(
+                "ml-auto h-4 w-4 shrink-0 text-muted-foreground transition-transform",
+                mobileFiltersOpen && "rotate-180"
+              )}
+            />
+          </button>
+          <div className="hidden min-w-0 flex-1 items-center gap-2 text-sm font-semibold text-foreground sm:flex">
+            <SlidersHorizontal className="h-4 w-4 shrink-0 text-primary" />
             {t("projects.filters")}
             {hasFilters ? (
               <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
@@ -245,14 +272,14 @@ export function MarketplaceBrowser({
             <button
               type="button"
               onClick={clearFilters}
-              className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
+              className="inline-flex shrink-0 items-center gap-1.5 text-xs font-medium text-primary hover:underline"
             >
               <X className="h-3.5 w-3.5" />
               {t("projects.clearFilters")}
             </button>
           ) : null}
         </div>
-        {filters}
+        <div className={mobileFiltersOpen ? "block" : "hidden sm:block"}>{filters}</div>
       </div>
 
       <div>

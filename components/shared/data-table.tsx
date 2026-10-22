@@ -33,8 +33,8 @@ export function DataTable<T>({
   onRowClick,
 }: DataTableProps<T>) {
   return (
-    <div className={cn("rounded-xl border border-border/50 overflow-hidden", className)}>
-      <Table>
+    <div className={cn("max-w-full overflow-hidden rounded-xl border border-border/50", className)}>
+      <Table className="min-w-[48rem]">
         <TableHeader>
           <TableRow className="border-border/50 hover:bg-transparent">
             {columns.map((col) => (

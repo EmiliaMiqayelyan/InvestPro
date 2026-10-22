@@ -59,7 +59,7 @@ export const membershipApi = {
     >("/membership/subscribe", { planId }),
   checkout: (planId: MembershipPlanId = "service") =>
     apiClient.post<
-      ApiResponse<{ checkoutUrl: string; sessionId: string; planId: MembershipPlanId }>
+      ApiResponse<{ checkoutUrl: string; sessionId: string; paymentId: string; planId: MembershipPlanId }>
     >("/membership/checkout", { planId }),
 };
 

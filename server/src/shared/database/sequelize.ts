@@ -49,4 +49,57 @@ export async function connectDatabase(): Promise<void> {
     await sequelize.sync();
     logger.info("Database schema synced");
   }
+  await ensurePaymentColumns();
+  await ensureConversationProjectIdLength();
+}
+
+/** Add Binance payment columns on databases created before this integration. */
+export async function ensurePaymentColumns(): Promise<void> {
+  const qi = sequelize.getQueryInterface();
+  let desc: Record<string, unknown>;
+  try {
+    desc = await qi.describeTable("payments");
+  } catch {
+    return;
+  }
+  const columns: Record<string, object> = {
+    merchantTradeNo: { type: DataTypes.STRING(32), allowNull: true },
+    paidAsset: { type: DataTypes.STRING(16), allowNull: true },
+    paidAmount: { type: DataTypes.DOUBLE, allowNull: true },
+    fxRate: { type: DataTypes.DOUBLE, allowNull: true },
+    quoteExpiresAt: { type: DataTypes.DATE, allowNull: true },
+    referenceType: { type: DataTypes.STRING(32), allowNull: true },
+    referenceId: { type: DataTypes.STRING(36), allowNull: true },
+    providerMeta: { type: DataTypes.JSON, allowNull: true },
+  };
+  for (const [name, spec] of Object.entries(columns)) {
+    if (!desc[name]) {
+      await qi.addColumn("payments", name, spec as Parameters<typeof qi.addColumn>[2]);
+    }
+  }
+}
+
+/**
+ * Admin support threads use ids like `support:investor:<uuid>` (53 chars).
+ * The original column is VARCHAR(36), so MySQL rejects the insert.
+ */
+export async function ensureConversationProjectIdLength(): Promise<void> {
+  // SQLite does not enforce VARCHAR length. Sequelize's changeColumn rebuilds
+  // the table and can fail, so only MySQL needs this alter.
+  if (env.DB_DIALECT !== "mysql") return;
+  const qi = sequelize.getQueryInterface();
+  let desc: Record<string, { type?: string }>;
+  try {
+    desc = (await qi.describeTable("conversations")) as Record<string, { type?: string }>;
+  } catch {
+    return;
+  }
+  const type = String(desc.projectId?.type || "");
+  const match = type.match(/\((\d+)\)/);
+  const length = match ? Number(match[1]) : 0;
+  if (!desc.projectId || length >= 64) return;
+  await sequelize.query(
+    "ALTER TABLE `conversations` MODIFY `projectId` VARCHAR(64) NOT NULL"
+  );
+  logger.info("Widened conversations.projectId to VARCHAR(64)");
 }

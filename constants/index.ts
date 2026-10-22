@@ -1,10 +1,33 @@
-export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ||
-  (typeof window !== "undefined"
-    ? "/api/v1"
-    : process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}/api/v1`
-      : "/api/v1");
+const API_PORT = process.env.NEXT_PUBLIC_API_PORT || "4000";
+const LOOPBACK_HOST = /^(localhost|127\.0\.0\.1|\[::1\]|::1)$/i;
+
+function isLoopbackHost(host: string): boolean {
+  return LOOPBACK_HOST.test(host.replace(/^\[|\]$/g, ""));
+}
+
+/** Host the browser should use. Never returns localhost when a public host is configured. */
+export function publicSiteHost(): string | null {
+  const configured = process.env.NEXT_PUBLIC_PUBLIC_HOST?.trim();
+  if (typeof window !== "undefined") {
+    const hostname = window.location.hostname;
+    if (!isLoopbackHost(hostname)) return hostname;
+  }
+  return configured || null;
+}
+
+/** Direct API origin for the host the visitor is actually using. */
+export function getApiBaseUrl(): string {
+  const configured = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
+  if (configured && !/localhost|127\.0\.0\.1/.test(configured)) return configured;
+
+  const host = publicSiteHost();
+  if (host) {
+    const protocol =
+      typeof window !== "undefined" ? window.location.protocol : "http:";
+    return `${protocol}//${host}:${API_PORT}/api/v1`;
+  }
+  return "/api/v1";
+}
 
 export const PLATFORM_NAME = "XS Invest";
 export const SUPPORT_EMAIL = "hello@investin.am";

@@ -130,12 +130,12 @@ export default function AdminProjectsPage() {
         description={t("admin.projectsSub")}
       />
 
-      <section className="rounded-2xl border border-amber-200/80 bg-amber-50/70 p-5 md:p-6">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
+      <section className="rounded-2xl border border-amber-200/80 bg-amber-50/70 p-4 sm:p-5 md:p-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
             <div className="mb-1 flex items-center gap-2 text-amber-900">
-              <ClipboardCheck className="h-5 w-5" />
-              <h3 className="font-display text-lg font-semibold">
+              <ClipboardCheck className="h-5 w-5 shrink-0" />
+              <h3 className="font-display text-lg font-semibold leading-snug">
                 {t("admin.pendingQueueTitle")}
               </h3>
             </div>
@@ -145,7 +145,7 @@ export default function AdminProjectsPage() {
                 : t("admin.pendingQueueCountPlural", { count: pending.length })}
             </p>
           </div>
-          <Badge className="border-amber-300 bg-background text-amber-900">
+          <Badge className="w-fit shrink-0 border-amber-300 bg-background text-amber-900">
             {t("admin.pendingBadge")}
           </Badge>
         </div>
@@ -161,17 +161,18 @@ export default function AdminProjectsPage() {
                 key={project.id}
                 className="rounded-xl border border-amber-200/60 bg-background p-4 shadow-sm"
               >
-                <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div className="min-w-0">
                     <p className="font-semibold text-foreground">{project.title}</p>
                     <p className="mt-1 text-sm text-muted-foreground">
                       {project.ownerName || "—"} · {project.category} ·{" "}
                       {t("admin.stage")}: {t(`projects.stages.${project.stage ?? "idea"}`)}
                     </p>
-                    <p className="mt-1 text-sm text-foreground">
-                      {formatCurrency(project.requiredInvestment)} ·{" "}
-                      {t("admin.submissionDate")}:{" "}
-                      {formatDate(project.submittedAt || project.createdAt)}
+                    <p className="mt-2 text-sm font-medium text-foreground">
+                      {formatCurrency(project.requiredInvestment)}
+                    </p>
+                    <p className="mt-0.5 text-sm text-muted-foreground">
+                      {t("admin.submissionDate")}: {formatDate(project.submittedAt || project.createdAt)}
                     </p>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
@@ -215,7 +216,7 @@ export default function AdminProjectsPage() {
               type="button"
               onClick={() => setFilter(item.id)}
               className={cn(
-                "rounded-full border px-3 py-1.5 text-sm transition",
+                "shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-sm transition",
                 active
                   ? item.id === "pending_review"
                     ? "border-amber-400 bg-amber-100 font-medium text-amber-950"

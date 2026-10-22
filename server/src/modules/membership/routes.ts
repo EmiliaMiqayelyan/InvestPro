@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { asyncHandler, ok, requireRole, type AuthedRequest } from "../../app/middleware";
+import { AppError } from "../../shared/errors/AppError";
 import * as membership from "./service";
 
 const router = Router();
@@ -17,10 +18,8 @@ router.get(
 router.post(
   "/subscribe",
   asyncHandler(async (req: AuthedRequest, res) => {
-    const auth = requireRole(req, ["investor"]);
-    const planId = req.body?.planId || "service";
-    const result = await membership.subscribe(auth.sub, planId);
-    return ok(res, result, "Membership activated");
+    requireRole(req, ["investor"]);
+    throw AppError.badRequest("Pay with Binance Pay. Access starts after the payment is confirmed.");
   })
 );
 

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Clock, Landmark, TrendingUp, Wallet } from "lucide-react";
 import { walletApi } from "@/services/api";
+import { PaymentReport } from "@/components/shared/payment-report";
 import { QUERY_KEYS, STATUS_COLORS } from "@/constants";
 import { getErrorMessage } from "@/services/api/client";
 import { formatCurrency, formatDate } from "@/utils/format";
@@ -32,6 +33,7 @@ export default function InvestorWalletPage() {
   const queryClient = useQueryClient();
   useSetPageTitle(t("investor.walletTitle"));
   const [amount, setAmount] = useState("100");
+  const [binanceId, setBinanceId] = useState("");
 
   const { data: wallet, isLoading } = useQuery({
     queryKey: [QUERY_KEYS.WALLET],
@@ -45,7 +47,13 @@ export default function InvestorWalletPage() {
 
   const depositMutation = useMutation({
     mutationFn: () => walletApi.deposit(Number(amount), idemKey("deposit")),
-    onSuccess: () => {
+    onSuccess: (res) => {
+      const url = res.data.data.checkoutUrl;
+      if (url) {
+        toast.success(t("investor.depositPending"));
+        window.location.href = url;
+        return;
+      }
       toast.success(t("investor.depositSuccess"));
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.WALLET] });
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.WALLET_TX] });
@@ -58,7 +66,9 @@ export default function InvestorWalletPage() {
       walletApi.withdraw(
         {
           amount: Number(amount),
-          destination: { type: "bank", bankName: "Primary", accountNumber: "****0000" },
+          destination: binanceId
+            ? { type: "crypto" as const, binanceId }
+            : { type: "bank" as const, bankName: "Primary", accountNumber: "****0000" },
         },
         idemKey("withdraw")
       ),
@@ -120,6 +130,15 @@ export default function InvestorWalletPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
+            <Label>{t("investor.binanceId")}</Label>
+            <Input
+              value={binanceId}
+              onChange={(e) => setBinanceId(e.target.value)}
+              placeholder={t("investor.binanceId")}
+            />
+            <p className="text-xs text-muted-foreground">{t("investor.binanceIdHint")}</p>
+          </div>
+          <div className="space-y-2">
             <Label>{t("investor.amount")}</Label>
             <Input
               type="number"
@@ -145,6 +164,13 @@ export default function InvestorWalletPage() {
           </div>
         </CardContent>
       </Card>
+
+      <div className="space-y-3">
+        <h2 className="font-display text-lg font-semibold">{t("investor.paymentReport")}</h2>
+        <PanelCard>
+          <PaymentReport />
+        </PanelCard>
+      </div>
 
       <div className="space-y-3">
         <h2 className="font-display text-lg font-semibold">{t("investor.transactions")}</h2>

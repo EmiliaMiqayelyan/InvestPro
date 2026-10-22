@@ -3,7 +3,22 @@ import { verifyAccessToken } from "@/lib/server/jwt";
 import { findRouteRule, getRoleHome, GUEST_ONLY_ROUTES } from "@/lib/rbac";
 import { ROUTES } from "@/constants";
 
+function redirectOffLoopback(request: NextRequest): NextResponse | null {
+  const publicHost = process.env.NEXT_PUBLIC_PUBLIC_HOST?.trim();
+  if (!publicHost) return null;
+  const headerHost = request.headers.get("x-forwarded-host") || request.headers.get("host") || "";
+  const hostname = headerHost.split(":")[0];
+  if (hostname !== "localhost" && hostname !== "127.0.0.1" && hostname !== "::1") return null;
+  const url = request.nextUrl.clone();
+  url.hostname = publicHost;
+  url.protocol = "http:";
+  return NextResponse.redirect(url);
+}
+
 export async function middleware(request: NextRequest) {
+  const loopbackRedirect = redirectOffLoopback(request);
+  if (loopbackRedirect) return loopbackRedirect;
+
   const { pathname } = request.nextUrl;
 
   const rawToken = request.cookies.get("access_token")?.value;
@@ -34,18 +49,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    "/admin/:path*",
-    "/admin",
-    "/owner/:path*",
-    "/owner",
-    "/investor/:path*",
-    "/investor",
-    "/messages/:path*",
-    "/messages",
-    "/login",
-    "/register",
-    "/forgot-password",
-    "/reset-password",
-  ],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|api/).*)"],
 };

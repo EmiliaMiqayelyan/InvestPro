@@ -14,4 +14,5 @@ export {
   notificationsApi,
   kycApi,
 } from "./marketplace";
-export { walletApi, portfolioApi, kybApi, adminFinanceApi } from "./finance";
+export { walletApi, portfolioApi, kybApi, adminFinanceApi, paymentsApi } from "./finance";
+export type { PaymentReportRow } from "./finance";

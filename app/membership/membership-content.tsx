@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { useMembershipPlans, useMyMembership, useI18n } from "@/hooks";
 import { useAuthStore } from "@/store";
-import { membershipApi } from "@/services/api";
+import { membershipApi, paymentsApi } from "@/services/api";
 import { getErrorMessage, setTokens } from "@/services/api/client";
 import { ROUTES, QUERY_KEYS } from "@/constants";
 import { THEMATIC_IMAGES } from "@/constants/thematic-images";
@@ -57,27 +57,50 @@ export default function MembershipPage() {
     }
     setActivating(true);
     try {
-      await membershipApi.checkout("service");
-      const { data } = await membershipApi.subscribe("service");
-      if (data.data.tokens) {
-        setTokens(data.data.tokens.accessToken, data.data.tokens.refreshToken);
+      const { data } = await membershipApi.checkout("service");
+      if (!data.data.checkoutUrl) {
+        throw new Error(t("membership.awaitingPayment"));
       }
-      setUser(data.data.user);
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.MEMBERSHIP] });
-      toast.success(t("membership.activated"));
+      window.location.href = data.data.checkoutUrl;
     } catch (error) {
       toast.error(getErrorMessage(error));
-    } finally {
       setActivating(false);
     }
   };
 
   useEffect(() => {
-    if (searchParams.get("checkout") === "mock" && isAuthenticated && user?.role === "investor" && !hasAccess) {
-      void activate();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]);
+    const paymentId = searchParams.get("paymentId");
+    if (searchParams.get("checkout") !== "return" || !paymentId || !isAuthenticated) return;
+    let stopped = false;
+    const poll = async () => {
+      for (let attempt = 0; attempt < 8 && !stopped; attempt += 1) {
+        try {
+          const { data } = await paymentsApi.get(paymentId);
+          if (data.data.payment.status === "completed") {
+            if (data.data.tokens) {
+              setTokens(data.data.tokens.accessToken, data.data.tokens.refreshToken);
+            }
+            if (data.data.user) setUser(data.data.user);
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.MEMBERSHIP] });
+            toast.success(t("membership.activated"));
+            return;
+          }
+          if (data.data.payment.status === "failed" || data.data.payment.status === "expired") {
+            toast.error(data.data.payment.exceptionReason || t("membership.awaitingPayment"));
+            return;
+          }
+        } catch {
+          /* keep polling while Binance confirms */
+        }
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+      }
+      if (!stopped) toast.message(t("membership.awaitingPayment"));
+    };
+    void poll();
+    return () => {
+      stopped = true;
+    };
+  }, [searchParams, isAuthenticated, queryClient, setUser, t]);
 
   const features = isHy && plan?.featuresHy?.length ? plan.featuresHy : plan?.features || [];
 
@@ -88,10 +111,10 @@ export default function MembershipPage() {
         hasAccess && "border-neutral-300 ring-1 ring-neutral-200"
       )}
     >
-      <CardContent className="p-8">
-        <div className="flex items-start justify-between gap-6">
+      <CardContent className="p-5 sm:p-8">
+        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
           <div className="min-w-0 flex-1">
-            <h2 className="font-display text-2xl font-semibold text-foreground">
+            <h2 className="font-display text-2xl font-semibold leading-tight text-foreground">
               {isHy && plan?.nameHy ? plan.nameHy : plan?.name}
             </h2>
             <p className="mt-2 text-sm text-muted-foreground">
@@ -99,21 +122,21 @@ export default function MembershipPage() {
             </p>
           </div>
           {hasAccess ? (
-            <Badge variant="active" className="shrink-0 gap-1 whitespace-nowrap">
+            <Badge variant="active" className="w-fit shrink-0 gap-1 whitespace-nowrap">
               <Check className="h-3 w-3" />
               {t("membership.current")}
             </Badge>
           ) : (
-            <Badge variant="gold" className="shrink-0 gap-1 whitespace-nowrap">
+            <Badge variant="gold" className="w-fit shrink-0 gap-1 whitespace-nowrap">
               <Sparkles className="h-3 w-3" />
               {t("common.recommended")}
             </Badge>
           )}
         </div>
-        <p className="mt-6 font-display text-4xl font-semibold text-foreground">
+        <p className="mt-6 flex flex-wrap items-baseline gap-x-2 font-display text-3xl font-semibold text-foreground sm:text-4xl">
           {formatCurrency(plan?.price ?? 0, "USD", isHy ? "hy-AM" : "en-US")}
           <span className="text-base font-normal text-muted-foreground">
-            {t("membership.monthly")}
+            {t("membership.monthly").trim()}
           </span>
         </p>
         <div className="mt-8 grid gap-8 lg:grid-cols-2">
@@ -165,7 +188,7 @@ export default function MembershipPage() {
           <p className="mt-8 text-sm text-muted-foreground">{t("membership.investorOnly")}</p>
         ) : (
           <Button className="mt-8 w-full" size="lg" variant="gold" disabled={activating} onClick={() => void activate()}>
-            {activating ? t("membership.subscribing") : t("membership.subscribe")}
+            {activating ? t("membership.subscribing") : t("membership.payWithBinance")}
           </Button>
         )}
       </CardContent>

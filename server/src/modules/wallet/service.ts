@@ -10,8 +10,12 @@ import {
   deposit,
   reserveWithdrawal,
   listTransactions,
+  finalizeWithdrawal,
+  releaseWithdrawal,
 } from "../../shared/financial/ledger";
 import { AppError } from "../../shared/errors/AppError";
+import { env } from "../../app/config/env";
+import { isBinanceConfigured } from "../../shared/integrations/binance-pay";
 import { storeIdempotency } from "../../shared/utils/idempotency";
 import { writeAuditLog } from "../../shared/utils/audit";
 import { dispatchNotificationEvent } from "../notifications/service";
@@ -30,6 +34,7 @@ export const withdrawSchema = z.object({
     bankName: z.string().optional(),
     routingNumber: z.string().optional(),
     walletAddress: z.string().optional(),
+    binanceId: z.string().optional(),
   }),
 });
 
@@ -79,7 +84,38 @@ export async function createDeposit(
   idempotencyKey?: string,
   req?: AuthedRequest
 ) {
-  const { payment, wallet } = await deposit(userId, body.amount, body.provider);
+  if (!isBinanceConfigured()) {
+    if (env.NODE_ENV === "test") {
+      const { payment, wallet } = await deposit(userId, body.amount, body.provider);
+      return finishInternalDeposit(userId, payment, wallet, body.amount, idempotencyKey, req);
+    }
+    throw new AppError("Binance Pay is not configured", 503, { code: "BINANCE_NOT_CONFIGURED" });
+  }
+  const { createBinanceDeposit } = await import("../payments/service");
+  const result = await createBinanceDeposit(userId, body.amount);
+  if (idempotencyKey) {
+    await storeIdempotency(userId, idempotencyKey, "deposit", { success: true, data: result }, 201);
+  }
+  await writeAuditLog({
+    actorId: userId,
+    action: "wallet_deposit_started",
+    entityType: "payment",
+    entityId: result.payment.id,
+    newData: { amount: body.amount, provider: "binance_pay" },
+    req,
+  });
+  return result;
+}
+
+async function finishInternalDeposit(
+  userId: string,
+  payment: { id: string; amount: number; currency: string; provider: string; type: string; status: string; completedAt: Date | null },
+  wallet: { id: string },
+  amount: number,
+  idempotencyKey?: string,
+  req?: AuthedRequest
+) {
+  void wallet;
 
   const response = {
     payment: {
@@ -103,14 +139,14 @@ export async function createDeposit(
     action: "wallet_deposit",
     entityType: "payment",
     entityId: payment.id,
-    newData: { amount: body.amount },
+    newData: { amount },
     req,
   });
 
   await dispatchNotificationEvent({
     kind: "wallet_deposit",
     userId,
-    amount: body.amount,
+    amount,
   });
 
   return response;
@@ -205,4 +241,48 @@ export async function listPayments(userId: string) {
     createdAt: p.createdAt.toISOString(),
     completedAt: p.completedAt?.toISOString(),
   }));
+}
+
+export async function approveWithdrawal(adminId: string, withdrawalId: string) {
+  const withdrawal = await WithdrawalModel.findByPk(withdrawalId);
+  if (!withdrawal) throw AppError.notFound("Withdrawal not found");
+  if (withdrawal.status !== "pending" && withdrawal.status !== "approved") {
+    throw AppError.badRequest("Withdrawal cannot be paid from this status");
+  }
+
+  const destination = withdrawal.destination || {};
+  const binanceId = typeof destination.binanceId === "string" ? destination.binanceId : "";
+  if (destination.type === "crypto") {
+    if (!binanceId) throw AppError.badRequest("Crypto withdrawals need a Binance Pay ID");
+    try {
+      const { payoutWithdrawal } = await import("../payments/service");
+      const payout = await payoutWithdrawal({
+        withdrawalId: withdrawal.id,
+        usdAmount: withdrawal.amount,
+        binanceId,
+      });
+      withdrawal.destination = { ...destination, ...payout };
+      withdrawal.status = "paid";
+      withdrawal.approvedBy = adminId;
+      withdrawal.processedAt = new Date();
+      await withdrawal.save();
+      await finalizeWithdrawal(withdrawal.userId, withdrawal.amount);
+      return withdrawal;
+    } catch (err) {
+      if (withdrawal.status !== "paid") {
+        await releaseWithdrawal(withdrawal.userId, withdrawal.id, withdrawal.amount);
+        withdrawal.status = "failed";
+        withdrawal.approvedBy = adminId;
+        await withdrawal.save();
+      }
+      throw err;
+    }
+  }
+
+  withdrawal.status = "approved";
+  withdrawal.approvedBy = adminId;
+  withdrawal.processedAt = new Date();
+  await withdrawal.save();
+  await finalizeWithdrawal(withdrawal.userId, withdrawal.amount);
+  return withdrawal;
 }

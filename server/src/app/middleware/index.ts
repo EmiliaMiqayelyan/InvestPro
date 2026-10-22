@@ -9,6 +9,7 @@ import { logger } from "../../shared/logger";
 export interface AuthedRequest extends Request {
   auth?: TokenPayload | null;
   requestId?: string;
+  rawBody?: string;
 }
 
 export function requestIdMiddleware(req: AuthedRequest, res: Response, next: NextFunction) {

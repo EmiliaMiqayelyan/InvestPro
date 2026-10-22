@@ -237,9 +237,9 @@ export default function ProjectDetailPage() {
           inInvestorPanel ? "animate-fade-in py-2" : "container-narrow section-pad py-10 animate-fade-in"
         }
       >
-        <div className="grid gap-8 lg:grid-cols-[1.6fr_1fr]">
-          <div>
-            <div className="relative aspect-[16/9] overflow-hidden rounded-2xl bg-slate-100 shadow-glow">
+        <div className="grid min-w-0 gap-8 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+          <div className="min-w-0">
+            <div className="relative aspect-[16/9] w-full max-w-full overflow-hidden rounded-2xl bg-slate-100 shadow-glow">
               <Image
                 src={project.image}
                 alt={title}
@@ -294,7 +294,7 @@ export default function ProjectDetailPage() {
             </p>
 
             <Tabs defaultValue="overview" className="mt-8">
-              <TabsList className="w-full justify-start overflow-x-auto">
+              <TabsList className="h-auto w-full min-w-0 max-w-full justify-start overflow-x-auto">
                 <TabsTrigger
                   value="overview"
                   className="data-[state=active]:bg-neutral-100 data-[state=active]:text-neutral-950"
@@ -596,7 +596,7 @@ export default function ProjectDetailPage() {
             </Tabs>
           </div>
 
-          <aside className="relative z-10 space-y-4 lg:sticky lg:top-20 lg:self-start">
+          <aside className="relative z-10 min-w-0 space-y-4 lg:sticky lg:top-20 lg:self-start">
             <div className="gradient-border premium-card p-6 card-glow">
               <p className="text-xs text-muted-foreground">{t("projects.fundingProgress")}</p>
               <p className="mt-1 font-display text-2xl font-semibold">

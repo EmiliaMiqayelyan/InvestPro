@@ -125,7 +125,9 @@ router.get("/investments", asyncHandler(async (req, res) => {
   return ok(res, rows);
 }));
 
-router.get("/payments", asyncHandler(async (_req, res) => ok(res, await admin.listPayments())));
+router.get("/payments", asyncHandler(async (req, res) =>
+  ok(res, await admin.listPayments(req.query.status === "review" ? "review" : undefined))
+));
 
 router.get("/withdrawals", asyncHandler(async (_req, res) => {
   const { WithdrawalModel } = await import("../../shared/database/associations");
@@ -139,13 +141,7 @@ router.post(
   asyncHandler(async (req: AuthedRequest, res) => {
     const auth = requireAuth(req);
     const { WithdrawalModel } = await import("../../shared/database/associations");
-    const withdrawal = await WithdrawalModel.findByPk(param(req, "id"));
-    if (!withdrawal) throw AppError.notFound("Withdrawal not found");
-    withdrawal.status = "approved";
-    withdrawal.approvedBy = auth.sub;
-    withdrawal.processedAt = new Date();
-    await withdrawal.save();
-    return ok(res, withdrawal);
+    return ok(res, await walletService.approveWithdrawal(auth.sub, param(req, "id")));
   })
 );
 

@@ -13,6 +13,38 @@ import type {
   MembershipSubscription,
 } from "@/types";
 
+export type PaymentReportRow = {
+  id: string;
+  userId: string;
+  userEmail: string | null;
+  type: string;
+  status: string;
+  usdAmount: number;
+  paidAsset: string | null;
+  paidAmount: number | null;
+  fxRate: number | null;
+  provider: string;
+  providerTransactionId: string | null;
+  referenceType: string | null;
+  referenceId: string | null;
+  balanceAfter: number | null;
+  exceptionReason: string | null;
+  createdAt: string;
+  completedAt: string | null;
+};
+
+export const paymentsApi = {
+  report: () => apiClient.get<ApiResponse<PaymentReportRow[]>>("/payments/report"),
+  get: (id: string) =>
+    apiClient.get<
+      ApiResponse<{
+        payment: PaymentReportRow;
+        user?: import("@/types").User;
+        tokens?: { accessToken: string; refreshToken: string };
+      }>
+    >(`/payments/${id}`),
+};
+
 export const walletApi = {
   get: () => apiClient.get<ApiResponse<Wallet>>("/wallet"),
   transactions: (params?: { page?: number; limit?: number }) =>
@@ -20,7 +52,13 @@ export const walletApi = {
       params,
     }),
   deposit: (amount: number, idempotencyKey: string) =>
-    apiClient.post<ApiResponse<Wallet>>(
+    apiClient.post<
+      ApiResponse<{
+        checkoutUrl?: string;
+        wallet?: Wallet;
+        payment?: PaymentReportRow;
+      }>
+    >(
       "/wallet/deposit",
       { amount },
       { headers: { "Idempotency-Key": idempotencyKey } }
@@ -32,6 +70,7 @@ export const walletApi = {
         type: "bank" | "card" | "crypto";
         accountNumber?: string;
         bankName?: string;
+        binanceId?: string;
       };
     },
     idempotencyKey: string

@@ -382,9 +382,9 @@ export async function deleteAdminProject(auth: TokenPayload, id: string) {
   return { id };
 }
 
-export async function listPayments() {
-  const rows = await SubscriptionModel.findAll({ order: [["createdAt", "DESC"]] });
-  return rows.map(toSubscription);
+export async function listPayments(status?: string) {
+  const { listPaymentReport } = await import("../payments/service");
+  return listPaymentReport(status ? { status } : {});
 }
 
 export async function getSecurity() {

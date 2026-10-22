@@ -194,6 +194,14 @@ export class PaymentModel extends Model<
   declare providerTransactionId: string | null;
   declare type: string;
   declare status: string;
+  declare merchantTradeNo: string | null;
+  declare paidAsset: string | null;
+  declare paidAmount: number | null;
+  declare fxRate: number | null;
+  declare quoteExpiresAt: Date | null;
+  declare referenceType: string | null;
+  declare referenceId: string | null;
+  declare providerMeta: Record<string, unknown> | null;
   declare createdAt: CreationOptional<Date>;
   declare completedAt: Date | null;
 }
@@ -209,10 +217,23 @@ PaymentModel.init(
     providerTransactionId: { type: DataTypes.STRING(255), allowNull: true },
     type: { type: DataTypes.STRING(32), allowNull: false },
     status: { type: DataTypes.STRING(32), allowNull: false, defaultValue: "pending" },
+    merchantTradeNo: { type: DataTypes.STRING(32), allowNull: true },
+    paidAsset: { type: DataTypes.STRING(16), allowNull: true },
+    paidAmount: { type: DataTypes.DOUBLE, allowNull: true },
+    fxRate: { type: DataTypes.DOUBLE, allowNull: true },
+    quoteExpiresAt: { type: DataTypes.DATE, allowNull: true },
+    referenceType: { type: DataTypes.STRING(32), allowNull: true },
+    referenceId: { type: DataTypes.STRING(36), allowNull: true },
+    providerMeta: { type: DataTypes.JSON, allowNull: true },
     createdAt: DataTypes.DATE,
     completedAt: { type: DataTypes.DATE, allowNull: true },
   },
-  { sequelize, tableName: "payments", updatedAt: false }
+  {
+    sequelize,
+    tableName: "payments",
+    updatedAt: false,
+    indexes: [{ fields: ["merchantTradeNo"] }, { fields: ["userId"] }, { fields: ["status"] }],
+  }
 );
 
 export class WithdrawalModel extends Model<

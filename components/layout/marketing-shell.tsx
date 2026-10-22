@@ -170,8 +170,8 @@ export function MarketingFooter() {
 
   return (
     <footer className="border-t border-border bg-card">
-      <div className="container-wide section-pad grid gap-10 py-12 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8 lg:py-16">
-        <div className="sm:col-span-2 lg:col-span-1">
+      <div className="container-wide section-pad grid grid-cols-2 gap-x-8 gap-y-10 py-12 lg:grid-cols-4 lg:gap-8 lg:py-16">
+        <div className="col-span-2 lg:col-span-1">
           <PlatformLogo />
           <p className="mt-4 max-w-sm text-sm leading-relaxed text-muted-foreground sm:max-w-md">
             {t("footer.tagline")}
@@ -220,7 +220,7 @@ export function MarketingFooter() {
             </Link>
           </div>
         </div>
-        <div>
+        <div className="col-span-2 sm:col-span-1">
           <p className="text-sm font-semibold text-foreground">{t("footer.help")}</p>
           <div className="mt-3 flex flex-col gap-2.5 text-sm text-muted-foreground">
             <Link href={ROUTES.FAQ} className="transition hover:text-foreground">

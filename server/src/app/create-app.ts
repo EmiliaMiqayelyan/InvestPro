@@ -13,6 +13,7 @@ import {
   errorHandler,
   parseCookies,
   requestIdMiddleware,
+  type AuthedRequest,
 } from "./middleware";
 import { createApiRouter } from "./routes";
 import { registerAssociations } from "../shared/database/associations";
@@ -28,13 +29,31 @@ export function createApp() {
   app.use(parseCookies);
   app.use(
     cors({
-      origin: env.CORS_ORIGIN.split(",").map((s) => s.trim()),
+      origin:
+        env.NODE_ENV === "production"
+          ? env.CORS_ORIGIN.split(",").map((s) => s.trim())
+          : true,
       credentials: true,
     })
   );
-  app.use(helmet({ contentSecurityPolicy: false }));
+  app.use(
+    helmet({
+      contentSecurityPolicy: false,
+      // Browser calls this API from the Next origin; same-origin CORP would block those reads.
+      crossOriginResourcePolicy: { policy: "cross-origin" },
+    })
+  );
   app.use(morgan(env.NODE_ENV === "production" ? "combined" : "dev"));
-  app.use(express.json({ limit: "20mb" }));
+  app.use(
+    express.json({
+      limit: "20mb",
+      verify: (req, _res, buf) => {
+        if (req.url?.includes("/payments/binance/webhook")) {
+          (req as AuthedRequest).rawBody = buf.toString("utf8");
+        }
+      },
+    })
+  );
   app.use(express.urlencoded({ extended: true, limit: "20mb" }));
 
   const limiter = rateLimit({

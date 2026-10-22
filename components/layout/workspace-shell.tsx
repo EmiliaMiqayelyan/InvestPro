@@ -270,21 +270,37 @@ function WorkspaceShellInner({
         {SidebarContent}
       </aside>
 
-      {open && (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setOpen(false)} />
-          <aside className="sidebar-surface relative z-10 flex h-full w-[280px] flex-col shadow-xl">
-            <button
-              className="absolute right-3 top-4 rounded-lg p-1.5 text-sidebar-muted hover:bg-white/10 hover:text-white"
-              onClick={() => setOpen(false)}
-              aria-label={t("common.close")}
-            >
-              <X className="h-5 w-5" />
-            </button>
-            {SidebarContent}
-          </aside>
-        </div>
-      )}
+      <div
+        className={cn(
+          "fixed inset-0 z-50 lg:hidden",
+          open ? "pointer-events-auto" : "pointer-events-none"
+        )}
+        aria-hidden={!open}
+        inert={!open}
+      >
+        <div
+          className={cn(
+            "absolute inset-0 bg-black/50 transition-opacity duration-300 ease-out",
+            open ? "opacity-100" : "opacity-0"
+          )}
+          onClick={() => setOpen(false)}
+        />
+        <aside
+          className={cn(
+            "sidebar-surface relative z-10 flex h-full w-[280px] flex-col shadow-xl transition-transform duration-300 ease-out",
+            open ? "translate-x-0" : "-translate-x-full"
+          )}
+        >
+          <button
+            className="absolute right-3 top-4 rounded-lg p-1.5 text-sidebar-muted hover:bg-white/10 hover:text-white"
+            onClick={() => setOpen(false)}
+            aria-label={t("common.close")}
+          >
+            <X className="h-5 w-5" />
+          </button>
+          {SidebarContent}
+        </aside>
+      </div>
 
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         <header className="z-40 shrink-0 border-b border-border bg-card/95 backdrop-blur-md">
@@ -311,7 +327,7 @@ function WorkspaceShellInner({
             </div>
           </div>
         </header>
-        <main className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">{children}</main>
+        <main className="min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 lg:p-8">{children}</main>
       </div>
     </div>
   );

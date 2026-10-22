@@ -50,7 +50,8 @@ const handlers: Record<JobName, (payload: Record<string, unknown>) => Promise<vo
     /* placeholder for external KYC provider integration */
   },
   payment_reconciliation: async () => {
-    /* placeholder for payment provider reconciliation */
+    const { reconcilePendingPayments } = await import("../../modules/payments/service");
+    await reconcilePendingPayments();
   },
   return_calculation: async () => {
     /* placeholder for scheduled return calculation */
@@ -106,6 +107,11 @@ export function startJobWorker(intervalMs = 5000) {
   workerInterval = setInterval(() => {
     processPendingJobs().catch((err) => logger.error({ err }, "Job worker error"));
   }, intervalMs);
+  setInterval(() => {
+    import("../../modules/payments/service")
+      .then((payments) => payments.reconcilePendingPayments())
+      .catch((err) => logger.error({ err }, "Payment reconciliation error"));
+  }, 15 * 60 * 1000);
 }
 
 export function stopJobWorker() {

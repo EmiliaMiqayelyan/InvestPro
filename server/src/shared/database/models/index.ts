@@ -422,7 +422,7 @@ export class ConversationModel extends Model<
 ConversationModel.init(
   {
     id: { type: DataTypes.STRING(36), primaryKey: true },
-    projectId: { type: DataTypes.STRING(36), allowNull: false },
+    projectId: { type: DataTypes.STRING(64), allowNull: false },
     projectTitle: { type: DataTypes.STRING(255), allowNull: false },
     investorId: { type: DataTypes.STRING(36), allowNull: false },
     investorName: { type: DataTypes.STRING(200), allowNull: false },

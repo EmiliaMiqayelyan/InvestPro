@@ -98,8 +98,8 @@ router.post(
     if (user.isEmailVerified) return ok(res, null, "Email already verified");
     const token = await createAuthToken(user.id, "email_verify", 48);
     const { enqueueJob } = await import("../../shared/jobs/queue");
-    const { env } = await import("../../app/config/env");
-    const baseUrl = env.CORS_ORIGIN.replace(/\/$/, "");
+    const { publicWebOrigin } = await import("../../app/config/env");
+    const baseUrl = publicWebOrigin();
     const verifyUrl = `${baseUrl}/verify-email?token=${encodeURIComponent(token)}`;
     await enqueueJob("email", {
       to: user.email,

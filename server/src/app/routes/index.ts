@@ -20,6 +20,7 @@ import returnsRoutes from "../../modules/returns/routes";
 import reviewsRoutes from "../../modules/reviews/routes";
 import disputesRoutes from "../../modules/disputes/routes";
 import kybRoutes from "../../modules/kyb/routes";
+import paymentRoutes from "../../modules/payments/routes";
 
 export function createApiRouter(): Router {
   const api = Router();
@@ -47,6 +48,7 @@ export function createApiRouter(): Router {
   api.use("/reviews", reviewsRoutes);
   api.use("/disputes", disputesRoutes);
   api.use("/kyb", kybRoutes);
+  api.use("/payments", paymentRoutes);
 
   api.use((_req, res) => {
     res.status(404).json({ success: false, message: "Endpoint not found" });

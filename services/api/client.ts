@@ -1,5 +1,5 @@
 import axios, { type AxiosError, type AxiosInstance, type InternalAxiosRequestConfig } from "axios";
-import { API_BASE_URL } from "@/constants";
+import { getApiBaseUrl } from "@/constants";
 import { translate } from "@/i18n";
 import { useLocaleStore } from "@/store/locale-store";
 import type { ApiError } from "@/types";
@@ -49,7 +49,6 @@ export function syncAuthCookieFromStorage(): void {
 }
 
 const apiClient: AxiosInstance = axios.create({
-  baseURL: API_BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },
@@ -57,6 +56,7 @@ const apiClient: AxiosInstance = axios.create({
 });
 
 apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+  config.baseURL = getApiBaseUrl();
   const token = getAccessToken();
   if (token && config.headers) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -77,7 +77,7 @@ apiClient.interceptors.response.use(
       const refreshToken = getRefreshToken();
       if (refreshToken) {
         try {
-          const { data } = await axios.post(`${API_BASE_URL}/auth/refresh`, {
+          const { data } = await axios.post(`${getApiBaseUrl()}/auth/refresh`, {
             refreshToken,
           });
           setTokens(data.data.accessToken, data.data.refreshToken);

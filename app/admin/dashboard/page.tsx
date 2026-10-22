@@ -41,8 +41,8 @@ export default function AdminDashboardPage() {
       />
 
       <PanelCard padding="lg">
-        <div className="flex items-baseline gap-2">
-          <span className="font-display text-3xl font-semibold text-foreground">
+        <div className="flex flex-col items-start gap-1">
+          <span className="font-display text-2xl font-semibold leading-none text-foreground sm:text-3xl">
             {isLoading ? "—" : formatCurrency(stats?.totalFunding ?? 0)}
           </span>
           <span className="text-sm text-muted-foreground">{t("admin.totalFunding")}</span>

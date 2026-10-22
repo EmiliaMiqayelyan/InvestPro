@@ -41,8 +41,8 @@ module.exports = {
     {
       name: "investpro",
       cwd: root,
-      script: "node_modules/next/dist/bin/next",
-      args: "start -H 127.0.0.1 -p 3926",
+      script: "web-server.cjs",
+      args: "",
       interpreter: "node",
       instances: 1,
       exec_mode: "fork",
@@ -51,7 +51,6 @@ module.exports = {
         ...webEnv,
         NODE_ENV: "production",
         PORT: "3926",
-        HOSTNAME: "127.0.0.1",
         BACKEND_URL: webEnv.BACKEND_URL || "http://127.0.0.1:4926",
         NEXT_PUBLIC_API_URL: webEnv.NEXT_PUBLIC_API_URL || "/api/v1",
         JWT_SECRET: jwtSecret,

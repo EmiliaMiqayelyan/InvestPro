@@ -226,6 +226,37 @@ export async function reserveWithdrawal(
   });
 }
 
+/** Drop a reserved withdrawal back into available balance. */
+export async function releaseWithdrawal(userId: string, withdrawalId: string, amount: number) {
+  return sequelize.transaction(async (t) => {
+    const wallet = await getOrCreateWallet(userId, "USD", t);
+    await recordLedgerEntry(
+      {
+        walletId: wallet.id,
+        type: "credit",
+        amount,
+        referenceType: "withdrawal",
+        referenceId: withdrawalId,
+        description: "Withdrawal released",
+      },
+      t
+    );
+    wallet.pendingBalance = Math.max(0, Math.round((wallet.pendingBalance - amount) * 100) / 100);
+    await wallet.save({ transaction: t });
+    return wallet;
+  });
+}
+
+/** Money has left the platform. Available balance was already reserved. */
+export async function finalizeWithdrawal(userId: string, amount: number) {
+  return sequelize.transaction(async (t) => {
+    const wallet = await getOrCreateWallet(userId, "USD", t);
+    wallet.pendingBalance = Math.max(0, Math.round((wallet.pendingBalance - amount) * 100) / 100);
+    await wallet.save({ transaction: t });
+    return wallet;
+  });
+}
+
 export async function listTransactions(
   walletId: string,
   opts: { page?: number; limit?: number } = {}

@@ -122,7 +122,7 @@ export default function AdminUsersPage() {
         key: "membership",
         header: t("admin.colMembership"),
         cell: (u) => (
-          <span className="capitalize text-foreground">{u.membershipTier}</span>
+          <span className="whitespace-nowrap capitalize text-foreground">{u.membershipTier}</span>
         ),
       },
       {
@@ -138,7 +138,7 @@ export default function AdminUsersPage() {
         key: "joined",
         header: t("admin.colJoined"),
         cell: (u) => (
-          <span className="text-muted-foreground">{formatDate(u.createdAt)}</span>
+          <span className="whitespace-nowrap text-muted-foreground">{formatDate(u.createdAt)}</span>
         ),
       },
       {
@@ -186,15 +186,15 @@ export default function AdminUsersPage() {
         description={t("admin.usersSub")}
       />
 
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
         <SearchInput
           value={search}
           onChange={setSearch}
           placeholder={t("admin.searchUsers")}
-          className="max-w-sm"
+          className="w-full sm:max-w-sm"
         />
         <Select value={role} onValueChange={setRole}>
-          <SelectTrigger className="w-44">
+          <SelectTrigger className="w-full sm:w-44">
             <SelectValue placeholder={t("admin.role")} />
           </SelectTrigger>
           <SelectContent>
@@ -211,7 +211,60 @@ export default function AdminUsersPage() {
       ) : users.length === 0 ? (
         <EmptyState icon={Users} title={t("admin.noUsers")} />
       ) : (
-        <DataTable columns={columns} data={users} keyExtractor={(u) => u.id} />
+        <>
+          <div className="space-y-3 md:hidden">
+            {users.map((u) => {
+              const canMessage = u.role === "investor" || u.role === "project_owner";
+              const isSelf = u.id === currentUser?.id;
+              return (
+                <div key={u.id} className="surface-card space-y-3 p-4">
+                  <div className="min-w-0">
+                    <p className="font-medium text-foreground">
+                      {u.firstName} {u.lastName}
+                    </p>
+                    <p className="truncate text-sm text-muted-foreground">{u.email}</p>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge variant="outline">{t(`roles.${u.role}` as "roles.investor")}</Badge>
+                    <span className="text-sm capitalize text-foreground">{u.membershipTier}</span>
+                    <Badge className={cn("border capitalize", STATUS_COLORS[u.kycStatus])}>
+                      {u.kycStatus.replace(/_/g, " ")}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {t("admin.colJoined")}: {formatDate(u.createdAt)}
+                  </p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {canMessage ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={messageMutation.isPending}
+                        onClick={() => messageMutation.mutate(u.id)}
+                      >
+                        <MessageSquare className="h-3.5 w-3.5" />
+                        {t("messages.startChatAction")}
+                      </Button>
+                    ) : null}
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                      disabled={isSelf || deleteMutation.isPending}
+                      onClick={() => onDelete(u)}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                      {t("admin.deleteUser")}
+                    </Button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="hidden md:block">
+            <DataTable columns={columns} data={users} keyExtractor={(u) => u.id} />
+          </div>
+        </>
       )}
 
       <ConfirmDialog

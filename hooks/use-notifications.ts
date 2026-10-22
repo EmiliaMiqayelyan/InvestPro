@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { usePathname } from "next/navigation";
 import { toast } from "sonner";
-import { API_BASE_URL, QUERY_KEYS } from "@/constants";
+import { getApiBaseUrl, QUERY_KEYS } from "@/constants";
 import { notificationsApi } from "@/services/api";
 import { getAccessToken } from "@/services/api/client";
 import { useAuthStore } from "@/store";
@@ -116,9 +116,10 @@ export function useNotificationStream() {
     const connect = () => {
       if (stopped) return;
       const token = getAccessToken();
+      const base = getApiBaseUrl();
       const url = token
-        ? `${API_BASE_URL}/notifications/stream?token=${encodeURIComponent(token)}`
-        : `${API_BASE_URL}/notifications/stream`;
+        ? `${base}/notifications/stream?token=${encodeURIComponent(token)}`
+        : `${base}/notifications/stream`;
       source = new EventSource(url);
       source.addEventListener("connected", () => {
         retryMs = 1000;

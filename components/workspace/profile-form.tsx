@@ -16,6 +16,7 @@ import { getErrorMessage } from "@/services/api/client";
 import { useI18n } from "@/hooks";
 import { useSetPageTitle } from "@/components/providers/page-title-provider";
 import { PanelPage } from "@/components/shared/panel-page";
+import { PaymentReport } from "@/components/shared/payment-report";
 import { toast } from "sonner";
 
 type FormData = {
@@ -109,6 +110,14 @@ export function ProfileForm() {
               {updateMutation.isPending ? t("common.saving") : t("common.save")}
             </Button>
           </form>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-foreground">{t("investor.paymentReport")}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <PaymentReport />
         </CardContent>
       </Card>
     </PanelPage>
