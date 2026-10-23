@@ -1,30 +1,12 @@
-const API_PORT = process.env.NEXT_PUBLIC_API_PORT || "4000";
-const LOOPBACK_HOST = /^(localhost|127\.0\.0\.1|\[::1\]|::1)$/i;
-
-function isLoopbackHost(host: string): boolean {
-  return LOOPBACK_HOST.test(host.replace(/^\[|\]$/g, ""));
-}
-
-/** Host the browser should use. Never returns localhost when a public host is configured. */
-export function publicSiteHost(): string | null {
-  const configured = process.env.NEXT_PUBLIC_PUBLIC_HOST?.trim();
-  if (typeof window !== "undefined") {
-    const hostname = window.location.hostname;
-    if (!isLoopbackHost(hostname)) return hostname;
-  }
-  return configured || null;
-}
-
-/** Direct API origin for the host the visitor is actually using. */
+/** Same-origin API. An absolute URL is used only when it is a real public host. */
 export function getApiBaseUrl(): string {
   const configured = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
-  if (configured && !/localhost|127\.0\.0\.1/.test(configured)) return configured;
-
-  const host = publicSiteHost();
-  if (host) {
-    const protocol =
-      typeof window !== "undefined" ? window.location.protocol : "http:";
-    return `${protocol}//${host}:${API_PORT}/api/v1`;
+  if (
+    configured &&
+    /^https?:\/\//.test(configured) &&
+    !/^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:|\/|$)/.test(configured)
+  ) {
+    return configured;
   }
   return "/api/v1";
 }

@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "npx next dev --turbopack",
+    "dev": "npx next dev",
     "build": "npx next build",
     "start": "node web-server.cjs",
     "lint": "npx next lint",

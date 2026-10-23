@@ -1,12 +1,15 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CreditCard } from "lucide-react";
+import { toast } from "sonner";
 import { adminMarketplaceApi } from "@/services/api";
 import type { PaymentReportRow } from "@/services/api";
 import { QUERY_KEYS, STATUS_COLORS } from "@/constants";
+import { getErrorMessage } from "@/services/api/client";
 import { formatCurrency, formatDate } from "@/utils/format";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/hooks";
 import { useSetPageTitle } from "@/components/providers/page-title-provider";
@@ -16,8 +19,13 @@ import { PanelCard } from "@/components/shared/panel-card";
 import { EmptyState } from "@/components/shared/empty-state";
 import { PanelListSkeleton } from "@/components/shared/loading-skeleton";
 
+function reviewKey(prefix: string, id: string) {
+  return `${prefix}-${id}-${Date.now()}`;
+}
+
 export default function AdminPaymentsPage() {
   const { t } = useI18n();
+  const queryClient = useQueryClient();
   useSetPageTitle(t("admin.paymentsTitle"));
   const { data: payments = [], isLoading } = useQuery({
     queryKey: [QUERY_KEYS.ADMIN_PAYMENTS],
@@ -26,7 +34,19 @@ export default function AdminPaymentsPage() {
       return (res.data.data ?? []) as PaymentReportRow[];
     },
   });
-  const reviewCount = payments.filter((row) => row.status === "review").length;
+  const reviewCount = payments.filter((row) => row.status === "review" || (row.provider === "manual_usdt" && row.status === "pending")).length;
+
+  const reviewMutation = useMutation({
+    mutationFn: ({ id, decision }: { id: string; decision: "approve" | "reject" }) =>
+      decision === "approve"
+        ? adminMarketplaceApi.approveManualDeposit(id, reviewKey("approve", id))
+        : adminMarketplaceApi.rejectManualDeposit(id, reviewKey("reject", id)),
+    onSuccess: (_res, vars) => {
+      toast.success(vars.decision === "approve" ? t("admin.depositConfirmed") : t("admin.depositRejected"));
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ADMIN_PAYMENTS] });
+    },
+    onError: (e) => toast.error(getErrorMessage(e)),
+  });
 
   return (
     <PanelPage>
@@ -67,11 +87,35 @@ export default function AdminPaymentsPage() {
                     : ""}
                   {row.fxRate != null ? ` · ${row.fxRate}` : ""}
                 </p>
+                {row.providerTransactionId ? (
+                  <p className="mt-1 break-all text-xs text-muted-foreground">
+                    {t("admin.manualDepositTx", { id: row.providerTransactionId })}
+                  </p>
+                ) : null}
                 {row.exceptionReason ? (
                   <p className="mt-1 text-xs text-destructive">{row.exceptionReason}</p>
                 ) : null}
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3">
+                {row.provider === "manual_usdt" && row.status === "pending" ? (
+                  <>
+                    <Button
+                      size="sm"
+                      disabled={reviewMutation.isPending}
+                      onClick={() => reviewMutation.mutate({ id: row.id, decision: "approve" })}
+                    >
+                      {t("admin.approveDeposit")}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={reviewMutation.isPending}
+                      onClick={() => reviewMutation.mutate({ id: row.id, decision: "reject" })}
+                    >
+                      {t("admin.rejectDeposit")}
+                    </Button>
+                  </>
+                ) : null}
                 <div className="text-right">
                   <p className="font-semibold text-foreground">{formatCurrency(row.usdAmount)}</p>
                   {row.balanceAfter != null ? (

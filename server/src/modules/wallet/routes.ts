@@ -32,6 +32,13 @@ router.get(
   })
 );
 
+router.get(
+  "/deposit-instructions",
+  asyncHandler(async (_req: AuthedRequest, res) => {
+    return ok(res, await walletService.getDepositInstructions());
+  })
+);
+
 router.post(
   "/deposit",
   requireIdempotencyKey("deposit"),

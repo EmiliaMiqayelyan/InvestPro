@@ -210,6 +210,18 @@ export const adminMarketplaceApi = {
   deleteProject: (id: string) =>
     apiClient.delete<ApiResponse<{ id: string }>>(`/admin/projects/${id}`),
   payments: () => apiClient.get("/admin/payments"),
+  approveManualDeposit: (id: string, idempotencyKey: string) =>
+    apiClient.post(
+      `/admin/payments/${id}/approve`,
+      {},
+      { headers: { "Idempotency-Key": idempotencyKey } }
+    ),
+  rejectManualDeposit: (id: string, idempotencyKey: string) =>
+    apiClient.post(
+      `/admin/payments/${id}/reject`,
+      {},
+      { headers: { "Idempotency-Key": idempotencyKey } }
+    ),
   security: () =>
     apiClient.get<
       ApiResponse<{

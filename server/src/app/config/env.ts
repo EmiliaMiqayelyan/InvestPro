@@ -45,16 +45,19 @@ const envSchema = z.object({
 
 export type Env = z.infer<typeof envSchema>;
 
-/** First configured site origin that is not localhost. */
+const LOOPBACK_ORIGIN = /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:|\/|$)/;
+
+/** Site origin used in emails and payment return URLs. Never a loopback address. */
 export function publicWebOrigin(): string {
+  const explicit = process.env.PUBLIC_WEB_ORIGIN?.trim().replace(/\/$/, "");
+  if (explicit && !LOOPBACK_ORIGIN.test(explicit)) return explicit;
   const origins = env.CORS_ORIGIN.split(",")
     .map((s) => s.trim().replace(/\/$/, ""))
     .filter(Boolean);
-  return (
-    origins.find((origin) => !/^https?:\/\/(localhost|127\.0\.0\.1)(:|\/|$)/.test(origin)) ||
-    origins[0] ||
-    ""
-  );
+  const publicOrigin = origins.find((origin) => !LOOPBACK_ORIGIN.test(origin));
+  if (publicOrigin) return publicOrigin;
+  if (env.NODE_ENV === "production") return "https://xsinvest.org";
+  return origins[0] || "";
 }
 
 function loadEnv(): Env {

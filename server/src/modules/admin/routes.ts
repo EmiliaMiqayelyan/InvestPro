@@ -129,6 +129,24 @@ router.get("/payments", asyncHandler(async (req, res) =>
   ok(res, await admin.listPayments(req.query.status === "review" ? "review" : undefined))
 ));
 
+router.post(
+  "/payments/:id/approve",
+  requireIdempotencyKey("manual_deposit_approve"),
+  asyncHandler(async (req: AuthedRequest, res) => {
+    const auth = requireAuth(req);
+    return ok(res, await walletService.reviewManualDeposit(auth.sub, param(req, "id"), "approve"));
+  })
+);
+
+router.post(
+  "/payments/:id/reject",
+  requireIdempotencyKey("manual_deposit_reject"),
+  asyncHandler(async (req: AuthedRequest, res) => {
+    const auth = requireAuth(req);
+    return ok(res, await walletService.reviewManualDeposit(auth.sub, param(req, "id"), "reject"));
+  })
+);
+
 router.get("/withdrawals", asyncHandler(async (_req, res) => {
   const { WithdrawalModel } = await import("../../shared/database/associations");
   const rows = await WithdrawalModel.findAll({ order: [["createdAt", "DESC"]] });

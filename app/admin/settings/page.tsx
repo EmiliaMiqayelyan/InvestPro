@@ -27,6 +27,8 @@ const DEFAULTS: SystemSettings = {
   kycRequired: true,
   contactBlocking: true,
   announcement: "",
+  usdtDepositAddress: "",
+  usdtDepositNetwork: "TRC20",
 };
 
 export default function AdminSettingsPage() {
@@ -89,6 +91,26 @@ export default function AdminSettingsPage() {
                 <Input
                   value={settings.supportEmail}
                   onChange={(e) => setSettings({ ...settings, supportEmail: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>{t("admin.usdtDepositAddress")}</Label>
+                <Input
+                  value={settings.usdtDepositAddress}
+                  onChange={(e) =>
+                    setSettings({ ...settings, usdtDepositAddress: e.target.value })
+                  }
+                  placeholder={t("admin.usdtDepositAddressHint")}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>{t("admin.usdtDepositNetwork")}</Label>
+                <Input
+                  value={settings.usdtDepositNetwork}
+                  onChange={(e) =>
+                    setSettings({ ...settings, usdtDepositNetwork: e.target.value })
+                  }
+                  placeholder="TRC20"
                 />
               </div>
               <div className="space-y-2">

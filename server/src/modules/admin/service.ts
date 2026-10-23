@@ -451,6 +451,8 @@ const DEFAULT_SETTINGS = {
   kycRequired: true,
   contactBlocking: true,
   announcement: "",
+  usdtDepositAddress: "",
+  usdtDepositNetwork: "TRC20",
 };
 
 export async function getSystemSettings() {
@@ -474,6 +476,8 @@ export async function saveSystemSettings(
     maintenanceMode: Boolean(body.maintenanceMode),
     kycRequired: Boolean(body.kycRequired),
     contactBlocking: Boolean(body.contactBlocking),
+    usdtDepositAddress: String(body.usdtDepositAddress ?? "").trim(),
+    usdtDepositNetwork: String(body.usdtDepositNetwork ?? "TRC20").trim() || "TRC20",
   };
 
   let row = await SystemSettingModel.findOne({ where: { key: SETTINGS_KEY } });

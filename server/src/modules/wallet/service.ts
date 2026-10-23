@@ -1,10 +1,13 @@
 import { v4 as uuidv4 } from "uuid";
+import { Op } from "sequelize";
 import { z } from "zod";
 import {
   WalletModel,
   WithdrawalModel,
   PaymentModel,
+  UserModel,
 } from "../../shared/database/associations";
+import { sequelize } from "../../shared/database/sequelize";
 import {
   getOrCreateWallet,
   deposit,
@@ -12,6 +15,7 @@ import {
   listTransactions,
   finalizeWithdrawal,
   releaseWithdrawal,
+  recordLedgerEntry,
 } from "../../shared/financial/ledger";
 import { AppError } from "../../shared/errors/AppError";
 import { env } from "../../app/config/env";
@@ -24,6 +28,7 @@ import type { AuthedRequest } from "../../app/middleware";
 export const depositSchema = z.object({
   amount: z.number().positive(),
   provider: z.string().optional(),
+  txId: z.string().trim().max(128).optional(),
 });
 
 export const withdrawSchema = z.object({
@@ -78,18 +83,35 @@ export async function getTransactions(
   };
 }
 
+export async function getDepositInstructions() {
+  const { getSystemSettings } = await import("../admin/service");
+  const settings = await getSystemSettings();
+  return {
+    address: String(settings.usdtDepositAddress || "").trim(),
+    network: String(settings.usdtDepositNetwork || "TRC20").trim() || "TRC20",
+    asset: "USDT",
+    usdRate: 1,
+  };
+}
+
 export async function createDeposit(
   userId: string,
   body: z.infer<typeof depositSchema>,
   idempotencyKey?: string,
   req?: AuthedRequest
 ) {
+  const txId = body.txId?.trim();
+  if (txId) {
+    return createManualUsdtDeposit(userId, body.amount, txId, idempotencyKey, req);
+  }
   if (!isBinanceConfigured()) {
     if (env.NODE_ENV === "test") {
       const { payment, wallet } = await deposit(userId, body.amount, body.provider);
       return finishInternalDeposit(userId, payment, wallet, body.amount, idempotencyKey, req);
     }
-    throw new AppError("Binance Pay is not configured", 503, { code: "BINANCE_NOT_CONFIGURED" });
+    throw new AppError("Enter the USDT transfer id after you send the payment", 400, {
+      code: "USDT_TX_REQUIRED",
+    });
   }
   const { createBinanceDeposit } = await import("../payments/service");
   const result = await createBinanceDeposit(userId, body.amount);
@@ -150,6 +172,154 @@ async function finishInternalDeposit(
   });
 
   return response;
+}
+
+async function assertManualDepositKyc(userId: string, amount: number) {
+  if (amount < env.BINANCE_KYC_DEPOSIT_USD) return;
+  const user = await UserModel.findByPk(userId);
+  if (!user || user.kycStatus !== "approved") {
+    throw AppError.forbidden("Verify your identity before a deposit of this size");
+  }
+}
+
+export async function createManualUsdtDeposit(
+  userId: string,
+  amount: number,
+  rawTxId: string,
+  idempotencyKey?: string,
+  req?: AuthedRequest
+) {
+  const txId = rawTxId.trim();
+  if (txId.length < 6) throw AppError.badRequest("Enter the full transfer id");
+  await assertManualDepositKyc(userId, amount);
+
+  const instructions = await getDepositInstructions();
+  if (!instructions.address) {
+    throw new AppError("USDT deposit address is not set", 503, { code: "USDT_ADDRESS_MISSING" });
+  }
+
+  const duplicate = await PaymentModel.findOne({
+    where: {
+      provider: "manual_usdt",
+      providerTransactionId: txId,
+      status: { [Op.notIn]: ["rejected", "failed"] },
+    },
+  });
+  if (duplicate) throw AppError.conflict("This transfer id was already submitted");
+
+  const wallet = await getOrCreateWallet(userId);
+  const payment = await PaymentModel.create({
+    id: uuidv4(),
+    userId,
+    walletId: wallet.id,
+    amount,
+    currency: "USD",
+    provider: "manual_usdt",
+    providerTransactionId: txId,
+    type: "deposit",
+    status: "pending",
+    paidAsset: "USDT",
+    paidAmount: amount,
+    fxRate: 1,
+    referenceType: "wallet",
+    referenceId: userId,
+    providerMeta: { network: instructions.network, address: instructions.address },
+    completedAt: null,
+  });
+
+  const response = {
+    payment: {
+      id: payment.id,
+      amount: payment.amount,
+      currency: payment.currency,
+      provider: payment.provider,
+      type: payment.type,
+      status: payment.status,
+      providerTransactionId: payment.providerTransactionId,
+    },
+    wallet: await getWallet(userId),
+  };
+
+  if (idempotencyKey) {
+    await storeIdempotency(userId, idempotencyKey, "deposit", { success: true, data: response }, 201);
+  }
+  await writeAuditLog({
+    actorId: userId,
+    action: "wallet_deposit_submitted",
+    entityType: "payment",
+    entityId: payment.id,
+    newData: { amount, txId, network: instructions.network },
+    req,
+  });
+  return response;
+}
+
+export async function reviewManualDeposit(
+  adminId: string,
+  paymentId: string,
+  decision: "approve" | "reject"
+) {
+  const reviewed = await sequelize.transaction(async (t) => {
+    const payment = await PaymentModel.findByPk(paymentId, {
+      transaction: t,
+      lock: t.LOCK.UPDATE,
+    });
+    if (!payment || payment.provider !== "manual_usdt" || payment.type !== "deposit") {
+      throw AppError.notFound("Manual deposit not found");
+    }
+    if (payment.status !== "pending") {
+      throw AppError.badRequest("This deposit is already reviewed");
+    }
+
+    if (decision === "reject") {
+      payment.status = "rejected";
+      payment.providerMeta = { ...(payment.providerMeta || {}), reviewedBy: adminId };
+      payment.changed("providerMeta", true);
+      await payment.save({ transaction: t });
+      return payment;
+    }
+
+    await recordLedgerEntry(
+      {
+        walletId: payment.walletId,
+        type: "credit",
+        amount: payment.amount,
+        referenceType: "payment",
+        referenceId: payment.id,
+        description: `USDT deposit ${payment.providerTransactionId || payment.id}`,
+      },
+      t
+    );
+    payment.status = "completed";
+    payment.completedAt = new Date();
+    payment.providerMeta = { ...(payment.providerMeta || {}), reviewedBy: adminId };
+    payment.changed("providerMeta", true);
+    await payment.save({ transaction: t });
+    return payment;
+  });
+
+  await writeAuditLog({
+    actorId: adminId,
+    action: decision === "approve" ? "wallet_deposit_approved" : "wallet_deposit_rejected",
+    entityType: "payment",
+    entityId: reviewed.id,
+    newData: { amount: reviewed.amount, status: reviewed.status },
+  });
+
+  if (decision === "approve") {
+    await dispatchNotificationEvent({
+      kind: "wallet_deposit",
+      userId: reviewed.userId,
+      amount: reviewed.amount,
+    });
+  }
+
+  return {
+    id: reviewed.id,
+    status: reviewed.status,
+    amount: reviewed.amount,
+    providerTransactionId: reviewed.providerTransactionId,
+  };
 }
 
 export async function createWithdrawal(

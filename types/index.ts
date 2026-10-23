@@ -502,6 +502,8 @@ export interface SystemSettings {
   kycRequired: boolean;
   contactBlocking: boolean;
   announcement: string;
+  usdtDepositAddress: string;
+  usdtDepositNetwork: string;
 }
 
 export interface Notification {

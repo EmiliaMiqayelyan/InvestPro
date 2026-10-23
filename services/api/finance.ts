@@ -51,16 +51,20 @@ export const walletApi = {
     apiClient.get<ApiResponse<PaginatedResponse<WalletTransaction>>>("/wallet/transactions", {
       params,
     }),
-  deposit: (amount: number, idempotencyKey: string) =>
+  depositInstructions: () =>
+    apiClient.get<
+      ApiResponse<{ address: string; network: string; asset: string; usdRate: number }>
+    >("/wallet/deposit-instructions"),
+  deposit: (amount: number, idempotencyKey: string, txId?: string) =>
     apiClient.post<
       ApiResponse<{
         checkoutUrl?: string;
         wallet?: Wallet;
-        payment?: PaymentReportRow;
+        payment?: { id: string; status: string; providerTransactionId?: string | null };
       }>
     >(
       "/wallet/deposit",
-      { amount },
+      { amount, txId },
       { headers: { "Idempotency-Key": idempotencyKey } }
     ),
   withdraw: (

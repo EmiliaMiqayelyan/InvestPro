@@ -29,6 +29,9 @@ function loadEnvFile(filePath) {
 const root = __dirname;
 const webEnv = loadEnvFile(path.join(root, ".env"));
 const apiEnv = loadEnvFile(path.join(root, "server", ".env"));
+// Next turns this bind address into absolute localhost links.
+delete webEnv.HOSTNAME;
+delete apiEnv.HOSTNAME;
 
 // Next middleware must verify tokens signed by the API — always prefer API secret.
 const jwtSecret = apiEnv.JWT_SECRET || webEnv.JWT_SECRET;

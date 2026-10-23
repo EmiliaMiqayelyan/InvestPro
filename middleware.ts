@@ -3,22 +3,42 @@ import { verifyAccessToken } from "@/lib/server/jwt";
 import { findRouteRule, getRoleHome, GUEST_ONLY_ROUTES } from "@/lib/rbac";
 import { ROUTES } from "@/constants";
 
-function redirectOffLoopback(request: NextRequest): NextResponse | null {
-  const publicHost = process.env.NEXT_PUBLIC_PUBLIC_HOST?.trim();
-  if (!publicHost) return null;
-  const headerHost = request.headers.get("x-forwarded-host") || request.headers.get("host") || "";
-  const hostname = headerHost.split(":")[0];
-  if (hostname !== "localhost" && hostname !== "127.0.0.1" && hostname !== "::1") return null;
-  const url = request.nextUrl.clone();
-  url.hostname = publicHost;
-  url.protocol = "http:";
-  return NextResponse.redirect(url);
+const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "::1", "[::1]"]);
+
+function hostnameOf(host: string): string {
+  return host.replace(/^\[|\]$/g, "").split(":")[0];
+}
+
+/** Browser-facing origin. Never the bind address behind nginx (localhost:3926). */
+function requestOrigin(request: NextRequest): string {
+  const headerHost = (
+    request.headers.get("x-forwarded-host") ||
+    request.headers.get("host") ||
+    ""
+  )
+    .split(",")[0]
+    .trim();
+  const hostname = hostnameOf(headerHost);
+  if (headerHost && !LOOPBACK_HOSTS.has(hostname)) {
+    const proto =
+      request.headers.get("x-forwarded-proto")?.split(",")[0].trim() || "https";
+    return `${proto}://${headerHost}`;
+  }
+  const configured = process.env.NEXT_PUBLIC_PUBLIC_HOST?.trim().replace(/\/$/, "");
+  if (configured) {
+    return configured.startsWith("http") ? configured : `https://${configured}`;
+  }
+  if (process.env.NODE_ENV === "production") return "https://xsinvest.org";
+  return request.nextUrl.origin;
+}
+
+function redirectTo(request: NextRequest, pathname: string): NextResponse {
+  const response = NextResponse.redirect(new URL(pathname, requestOrigin(request)));
+  response.headers.set("Cache-Control", "no-store");
+  return response;
 }
 
 export async function middleware(request: NextRequest) {
-  const loopbackRedirect = redirectOffLoopback(request);
-  if (loopbackRedirect) return loopbackRedirect;
-
   const { pathname } = request.nextUrl;
 
   const rawToken = request.cookies.get("access_token")?.value;
@@ -27,7 +47,7 @@ export async function middleware(request: NextRequest) {
 
   if (GUEST_ONLY_ROUTES.includes(pathname)) {
     if (payload) {
-      return NextResponse.redirect(new URL(getRoleHome(payload.role), request.url));
+      return redirectTo(request, getRoleHome(payload.role));
     }
     return NextResponse.next();
   }
@@ -36,13 +56,15 @@ export async function middleware(request: NextRequest) {
   if (!rule) return NextResponse.next();
 
   if (!payload) {
-    const loginUrl = new URL(ROUTES.LOGIN, request.url);
+    const loginUrl = new URL(ROUTES.LOGIN, requestOrigin(request));
     loginUrl.searchParams.set("redirect", pathname);
-    return NextResponse.redirect(loginUrl);
+    const response = NextResponse.redirect(loginUrl);
+    response.headers.set("Cache-Control", "no-store");
+    return response;
   }
 
   if (rule.roles && !rule.roles.includes(payload.role)) {
-    return NextResponse.redirect(new URL(getRoleHome(payload.role), request.url));
+    return redirectTo(request, getRoleHome(payload.role));
   }
 
   return NextResponse.next();
