@@ -19,7 +19,8 @@ const display = Instrument_Sans({
 
 export const metadata: Metadata = {
   title: `${PLATFORM_NAME} / Investment Marketplace`,
-  description: "Connect innovative projects with trusted investors.",
+  description:
+    "XS Invest helps investors and project owners discover each other and explore possible collaboration.",
   applicationName: PLATFORM_NAME,
 };
 

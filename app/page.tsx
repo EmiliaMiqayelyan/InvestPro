@@ -38,6 +38,7 @@ export default function HomePage() {
     { num: "01", title: t("landing.howStep1Title"), desc: t("landing.howStep1Desc") },
     { num: "02", title: t("landing.howStep2Title"), desc: t("landing.howStep2Desc") },
     { num: "03", title: t("landing.howStep3Title"), desc: t("landing.howStep3Desc") },
+    { num: "04", title: t("landing.howStep4Title"), desc: t("landing.howStep4Desc") },
   ];
 
   const investorBenefits = [
@@ -184,8 +185,8 @@ export default function HomePage() {
           ))}
         </ul>
         <Button className="mt-8" asChild>
-          <Link href={`${ROUTES.REGISTER}?role=investor`}>
-            {t("landing.joinAsInvestor")}
+          <Link href={ROUTES.PROJECTS}>
+            {t("landing.exploreOpportunities")}
             <ArrowRight className="h-4 w-4" />
           </Link>
         </Button>
@@ -214,7 +215,7 @@ export default function HomePage() {
         </ul>
         <Button className="mt-8" asChild>
           <Link href={`${ROUTES.REGISTER}?role=project_owner`}>
-            {t("landing.publishProject")}
+            {t("landing.presentProject")}
             <ArrowRight className="h-4 w-4" />
           </Link>
         </Button>
@@ -316,10 +317,10 @@ export default function HomePage() {
 
       <CtaBand title={t("landing.contactCta")} description={t("landing.contactCtaHelp")}>
         <Button size="lg" variant="onImage" className="shrink-0" asChild>
-          <Link href={ROUTES.REGISTER}>{t("landing.createAccount")}</Link>
+          <Link href={`${ROUTES.REGISTER}?role=investor`}>{t("landing.joinAsInvestor")}</Link>
         </Button>
         <Button size="lg" variant="onImageOutline" className="shrink-0" asChild>
-          <Link href={ROUTES.CONTACT}>{t("landing.contactUs")}</Link>
+          <Link href={`${ROUTES.REGISTER}?role=project_owner`}>{t("landing.publishProject")}</Link>
         </Button>
       </CtaBand>
 

@@ -238,8 +238,11 @@ export function MarketingFooter() {
           </div>
         </div>
       </div>
-      <div className="border-t border-border py-5 text-center text-xs text-muted-foreground">
-        © {new Date().getFullYear()} {t("common.platformName")}. {t("footer.rights")}
+      <div className="border-t border-border px-4 py-6 text-center text-xs leading-relaxed text-muted-foreground sm:px-6">
+        <p className="mx-auto max-w-3xl">{t("footer.risk")}</p>
+        <p className="mt-3">
+          © {new Date().getFullYear()} {t("common.platformName")}. {t("footer.rights")}
+        </p>
       </div>
     </footer>
   );

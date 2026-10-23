@@ -47,6 +47,9 @@ export default function ForInvestorsPage() {
             </div>
           ))}
         </div>
+        <p className="mx-auto mt-10 max-w-3xl text-sm leading-relaxed text-muted-foreground">
+          {t("forInvestorsPage.riskNote")}
+        </p>
       </section>
       <CtaBand title={t("forInvestorsPage.ctaTitle")} description={t("forInvestorsPage.ctaBody")}>
         <Button size="lg" variant="onImage" className="shrink-0" asChild>
